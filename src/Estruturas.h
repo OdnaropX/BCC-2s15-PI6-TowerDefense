@@ -27,7 +27,7 @@ typedef struct _minion {
     float speed; // Movimento por ciclo.
     node node;
 	//Linked list of Shoot
-	list_projectile targetted_projectils;
+	list_projectile *targetted_projectils;
 } minion;
 
 typedef struct _turret{
@@ -45,21 +45,21 @@ typedef struct _projectile{
 //Linked lists//
 
 typedef struct _list_projectile {
- 	projectile e;
+ 	projectile *e;
  	struct _list_projectile *next;
 } list_projectile;
 
 //List minion
 
 typedef struct _list_minion {
-	minion e;
+	minion *e;
 	struct _list_minion *next;
 } list_minion;
 
 //List Tower
 
 typedef struct _list_turret {
-	turret e;
+	turret *e;
 	struct _list_turret *next;
 } list_minion;
 
