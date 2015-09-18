@@ -13,12 +13,14 @@
 
 typedef struct _list_projectile list_projectile;
 
-typedef struct _node
+
+typedef struct node
 {
     double xPos;
     double yPos;
     SDL_Surface sprite;
 } node;
+
 
 typedef struct _minion {
     int HP; // Não é necessário um maxHP, considerando a inexistencia de cura.
@@ -33,15 +35,14 @@ typedef struct _turret{
     float turretType; // isto define o tipo de tiro. Alguma função usará este valor para escolher qual tiro é gerado.
     float radius; // alcance da torre.
     node node;
-	
 } turret;
 
 typedef struct _projectile{
 	int speed;
     node node;
-} projectile;
+};
 
-//Data structure
+//Linked lists//
 
 typedef struct _list_projectile {
  	projectile e;
@@ -62,6 +63,7 @@ typedef struct _list_turret {
 	struct _list_turret *next;
 } list_minion;
 
+// É importante notar que não temos como nos assegurar de que o monstro existira para o tiro. Eventualmente teremos de, ou fazer o tiro mudar de alvo se o monstro morrer, ou fazer o monstro esperar até não ter tiros mirando nele.
 // Favor importar as libs de SDL. Não tenho os arquivos da aula e não sei o que será necessário importar.
 
 
