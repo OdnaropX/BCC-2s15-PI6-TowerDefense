@@ -12,17 +12,32 @@
 #include <stdbool.h>
 
 #include <SDL2/SDL.h>
+#include <SDL2_image/SDL_image.h>
+#include <SDL2_ttf/SDL_ttf.h>
 
-bool main_Init(SDL_Window **window, SDL_Surface **screenSurface);
-void main_Quit(SDL_Window **window);
+SDL_Window *main_Window = NULL;
+SDL_Surface *main_Surface = NULL;
+SDL_Renderer *renderer = NULL;
+
+TTF_Font *title_Font = NULL;
+TTF_Font *desc_Font = NULL;
+TTF_Font *credits_Font = NULL;
+SDL_Texture *title_Texture = NULL;
+SDL_Texture *desc_Texture = NULL;
+SDL_Texture *credits_Texture = NULL;
+
+SDL_Color black = {0, 0, 0, 255};
+SDL_Rect title_Rect = {265, 0, 750, 150};
+SDL_Rect desc_Rect = {440, 375, 400, 50};
+SDL_Rect credits_Rect = {530, 690, 750, 30};
+
+bool main_Init();
+void main_Quit();
 
 int main(int argc, const char * argv[]) {
-    SDL_Window *main_Window = NULL;
-    SDL_Surface *main_Surface = NULL;
-    
     //Main init
-    if(!main_Init(&main_Window, &main_Surface)){
-        main_Quit(&main_Window);
+    if(!main_Init()){
+        main_Quit();
     }
     
     bool quit = false;
@@ -50,20 +65,25 @@ int main(int argc, const char * argv[]) {
             }
         }
         
-        //Fill screen_Surface
-        SDL_FillRect(main_Surface, NULL, 0xFFFFFF);
+        //Clear render
+        SDL_RenderClear(renderer);
         
-        //Update Surface
-        SDL_UpdateWindowSurface(main_Window);
+        //Draw textures
+        SDL_RenderCopy(renderer, title_Texture, NULL, &title_Rect);
+        SDL_RenderCopy(renderer, desc_Texture, NULL, &desc_Rect);
+        SDL_RenderCopy(renderer, credits_Texture, NULL, &credits_Rect);
+        
+        //Update render
+        SDL_RenderPresent(renderer);
     }
     
     //Quit
-    main_Quit(&main_Window);
+    main_Quit();
     return 0;
 }
 
 //Init SDL, configs e menu principal
-bool main_Init(SDL_Window **window, SDL_Surface **screen_Surface){
+bool main_Init(){
     //Read Settings
     FILE *settings = fopen("Config.txt", "r");
     if(!settings){
@@ -84,22 +104,110 @@ bool main_Init(SDL_Window **window, SDL_Surface **screen_Surface){
     }
     
     //Create window
-    *window = SDL_CreateWindow("PI-6 Tower Defense", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screen_Width, screen_Height, SDL_WINDOW_SHOWN);
-    if(!window){
+    main_Window = SDL_CreateWindow("PI-6 Tower Defense", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screen_Width, screen_Height, SDL_WINDOW_SHOWN);
+    if(!main_Window){
         printf("SDL_CreateWindow error: %s\n", SDL_GetError());
         return false;
     }
     
-    //Set
-    *screen_Surface = SDL_GetWindowSurface(*window);
+    //Init renderer
+    renderer = SDL_CreateRenderer(main_Window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    
+    //Init TTF
+    if(TTF_Init() == -1){
+        printf("TTF init error: %s\n", TTF_GetError());
+    }
+    
+    //Title text
+    title_Font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 60);
+    if(!title_Font){
+        printf("Title font not loaded! %s\n", TTF_GetError());
+        return false;
+    }
+    
+    SDL_Surface *title_Surface = TTF_RenderText_Solid(title_Font, "PI-6 Tower Defense", black);
+    
+    if(!title_Surface){
+        printf("Title Text Surface not rendered! %s\n", TTF_GetError());
+        return false;
+    }
+    
+    title_Texture = SDL_CreateTextureFromSurface(renderer, title_Surface);
+    
+    if(!title_Texture){
+        printf("Title text texture not created! %s\n", SDL_GetError());
+        return false;
+    }
+    
+    SDL_FreeSurface(title_Surface);
+    
+    //Desc text
+    desc_Font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 36);
+    if(!desc_Font){
+        printf("Desc font not loaded! %s\n", TTF_GetError());
+        return false;
+    }
+    
+    SDL_Surface *desc_Surface = TTF_RenderText_Solid(desc_Font, "Click to start game", black);
+    
+    if(!desc_Surface){
+        printf("Desc Text Surface not rendered! %s\n", TTF_GetError());
+        return false;
+    }
+    
+    desc_Texture = SDL_CreateTextureFromSurface(renderer, desc_Surface);
+    
+    if(!desc_Texture){
+        printf("Desc text texture not created! %s\n", SDL_GetError());
+        return false;
+    }
+    
+    SDL_FreeSurface(desc_Surface);
+    
+    //Credits text
+    credits_Font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 18);
+    if(!credits_Font){
+        printf("Credits font not loaded! %s\n", TTF_GetError());
+        return false;
+    }
+    
+    SDL_Surface *credits_Surface = TTF_RenderText_Solid(credits_Font, "Made by: Danilo Ikuta, Gabriel Fontenelle and Gabriel Nopper", black);
+    
+    if(!credits_Surface){
+        printf("Credits Text Surface not rendered! %s\n", TTF_GetError());
+        return false;
+    }
+    
+    credits_Texture = SDL_CreateTextureFromSurface(renderer, credits_Surface);
+    
+    if(!credits_Texture){
+        printf("Credits text texture not created! %s\n", SDL_GetError());
+        return false;
+    }
+    
+    SDL_FreeSurface(credits_Surface);
     
     return true;
 }
 
-void main_Quit(SDL_Window **window){
-    //Free window
-    SDL_DestroyWindow(*window);
+void main_Quit(){
+    //Close fonts
+    TTF_CloseFont(title_Font);
+    TTF_CloseFont(desc_Font);
+    TTF_CloseFont(credits_Font);
     
-    //Quit SDL
+    //Destroy textures
+    SDL_DestroyTexture(title_Texture);
+    SDL_DestroyTexture(desc_Texture);
+    SDL_DestroyTexture(credits_Texture);
+    
+    //Free window
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(main_Window);
+    
+    //Quit SDL, TTF, IMG
+    IMG_Quit();
+    TTF_Quit();
     SDL_Quit();
 }
