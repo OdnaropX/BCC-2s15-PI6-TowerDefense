@@ -44,7 +44,7 @@ int setShortestPaths(int **array, int width, int height, int targetX, int target
 				enqueueTwo(currentX + 1, currentY);
 			}
 		}
-		if(currentY > 0){ // Sees up /\
+		if(currentY > 0){ // Sees up
 			int temp = array[currentX][currentY + 1];
 			if(temp < currentValue && temp >= 0){
 				array[currentX][currentY + 1] = currentValue + 1;
@@ -58,7 +58,7 @@ int setShortestPaths(int **array, int width, int height, int targetX, int target
 				enqueueTwo(currentX - 1, currentY);
 			}
 		}
-		if(currentY < height - 1){ // Sees down \/
+		if(currentY < height - 1){ // Sees down 
 			int temp = array[currentX][currentY - 1];
 			if(temp < currentValue && temp >= 0){
 				array[currentX][currentY - 1] = currentValue + 1;
