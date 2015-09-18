@@ -57,21 +57,21 @@ typedef struct _projectile{
 // List Shoots
 
 typedef struct _list_projectile {
- 	projectile e;
+ 	projectile *e;
  	struct _list_projectile *next;
 } list_projectile;
 
 // List minion
 
 typedef struct _list_minion {
-	minion e;
+	minion *e;
 	struct _list_minion *next;
 } list_minion;
 
 // List Tower
 
 typedef struct _list_turret {
-	turret e;
+	turret *e;
 	struct _list_turret *next;
 } list_minion;
 
