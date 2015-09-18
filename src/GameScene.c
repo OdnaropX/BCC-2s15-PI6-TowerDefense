@@ -9,6 +9,7 @@
 #include "GameScene.h"
 #include "Estruturas"
 
+int grid[17][13];
 
 
 
@@ -19,9 +20,12 @@ int game_loop(SDL_Window *window, SDL_Surface *screenSurface){
     
     SDL_Event events;
     
+
     int game_is_active = 1;
     int lifes = 1;
     int gold = 0;
+    
+    
     
     
     while(game_is_active){
@@ -46,6 +50,9 @@ int game_loop(SDL_Window *window, SDL_Surface *screenSurface){
             }
         }
         
+        // Minion routine
+        
+        // Tower Routine
         
         
         
@@ -64,7 +71,10 @@ int game_loop(SDL_Window *window, SDL_Surface *screenSurface){
 
 
 
-
+int getTouchedGridValue(int x, int y){
+    value = grid[x/block_width][y/block_height];
+    return value;
+}
 
 
 

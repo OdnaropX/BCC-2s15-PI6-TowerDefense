@@ -10,6 +10,16 @@
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_Image.h>
+
+
+#define block_width 64
+#define block_height 43
+#define map_array_width 17
+#define map_array_height 13
+#define window_width 1280
+#define window_height 720
+
 
 typedef struct _list_projectile list_projectile;
 
@@ -27,7 +37,7 @@ typedef struct _minion {
     float speed; // Movimento por ciclo.
     node node;
 	//Linked list of Shoot
-	list_projectile targetted_projectils;
+	list_projectile *targetted_projectils;
 } minion;
 
 typedef struct _turret{
@@ -39,24 +49,26 @@ typedef struct _turret{
 
 typedef struct _projectile{
 	int speed;
+    int damage;
     node node;
 };
 
-//Linked lists//
+// Linked lists
+// List Shoots
 
 typedef struct _list_projectile {
  	projectile e;
  	struct _list_projectile *next;
 } list_projectile;
 
-//List minion
+// List minion
 
 typedef struct _list_minion {
 	minion e;
 	struct _list_minion *next;
 } list_minion;
 
-//List Tower
+// List Tower
 
 typedef struct _list_turret {
 	turret e;
