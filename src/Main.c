@@ -29,6 +29,10 @@ SDL_Texture *desc_Texture = NULL;
 SDL_Texture *credits_Texture = NULL;
 
 SDL_Color black = {0, 0, 0, 255};
+SDL_Color white = {0, 0, 0, 255};
+SDL_Color green = {0, 255, 0, 255};
+SDL_Color red = {255, 0, 0, 255};
+
 SDL_Rect title_Rect = {265, 0, 750, 150};
 SDL_Rect desc_Rect = {440, 375, 400, 50};
 SDL_Rect credits_Rect = {530, 690, 750, 30};
@@ -44,9 +48,14 @@ int main(int argc, const char * argv[]) {
     
     bool quit = false;
 	screen current_screen = MAIN;
+	main_options main_option = NONE;
     tab current_tab = TOP_MENU;
     SDL_Event event;
     
+	bool game_started = false;
+	bool game_paused = false;
+	bool clicked = false;
+	
     //Main loop
     while(!quit){
         //Event Handler
@@ -68,6 +77,7 @@ int main(int argc, const char * argv[]) {
 						//Keypad enter
 						case SDLK_KP_ENTER:
 							//Check current selected option
+							
 							
 							break;
 						//Keyboard enter
@@ -91,6 +101,44 @@ int main(int argc, const char * argv[]) {
 						case SDLK_DOWN:
 							//Change current selected option
 							
+							break;
+						
+						//Handle mouse event
+						case SDL_MOUSEBUTTONUP:
+							clicked = false;
+							main_option = NONE;
+										
+							if(event.button.button == SDL_BUTTON_LEFT){
+								//Check if location selected is a valid one
+								if (event.motion.x >=  && event.motion.x <= ) {//Near main config
+									if (event.motion.y >= && event.motion.y <= ) {//First option
+										clicked = true;
+										main_option = PLAY;
+									}
+									else if(event.motion.y >= && event.motion.y <= ) {
+										clicked = true;
+										main_option = CONFIG;
+										
+									}
+									else if(event.motion.y >= && event.motion.y <= ) {
+										clicked = true;
+										main_option = SCORE;
+										
+									}
+									else if(event.motion.y >= && event.motion.y <= ) {
+										clicked = true;
+										main_option = EXIT;
+										
+									}
+								}
+								else if (event.motion.x >= && event.motion.x <= ) {
+								//Near credits 
+									if(event.motion.y >= && event.motion.y <= ) {
+										clicked = true;
+										main_option = CREDIT;
+									}
+								}								
+							}
 							break;
 					}
 					
@@ -132,6 +180,37 @@ int main(int argc, const char * argv[]) {
 						case SDLK_DOWN:
 							//Change current selected option
 							
+							break;
+							
+						//Handle mouse event
+						case SDL_MOUSEBUTTONUP:
+							clicked = false;
+							main_option = NONE;
+										
+							if(event.button.button == SDL_BUTTON_LEFT){
+								//Check if location selected is a valid one
+								if (event.motion.x >=  && event.motion.x <= ) {//Near main config
+									if (event.motion.y >= && event.motion.y <= ) {//First option
+										clicked = true;
+										
+									}
+									else if(event.motion.y >= && event.motion.y <= ) {
+										clicked = true;
+										
+										
+									}
+									else if(event.motion.y >= && event.motion.y <= ) {
+										clicked = true;
+										
+										
+									}
+									else if(event.motion.y >= && event.motion.y <= ) {
+										clicked = true;
+										
+										
+									}
+								}
+							}
 							break;
 					}
 					break;
@@ -316,21 +395,65 @@ int main(int argc, const char * argv[]) {
 		/////////////////////////////////////////////////////
 		switch(current_screen) {
 			case MAIN:
-			
+				//if option
+				switch(main_option){
+					case PLAY:
+						game_started = true;
+						//Generate Map and resources to use on Game_Running
+					
+					
+						//Change current screen.
+						current_screen = main_options.GAME_RUNNING;
+					case EXIT:
+						quit = true;
+						break;
+					case CONFIG:
+						current_screen = main_options.CONFIG;
+						break;
+					case SCORE:
+						//Load SCORE data from someplace in time
+						
+						
+						current_screen = main_options.SCORE;
+						break;
+					case CREDIT:
+						//Load Credits from file or use hardcoded.
+					
+						current_screen = main_options.CREDIT;
+					case NONE:
+						//Do nothing.
+						break;
+				}
+				
 				break;
 			case CONFIG:
+				switch(config_option) {
+				
+				
+				}
 				break;
 			
 			case GAME_RUNNING:
+				switch(game_option) {
+				
+				
+				}
 				break;
 			
 			case GAME_PAUSED:
+				switch(pause_option) {
+				
+				
+				}
 				break;
 				
 		}
 		
 		//Scene Renderer 
 		/////////////////////////////////////////////////////
+		
+		//delay render to 60 fps.
+		
         //Clear render
         SDL_RenderClear(renderer);
         

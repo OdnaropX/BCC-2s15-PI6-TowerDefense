@@ -22,4 +22,23 @@
 
 //Renderer options, like text display, middle width calculation, etc...
 
+//Function used to get the center of a object on a position, given a space and object.
+int get_center(int space_size, int object_size);
+
+void drawn_phrase();
+
+void drawn_text();
+
+void drawn_screen_main();
+
+void drawn_screen_config();
+
+void drawn_screen_game_running();
+
+void drawn_screen_game_paused();
+
+//Screen used while initiating game and loading required data.
+void drawn_screen_sprite();
+
+
 #endif /* defined(__Tower_Defense__Renderer__) */
