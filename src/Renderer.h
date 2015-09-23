@@ -1,0 +1,25 @@
+//
+//  Estruturas.h
+//
+//  Created by Gabriel Nopper on 29/08/15.
+//  Copyright (c) 2015 Gabriel Nopper. All rights reserved.
+//
+
+#ifndef __Tower_Defense__Renderer__
+#define __Tower_Defense__Renderer__
+
+#include <stdio.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_Image.h>
+
+
+#define block_width 64
+#define block_height 43
+#define map_array_width 17
+#define map_array_height 13
+#define window_width 1280
+#define window_height 720
+
+//Renderer options, like text display, middle width calculation, etc...
+
+#endif /* defined(__Tower_Defense__Renderer__) */
