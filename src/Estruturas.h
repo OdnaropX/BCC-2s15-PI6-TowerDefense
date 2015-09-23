@@ -47,7 +47,7 @@ typedef struct _turret{
     node node;
 } turret;
 
-typedef struct _projectile{
+typedef struct _projectile {
 	int speed;
     int damage;
     node node;
@@ -74,6 +74,11 @@ typedef struct _list_turret {
 	turret *e;
 	struct _list_turret *next;
 } list_minion;
+
+#Define MAIN_SCREEN
+typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED} screen;
+	 
+typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA} tab;
 
 // É importante notar que não temos como nos assegurar de que o monstro existira para o tiro. Eventualmente teremos de, ou fazer o tiro mudar de alvo se o monstro morrer, ou fazer o monstro esperar até não ter tiros mirando nele.
 // Favor importar as libs de SDL. Não tenho os arquivos da aula e não sei o que será necessário importar.

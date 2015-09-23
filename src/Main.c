@@ -15,6 +15,8 @@
 #include <SDL2_image/SDL_image.h>
 #include <SDL2_ttf/SDL_ttf.h>
 
+#include "Estruturas.h"
+
 SDL_Window *main_Window = NULL;
 SDL_Surface *main_Surface = NULL;
 SDL_Renderer *renderer = NULL;
@@ -41,30 +43,294 @@ int main(int argc, const char * argv[]) {
     }
     
     bool quit = false;
-    
+	screen current_screen = MAIN;
+    tab current_tab = TOP_MENU;
     SDL_Event event;
     
     //Main loop
     while(!quit){
         //Event Handler
-        while(SDL_PollEvent(&event) != 0){
-            switch (event.type) {
-                //Quit
-                case SDL_QUIT:
-                    quit = true;
-                    break;
-                
-                //Left Click(play game)
-                case SDL_MOUSEBUTTONUP:
-                    if(event.button.button == SDL_BUTTON_LEFT)
-                        printf("play game!\n");
-                    break;
-                    
-                default:
-                    break;
-            }
+        ///////////////////////////////////////////////////
+		while(SDL_PollEvent(&event) != 0){
+			switch (current_screen){
+				//Main screen event
+				case MAIN:
+					//Main screen events handled
+					switch (event.type) {
+						//Quit
+						case SDL_QUIT:
+							quit = true;
+							break;
+						//Escape key
+						case SDLK_ESCAPE:
+							quit = true;
+							break;
+						//Keypad enter
+						case SDLK_KP_ENTER:
+							//Check current selected option
+							
+							break;
+						//Keyboard enter
+						case SDLK_RETURN:
+							//Check current selected option and initiated it.
+						
+							break
+						case SDLK_UP:
+							//Change current selected option
+							break;
+						
+						case SDLK_LEFT:
+							//Change current selected option
+						
+							break;
+						case SDLK_RIGHT:
+							//Change current selected option
+						
+							break;
+						
+						case SDLK_DOWN:
+							//Change current selected option
+							
+							break;
+					}
+					
+					break;
+				case CONFIG:
+					switch (event.type) {
+						//Quit
+						case SDL_QUIT:
+							quit = true;
+							break;
+						//Escape
+						case SDLK_ESCAPE:
+							//Go back main screen
+							
+							break;	
+						//Keypad enter
+						case SDLK_KP_ENTER:
+							//Check current selected option
+							
+							break;
+						//Keyboard enter
+						case SDLK_RETURN:
+							//Check current selected option and initiated it.
+						
+							break
+						case SDLK_UP:
+							//Change current selected option
+							break;
+						
+						case SDLK_LEFT:
+							//Change current selected option
+						
+							break;
+						case SDLK_RIGHT:
+							//Change current selected option
+						
+							break;
+						
+						case SDLK_DOWN:
+							//Change current selected option
+							
+							break;
+					}
+					break;
+				case GAME_RUNNING:
+					switch (event.type) {
+						//Quit
+						case SDL_QUIT:
+							quit = true;
+							break;
+						//Escape
+						case SDLK_ESCAPE:
+							//Show Game Pause screen with options
+							
+							break;	
+						//Keypad enter
+						case SDLK_KP_ENTER:
+							//Check current action selected from menu and initiated it.
+							
+							break;
+						//Keyboard enter
+						case SDLK_RETURN:
+							//Check current action selected from menu and initiated it.
+						
+							break;
+						case SDLK_TAB:
+							//Move selector location
+							current_tab = (current_tab + 1) % 4;
+							
+							break;
+						case SDLK_UP:
+							//Move selected selector. Selector is choose with tab.
+							switch(current_tab) {
+								case TOP_MENU:
+									//Move up top menu
+									
+									break;
+								
+								case LEFT_MENU:
+									//Move up left menu
+									
+									break;
+								
+								case BOTTOM_MENU:
+									//Move up bottom menu
+									
+									break;
+								
+								case GAME_AREA:
+									//Move up mouse cursor from GAME_AREA
+									
+									break;
+							}
+							break;
+						
+						case SDLK_LEFT:
+							//Move selected selector. Selector is choose with tab.
+							switch(current_tab) {
+								case TOP_MENU:
+									//Move left top menu
+									
+									break;
+								
+								case LEFT_MENU:
+									//Move left left menu
+									
+									break;
+								
+								case BOTTOM_MENU:
+									//Move left bottom menu
+									
+									break;
+								
+								case GAME_AREA:
+									//Move left mouse cursor from GAME_AREA
+									
+									break;
+							}
+							break;
+						case SDLK_RIGHT:
+							//Move selected selector. Selector is choose with tab.
+							switch(current_tab) {
+								case TOP_MENU:
+									//Move right top menu
+									
+									break;
+								
+								case LEFT_MENU:
+									//Move right left menu
+									
+									break;
+								
+								case BOTTOM_MENU:
+									//Move right bottom menu
+									
+									break;
+								
+								case GAME_AREA:
+									//Move right mouse cursor from GAME_AREA
+									
+									break;
+							}
+							break;
+						
+						case SDLK_DOWN:
+							//Move selected selector. Selector is choose with tab.
+							switch(current_tab) {
+								case TOP_MENU:
+									//Move down top menu
+									
+									break;
+								
+								case LEFT_MENU:
+									//Move down left menu
+									
+									break;
+								
+								case BOTTOM_MENU:
+									//Move down bottom menu
+									
+									break;
+								
+								case GAME_AREA:
+									//Move down mouse cursor from GAME_AREA
+									
+									break;
+							}
+							break;
+					break;
+				
+				case GAME_PAUSED:
+					switch (event.type) {
+						//Quit
+						case SDL_QUIT:
+							quit = true;
+							break;
+						//Escape
+						case SDLK_ESCAPE:
+							//Return to play the game
+							
+							
+							break;	
+						//Keypad enter
+						case SDLK_KP_ENTER:
+							//Check current action selected from menu paused and initiated it.
+							
+							break;
+						//Keyboard enter
+						case SDLK_RETURN:
+							//Check current action selected from menu paused and initiated it.
+							
+							break;
+						case SDLK_UP:
+							//Move to option above
+							break;
+						case SDLK_LEFT:
+							//Move to option left 
+						
+							break;
+						case SDLK_RIGHT:
+							//Move to option right
+						
+							break;
+							
+						case SDLK_DOWN:
+							//Move to option bellow
+							
+							break;
+						
+						//Handle mouse event
+						case SDL_MOUSEBUTTONUP:
+							if(event.button.button == SDL_BUTTON_LEFT){
+								//Check if location selected is a valid one
+							}
+							break;
+							
+							
+					}
+			}
         }
         
+		//Action Performancer
+		/////////////////////////////////////////////////////
+		switch(current_screen) {
+			case MAIN:
+			
+				break;
+			case CONFIG:
+				break;
+			
+			case GAME_RUNNING:
+				break;
+			
+			case GAME_PAUSED:
+				break;
+				
+		}
+		
+		//Scene Renderer 
+		/////////////////////////////////////////////////////
         //Clear render
         SDL_RenderClear(renderer);
         
