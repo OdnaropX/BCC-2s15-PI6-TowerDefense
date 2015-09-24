@@ -12,13 +12,14 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_Image.h>
 
-
 #define block_width 64
 #define block_height 43
 #define map_array_width 17
 #define map_array_height 13
 #define window_width 1280
 #define window_height 720
+#define button_menu_height 30
+#define button
 
 //Renderer options, like text display, middle width calculation, etc...
 

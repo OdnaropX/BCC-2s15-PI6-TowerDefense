@@ -14,14 +14,6 @@
 #include <SDL2_image/SDL_image.h>
 
 
-#define block_width 64
-#define block_height 43
-#define map_array_width 17
-#define map_array_height 13
-#define window_width 1280
-#define window_height 720
-
-
 typedef struct _list_projectile list_projectile;
 
 
