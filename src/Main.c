@@ -48,6 +48,7 @@ int main(int argc, const char * argv[]) {
     
     bool quit = false;
 	screen current_screen = MAIN;
+	screen previous_screen = MAIN;
 	main_options main_option = NONE;
     tab current_tab = TOP_MENU;
     SDL_Event event;
@@ -191,6 +192,7 @@ int main(int argc, const char * argv[]) {
 								//Check if location selected is a valid one
 								if (event.motion.x >=  && event.motion.x <= ) {//Near main config
 									if (event.motion.y >= && event.motion.y <= ) {//First option
+										//Trogle option
 										clicked = true;
 										
 									}
@@ -403,23 +405,24 @@ int main(int argc, const char * argv[]) {
 					
 					
 						//Change current screen.
-						current_screen = main_options.GAME_RUNNING;
+						current_screen = screen.GAME_RUNNING;
 					case EXIT:
 						quit = true;
 						break;
 					case CONFIG:
-						current_screen = main_options.CONFIG;
+						current_screen = screen.CONFIG;
+						previous_screen = screen.MAIN;
 						break;
 					case SCORE:
 						//Load SCORE data from someplace in time
 						
 						
-						current_screen = main_options.SCORE;
+						current_screen = screen.SCORE;
 						break;
 					case CREDIT:
 						//Load Credits from file or use hardcoded.
 					
-						current_screen = main_options.CREDIT;
+						current_screen = screen.CREDIT;
 					case NONE:
 						//Do nothing.
 						break;
@@ -428,22 +431,68 @@ int main(int argc, const char * argv[]) {
 				break;
 			case CONFIG:
 				switch(config_option) {
-				
-				
+					case MUSIC_EFFECT:
+						//Trogle efffect muisc
+						break;
+					case MUSIC_AMBIENCE:
+						//Trogle ambience music
+						
+						break;
+					case LANGUAGE:
+						//Change select language
+						
+						break;
+						
+					case BACK:
+						//Check if the previous_screen is GAME_PAUSED or MAIN.
+						if (previous_screen == screen.MAIN) {
+							current_screen = screen.MAIN;
+						}
+						else if (previous_screen == screen.GAME_PAUSED){
+							current_screen = screen.GAME_PAUSED;
+						}
+						break;
+					case NONE:
+						//Do nothing.
+						break;
 				}
 				break;
 			
 			case GAME_RUNNING:
 				switch(game_option) {
-				
-				
+					if (clicked){
+						
+						
+						
+					}
+					
 				}
 				break;
 			
 			case GAME_PAUSED:
+				if(clicked) {
+					
+				}
+			
 				switch(pause_option) {
-				
-				
+					case RESUME:
+						current_screen = screen.GAME_RUNNING;
+						
+						break;
+						
+					case EXIT:
+						quit = true;
+						break;
+					case MAIN:
+						current_screen = screen.MAIN;
+						game_started = false;
+						game_paused = false;
+					case CONFIG:
+						current_screen = screen.CONFIG;
+						previous_screen = screen.GAME_PAUSED;
+					case NONE:
+						//Do nothing
+						break;
 				}
 				break;
 				

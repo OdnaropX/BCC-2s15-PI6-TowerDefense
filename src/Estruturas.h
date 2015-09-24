@@ -76,9 +76,20 @@ typedef struct _list_turret {
 } list_minion;
 
 #Define MAIN_SCREEN
-typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED} screen;
+typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDIT} screen;
 	 
 typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA} tab;
+
+typedef enum _main_options {PLAY, CONFIG, SCORE, EXIT, CREDIT, NONE} main_options;
+
+typedef enum _config_options{MUSIC_EFFECT, MUSIC_AMBIENCE, LANGUAGE, BACK, NONE} config_options;
+
+typedef struct _configuration {
+	bool music_effect;
+	bool music_ambienace;
+	char *language;
+} 
+
 
 // É importante notar que não temos como nos assegurar de que o monstro existira para o tiro. Eventualmente teremos de, ou fazer o tiro mudar de alvo se o monstro morrer, ou fazer o monstro esperar até não ter tiros mirando nele.
 // Favor importar as libs de SDL. Não tenho os arquivos da aula e não sei o que será necessário importar.
