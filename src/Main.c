@@ -17,6 +17,8 @@
 
 #include "Estruturas.h"
 
+#include "Renderer.h"
+
 SDL_Window *main_Window;
 SDL_Surface *main_Surface;
 SDL_Renderer *renderer;
