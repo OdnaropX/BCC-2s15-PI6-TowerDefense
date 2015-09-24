@@ -1,6 +1,8 @@
 // path.c
 // by Gabriel Nopper
 
+#include <stdio.h>
+
 
 int queueSize = 0; // Where the queue ends
 

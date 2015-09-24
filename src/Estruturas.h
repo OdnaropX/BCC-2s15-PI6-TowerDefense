@@ -9,8 +9,9 @@
 #define __Tower_Defense__Estruturas__
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_Image.h>
+#include <SDL2_image/SDL_image.h>
 
 
 #define block_width 64
@@ -28,7 +29,7 @@ typedef struct node
 {
     double xPos;
     double yPos;
-    SDL_Surface sprite;
+    SDL_Surface *sprite;
 } node;
 
 
@@ -51,7 +52,7 @@ typedef struct _projectile {
 	int speed;
     int damage;
     node node;
-};
+} projectile;
 
 // Linked lists
 // List Shoots
@@ -73,14 +74,15 @@ typedef struct _list_minion {
 typedef struct _list_turret {
 	turret *e;
 	struct _list_turret *next;
-} list_minion;
+} list_turret;
 
 #Define MAIN_SCREEN
-typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDIT} screen;
+typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS} screen;
+
 	 
 typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA} tab;
 
-typedef enum _main_options {PLAY, CONFIG, SCORE, EXIT, CREDIT, NONE} main_options;
+typedef enum _main_options {OPT_PLAY, OPT_CONFIG, OPT_SCORE, OPT_EXIT, OPT_CREDIT, OPT_NONE} main_options;
 
 typedef enum _config_options{MUSIC_EFFECT, MUSIC_AMBIENCE, LANGUAGE, BACK, NONE} config_options;
 
@@ -88,7 +90,7 @@ typedef struct _configuration {
 	bool music_effect;
 	bool music_ambienace;
 	char *language;
-} 
+} configuration;
 
 
 // É importante notar que não temos como nos assegurar de que o monstro existira para o tiro. Eventualmente teremos de, ou fazer o tiro mudar de alvo se o monstro morrer, ou fazer o monstro esperar até não ter tiros mirando nele.
