@@ -405,24 +405,24 @@ int main(int argc, const char * argv[]) {
 					
 					
 						//Change current screen.
-						current_screen = screen.GAME_RUNNING;
+						current_screen = GAME_RUNNING;
 					case EXIT:
 						quit = true;
 						break;
 					case CONFIG:
-						current_screen = screen.CONFIG;
-						previous_screen = screen.MAIN;
+						current_screen = CONFIG;
+						previous_screen = MAIN;
 						break;
 					case SCORE:
 						//Load SCORE data from someplace in time
 						
 						
-						current_screen = screen.SCORE;
+						current_screen = SCORE;
 						break;
 					case CREDIT:
 						//Load Credits from file or use hardcoded.
 					
-						current_screen = screen.CREDIT;
+						current_screen = CREDITS;
 					case NONE:
 						//Do nothing.
 						break;
