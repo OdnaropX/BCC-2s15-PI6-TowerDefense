@@ -33,6 +33,9 @@ typedef struct _minion {
 	list_projectile *targetted_projectils;
 } minion;
 
+minion *init_minion(int minionID);
+void remove_minion(minion *mium);
+
 typedef struct _turret{
     float timeUntilNextAttack; // Tempo de espera até atirar novamente.
     float turretType; // isto define o tipo de tiro. Alguma função usará este valor para escolher qual tiro é gerado.
@@ -40,11 +43,17 @@ typedef struct _turret{
     node node;
 } turret;
 
+turret *init_turret(int turretID, int gridX, int gridY);
+void remove_turret(turret *turret);
+
 typedef struct _projectile {
 	int speed;
     int damage;
     node node;
 } projectile;
+
+projectile *init_projectile(int projectileID, turret* shooter);
+void remove_projectile(projectile *proj);
 
 // Linked lists
 // List Shoots

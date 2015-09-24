@@ -40,8 +40,8 @@ turret *init_turret(int turretID, int gridX, int gridY){
     new_turret->radius = 200;
     
     
-    new_turret->node.xPos = gridX * block_width;
-    new_turret->node.yPos = gridY * block_height;
+    new_turret->node.xPos = gridX * 17;
+    new_turret->node.yPos = gridY * 13;
     new_turret->node.sprite = IMG_Load("Turret.png");
     
     return new_turret;
