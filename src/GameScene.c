@@ -74,7 +74,7 @@ int game_loop(SDL_Window *window, SDL_Surface *screenSurface){
 
 
 int getTouchedGridValue(int x, int y){
-    value = grid[x/block_width][y/block_height];
+    int value = grid[x/block_width][y/block_height];
     return value;
 }
 
@@ -88,8 +88,8 @@ int getTouchedGridValue(int x, int y){
  **/
 int Draw_Node_Normal(SDL_Surface *screen, node *drawn_node, bool tower){
     SDL_Rect rect;
-    rect.w = drawn_node->sprite.w;
-    rect.h = drawn_node->sprite.h;
+    rect.w = drawn_node->sprite->w;
+    rect.h = drawn_node->sprite->h;
     rect.x = drawn_node->xPos - (rect.w/2);
     rect.y = drawn_node->yPos - (rect.h/2);
     
@@ -97,7 +97,7 @@ int Draw_Node_Normal(SDL_Surface *screen, node *drawn_node, bool tower){
         rect.y = drawn_node->yPos - rect.h + (rect.w/2);
     }
     
-    SDL_BlitSurface(&drawn_node->sprite, NULL, screen, &rect);
+    SDL_BlitSurface(drawn_node->sprite, NULL, screen, &rect);
     
     return 0;
 }

@@ -17,16 +17,16 @@
 
 #include "Estruturas.h"
 
-SDL_Window *main_Window = NULL;
-SDL_Surface *main_Surface = NULL;
-SDL_Renderer *renderer = NULL;
+SDL_Window *main_Window;
+SDL_Surface *main_Surface;
+SDL_Renderer *renderer;
 
-TTF_Font *title_Font = NULL;
-TTF_Font *desc_Font = NULL;
-TTF_Font *credits_Font = NULL;
-SDL_Texture *title_Texture = NULL;
-SDL_Texture *desc_Texture = NULL;
-SDL_Texture *credits_Texture = NULL;
+TTF_Font *title_Font;
+TTF_Font *desc_Font;
+TTF_Font *credits_Font;
+SDL_Texture *title_Texture;
+SDL_Texture *desc_Texture;
+SDL_Texture *credits_Texture;
 
 SDL_Color black = {0, 0, 0, 255};
 SDL_Color white = {0, 0, 0, 255};
@@ -49,7 +49,8 @@ int main(int argc, const char * argv[]) {
     bool quit = false;
 	screen current_screen = MAIN;
 	screen previous_screen = MAIN;
-	main_options main_option = NONE;
+	main_options main_option = OPT_NONE;
+    config_options options = NONE;
     tab current_tab = TOP_MENU;
     SDL_Event event;
     
@@ -85,7 +86,7 @@ int main(int argc, const char * argv[]) {
 						case SDLK_RETURN:
 							//Check current selected option and initiated it.
 						
-							break
+                            break;
 						case SDLK_UP:
 							//Change current selected option
 							break;
@@ -107,10 +108,11 @@ int main(int argc, const char * argv[]) {
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
 							clicked = false;
-							main_option = NONE;
+							main_option = OPT_NONE;
 										
 							if(event.button.button == SDL_BUTTON_LEFT){
 								//Check if location selected is a valid one
+                                /* Para evitar erros
 								if (event.motion.x >=  && event.motion.x <= ) {//Near main config
 									if (event.motion.y >= && event.motion.y <= ) {//First option
 										clicked = true;
@@ -138,12 +140,14 @@ int main(int argc, const char * argv[]) {
 										clicked = true;
 										main_option = CREDIT;
 									}
-								}								
+								}*/
 							}
+                            
 							break;
 					}
 					
 					break;
+                    
 				case CONFIG:
 					switch (event.type) {
 						//Quit
@@ -164,7 +168,7 @@ int main(int argc, const char * argv[]) {
 						case SDLK_RETURN:
 							//Check current selected option and initiated it.
 						
-							break
+                            break;
 						case SDLK_UP:
 							//Change current selected option
 							break;
@@ -186,9 +190,10 @@ int main(int argc, const char * argv[]) {
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
 							clicked = false;
-							main_option = NONE;
+							main_option = OPT_NONE;
 										
 							if(event.button.button == SDL_BUTTON_LEFT){
+                                /*Comment p/ evitar erros
 								//Check if location selected is a valid one
 								if (event.motion.x >=  && event.motion.x <= ) {//Near main config
 									if (event.motion.y >= && event.motion.y <= ) {//First option
@@ -211,11 +216,13 @@ int main(int argc, const char * argv[]) {
 										
 										
 									}
-								}
+								}*/
 							}
+                            
 							break;
 					}
 					break;
+                    
 				case GAME_RUNNING:
 					switch (event.type) {
 						//Quit
@@ -265,6 +272,7 @@ int main(int argc, const char * argv[]) {
 									
 									break;
 							}
+                            
 							break;
 						
 						case SDLK_LEFT:
@@ -291,6 +299,7 @@ int main(int argc, const char * argv[]) {
 									break;
 							}
 							break;
+                            
 						case SDLK_RIGHT:
 							//Move selected selector. Selector is choose with tab.
 							switch(current_tab) {
@@ -387,10 +396,10 @@ int main(int argc, const char * argv[]) {
 								//Check if location selected is a valid one
 							}
 							break;
-							
-							
+                            
 					}
 			}
+            }
         }
         
 		//Action Performancer
@@ -399,31 +408,31 @@ int main(int argc, const char * argv[]) {
 			case MAIN:
 				//if option
 				switch(main_option){
-					case PLAY:
+					case OPT_PLAY:
 						game_started = true;
 						//Generate Map and resources to use on Game_Running
 					
 					
 						//Change current screen.
 						current_screen = GAME_RUNNING;
-					case EXIT:
+					case OPT_EXIT:
 						quit = true;
 						break;
-					case CONFIG:
+					case OPT_CONFIG:
 						current_screen = CONFIG;
 						previous_screen = MAIN;
 						break;
-					case SCORE:
+					case OPT_SCORE:
 						//Load SCORE data from someplace in time
 						
 						
 						current_screen = SCORE;
 						break;
-					case CREDIT:
+					case OPT_CREDIT:
 						//Load Credits from file or use hardcoded.
-					
+
 						current_screen = CREDITS;
-					case NONE:
+					case OPT_NONE:
 						//Do nothing.
 						break;
 				}
@@ -445,11 +454,11 @@ int main(int argc, const char * argv[]) {
 						
 					case BACK:
 						//Check if the previous_screen is GAME_PAUSED or MAIN.
-						if (previous_screen == screen.MAIN) {
-							current_screen = screen.MAIN;
+						if (previous_screen == MAIN) {
+							current_screen = MAIN;
 						}
-						else if (previous_screen == screen.GAME_PAUSED){
-							current_screen = screen.GAME_PAUSED;
+						else if (previous_screen == GAME_PAUSED){
+							current_screen = GAME_PAUSED;
 						}
 						break;
 					case NONE:
@@ -476,7 +485,7 @@ int main(int argc, const char * argv[]) {
 			
 				switch(pause_option) {
 					case RESUME:
-						current_screen = screen.GAME_RUNNING;
+						current_screen = GAME_RUNNING;
 						
 						break;
 						
@@ -484,18 +493,17 @@ int main(int argc, const char * argv[]) {
 						quit = true;
 						break;
 					case MAIN:
-						current_screen = screen.MAIN;
+						current_screen = MAIN;
 						game_started = false;
 						game_paused = false;
 					case CONFIG:
-						current_screen = screen.CONFIG;
-						previous_screen = screen.GAME_PAUSED;
+						current_screen = CONFIG;
+						previous_screen = GAME_PAUSED;
 					case NONE:
 						//Do nothing
 						break;
 				}
 				break;
-				
 		}
 		
 		//Scene Renderer 

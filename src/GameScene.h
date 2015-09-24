@@ -11,4 +11,8 @@
 
 #include <stdio.h>
 
+typedef enum _screens {MAIN, CONFIGConfig = 2, GameRunning = 3, GamePaused = 4} screen;
+	 
+
+
 #endif /* defined(____GameScene__) */
