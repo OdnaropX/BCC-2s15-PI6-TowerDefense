@@ -23,9 +23,7 @@ int game_loop(SDL_Window *window, SDL_Surface *screenSurface){
     SDL_Event events;
     
 
-    int game_is_active = 1;
-    int lifes = 1;
-    int gold = 0;
+    
     
     
     
@@ -73,11 +71,6 @@ int game_loop(SDL_Window *window, SDL_Surface *screenSurface){
 
 
 
-int getTouchedGridValue(int x, int y){
-    int value = grid[x/block_width][y/block_height];
-    return value;
-}
-
 
 
 /**
@@ -86,7 +79,7 @@ int getTouchedGridValue(int x, int y){
  2- The drawn_node is the node you want to draw.
  3- Boolean value tower limits draw position, so that towers are placed into slots properly.
  **/
-int Draw_Node_Normal(SDL_Surface *screen, node *drawn_node, bool tower){
+int Draw_Node(SDL_Surface *screen, node *drawn_node, bool tower){
     SDL_Rect rect;
     rect.w = drawn_node->sprite->w;
     rect.h = drawn_node->sprite->h;

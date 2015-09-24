@@ -59,6 +59,12 @@ int main(int argc, const char * argv[]) {
 	bool game_started = false;
 	bool game_paused = false;
 	bool clicked = false;
+    int game_is_active = 1;
+    int lifes = 1;
+    int gold = 0;
+    
+    // Following parts are only for first interation;
+    int monsterSpawner[] = {6, 8, 12, 14, 17, 18, 25, 16, 18, 50};
 	
     //Main loop
     while(!quit){
@@ -658,4 +664,9 @@ void main_Quit(){
     IMG_Quit();
     TTF_Quit();
     SDL_Quit();
+}
+
+int getTouchedGridValue(int x, int y){
+    int value = grid[x/block_width][y/block_height];
+    return value;
 }
