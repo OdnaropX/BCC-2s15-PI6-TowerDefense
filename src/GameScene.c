@@ -27,6 +27,9 @@ int game_loop(SDL_Window *window, SDL_Surface *screenSurface){
     int lifes = 1;
     int gold = 0;
     
+// Following parts are only for first interation;
+    int monsterSpawner[] = {6, 8, 12, 14, 17, 18, 25, 16, 18, 50};
+    
     
     
     
