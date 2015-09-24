@@ -14,64 +14,80 @@
 int grid[17][13];
 
 
-
-
-
-
-int game_loop(SDL_Window *window, SDL_Surface *screenSurface){
+/*
+ Retorna 0 em sucesso e 1 em caso de colisão.
+ */
+int move_bullet(minion *target, projectile *shoot){
     
-    SDL_Event events;
+    // 1 - Get required properties.
+    int diff_x = target.node.xPos - shoot.node.xPos;
+    int diff_y = target.node.yPos - shoot.node.yPos;
+    diff_x = abs(diff_x);
+    diff_y = abs(diff_y);
+    int moveX = projectile.speed;
+    int moveY = projectile.speed;
     
-
+    if(diff_x - moveX < 0)
+        moveX = diff_x;
+    if(diff_y - moveY < 0)
+        moveY = diff_y;
     
-    
-    
-    
-    
-    while(game_is_active){
-        
-        // *************** //
-        // USER INPUT AREA //
-        // *************** //
-        
-        while(SDL_PollEvent(&events)){
-            switch (events.type) {
-                case SDL_KEYDOWN:{ // Keyboard detection
-                    
-                    break;
-                }
-                case SDL_BUTTON_LEFT:{ // Mouse detection
-                    
-                    break;
-                }
-                    
-                default:
-                    break;
-            }
-        }
-        
-        // Minion routine
-        
-        // Tower Routine
-        
-        
-        
-        
-        // Updates
-        SDL_UpdateWindowSurface(window);
+    // 2 - Sees position, then sums value
+    if(target.node.xPos < shoot.node.xPos){ // Tiro à direita, inverte sinal
+        moveX = -moveX;
+    }
+    if(target.node.yPos < shoot.node.yPos){ // Tiro abaixo, inverte sinal
+        moveY = -moveY;
     }
     
+    shoot.node.xPos += moveX;
+    shoot.node.yPos += moveY;
+
+    // 3 - Finishing touches, verifies collision.
+    int diff_x = target.node.xPos - shoot.node.xPos;
+    int diff_y = target.node.yPos - shoot.node.yPos;
+    diff_x = abs(diff_x);
+    diff_y = abs(diff_y);
+    
+    if(diff_x < 5 && diff_y < 5)
+        return 1;
+    else
+        return 0;
     
     
-    
-    
-    return 1;
 }
 
+/*
+ typedef struct node
+ {
+ double xPos;
+ double yPos;
+ SDL_Surface *sprite;
+ } node;
+ 
+ 
+ typedef struct _minion {
+ int HP; // Não é necessário um maxHP, considerando a inexistencia de cura.
+ float speed; // Movimento por ciclo.
+ node node;
+	//Linked list of Shoot
+	list_projectile *targetted_projectils;
+ } minion;
+ 
+ typedef struct _turret{
+ float timeUntilNextAttack; // Tempo de espera até atirar novamente.
+ float turretType; // isto define o tipo de tiro. Alguma função usará este valor para escolher qual tiro é gerado.
+ float radius; // alcance da torre.
+ node node;
+ } turret;
+ 
+ typedef struct _projectile {
+	int speed;
+ int damage;
+ node node;
+ } projectile;
 
-
-
-
+ */
 
 /**
  Draws a node considering it's x and y points at the center of the drawn point.
