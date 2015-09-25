@@ -91,9 +91,9 @@ typedef enum _config_options{MUSIC_EFFECT, MUSIC_AMBIENCE, LANGUAGE, BACK, NONE}
 
 typedef struct _configuration {
 	bool music_effect;
-	bool music_ambienace;
+	bool music_ambience;
 	char *language;
-} configuration;
+} CONFIGURATION;
 
 
 // É importante notar que não temos como nos assegurar de que o monstro existira para o tiro. Eventualmente teremos de, ou fazer o tiro mudar de alvo se o monstro morrer, ou fazer o monstro esperar até não ter tiros mirando nele.

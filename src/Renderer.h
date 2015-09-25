@@ -18,8 +18,8 @@
 #define map_array_height 13
 #define window_width 1280
 #define window_height 720
-#define button_menu_height 30
-#define button
+#define BUTTON_MENU_HEIGHT 30
+#define BUTTON_MENU_WIDTH 250
 
 //Renderer options, like text display, middle width calculation, etc...
 
