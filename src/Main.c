@@ -17,8 +17,6 @@
 
 #include "Estruturas.h"
 
-#include "Renderer.h"
-
 SDL_Window *main_Window;
 SDL_Surface *main_Surface;
 SDL_Renderer *renderer;
@@ -191,32 +189,85 @@ int main(int argc, const char * argv[]) {
 						//Keypad enter
 						case SDLK_KP_ENTER:
 							//Check current selected option
-							if (select_config_option != NONE) {
-								
-							
-							}
+							switch(select_config_option){
+								case BACK:
+									if (previous_screen = MAIN){
+										current_screen = MAIN;
+									}
+									else {
+										current_screen = GAME_PAUSED;
+									}
+									break;
+								case MUSIC_EFFECT:
+									config_option = MUSIC_EFFECT;
+									break;
+								case MUSIC_AMBIENCE:
+									config_option = MUSIC_AMBIENCE;
+									break;
+								case LANGUAGE:
+									config_option = LANGUAGE;
+									break;
+								case NONE:
+									//do nothing
+									break;
 							break;
 						//Keyboard enter
 						case SDLK_RETURN:
 							//Check current selected option and initiated it.
-						
-                            break;
+							switch(select_config_option){
+								case BACK:
+									if (previous_screen = MAIN){
+										current_screen = MAIN;
+									}
+									else {
+										current_screen = GAME_PAUSED;
+									}
+									break;
+								case MUSIC_EFFECT:
+									config_option = MUSIC_EFFECT;
+									break;
+								case MUSIC_AMBIENCE:
+									config_option = MUSIC_AMBIENCE;
+									break;
+								case LANGUAGE:
+									config_option = LANGUAGE;
+									break;
+								case NONE:
+									//do nothing
+									break;
+							break;
 						case SDLK_UP:
 							//Change current selected option
+							if (select_config_option == MUSIC_EFFECT) {
+								select_config_option = BACK;
+							}
+							else {
+								select_config_option--;
+							}
 							break;
 						
 						case SDLK_LEFT:
 							//Change current selected option
-						
+							if (select_config_option == LANGUAGE) {
+							
+							}
+							else {
+								config_option = select_config_option;
+								}
 							break;
 						case SDLK_RIGHT:
 							//Change current selected option
-						
+							if (select_config_option == LANGUAGE) {
+							
+							}
+							else {
+								config_option = select_config_option;
+								}
 							break;
 						
 						case SDLK_DOWN:
 							//Change current selected option
-							
+							select_config_option = (select_config_option + 1) % 4;
 							break;
 							
 						//Handle mouse event
