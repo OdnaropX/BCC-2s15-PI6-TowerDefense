@@ -13,6 +13,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
 
+#define TOP_LAYER_SPACING 83
 
 typedef struct _list_projectile list_projectile;
 

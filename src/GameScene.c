@@ -80,41 +80,8 @@ int move_bullet(minion *target, projectile *shoot){
         return 1;
     else
         return 0;
-    
-    
 }
 
-/*
- typedef struct node
- {
- double xPos;
- double yPos;
- SDL_Surface *sprite;
- } node;
- 
- 
- typedef struct _minion {
- int HP; // Não é necessário um maxHP, considerando a inexistencia de cura.
- float speed; // Movimento por ciclo.
- node node;
-	//Linked list of Shoot
-	list_projectile *targetted_projectils;
- } minion;
- 
- typedef struct _turret{
- float timeUntilNextAttack; // Tempo de espera até atirar novamente.
- float turretType; // isto define o tipo de tiro. Alguma função usará este valor para escolher qual tiro é gerado.
- float radius; // alcance da torre.
- node node;
- } turret;
- 
- typedef struct _projectile {
-	int speed;
- int damage;
- node node;
- } projectile;
-
- */
 
 /**
  Draws a node considering it's x and y points at the center of the drawn point.
@@ -138,5 +105,39 @@ int Draw_Node(SDL_Surface *screen, node *drawn_node, bool tower){
     return 0;
 }
 
+
+
+/**
+ Fills sent array with array adress for touched grid squares. 
+ Returns:
+ 1 if success.
+ 0 if out of grid.
+ **/
+int getTouchedGridAddress(int x_touch, int y_touch, int array[]){
+    int newY = y_touch - TOP_LAYER_SPACING;
+    if(newY <= 0){
+        return 0; // Out of bounds
+    }
+    
+    int xAdd = x_touch/block_width;
+    int yAdd = newY/block_height;
+    
+    if(xAdd > 17 || yAdd > 13){
+        return 0; // Out of bounds
+    }
+    
+    array[0] = xAdd;
+    array[1] = yAdd;
+    
+    return 1; // Success.
+}
+
+/**
+ Fills sent array[2] with x and y positions for screen, as center of the rect.
+ **/
+void getCenterPositionToGrid(int x, int y, int array[]){
+    array[0] = x*block_width + block_width/2;
+    array[1] = TOP_LAYER_SPACING + y*block_height + block_height/2;
+}
 
 

@@ -781,8 +781,3 @@ void main_Quit(){
 	free(config->language);
 	free(config);
 }
-
-int getTouchedGridValue(int x, int y){
-    int value = grid[x/block_width][y/block_height];
-    return value;
-}
