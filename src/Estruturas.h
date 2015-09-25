@@ -10,9 +10,9 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <Renderer.h>
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
+#include "Renderer.h"
 
 #define TOP_LAYER_SPACING 83
 
