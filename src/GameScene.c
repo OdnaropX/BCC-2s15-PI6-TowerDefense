@@ -10,8 +10,35 @@
 #include "Estruturas.h"
 
 #include <stdbool.h>
+#include <SDL2/SDL.h>
 
 int grid[17][13];
+SDL_Surface *map_Image;
+
+bool initMap(){
+    //Load map image
+    map_Image = IMG_Load("../images/Mapa.png");
+    if(!map_Image){
+        printf("Imagem do mapa não encontrada! %s\n", IMG_GetError());
+        return false;
+    }
+    
+    //Load map grid
+    FILE *mapGrid = fopen("Map1.txt", "r");
+    if(!mapGrid){
+        printf("Txt de grid do mapa não encontrado!\n");
+        return false;
+    }
+    
+    for(int w = 0; w < 17; w++){
+        for(int h = 0; h < 13; h++){
+            fscanf(mapGrid, "%d ", &grid[w][h]);
+        }
+        fscanf(mapGrid, "\n");
+    }
+    
+    return true;
+}
 
 
 /*
@@ -55,40 +82,6 @@ int move_bullet(minion *target, projectile *shoot){
         return 0;
 }
 
-
-
-
-/*
- typedef struct node
- {
- double xPos;
- double yPos;
- SDL_Surface *sprite;
- } node;
- 
- 
- typedef struct _minion {
- int HP; // Não é necessário um maxHP, considerando a inexistencia de cura.
- float speed; // Movimento por ciclo.
- node node;
-	//Linked list of Shoot
-	list_projectile *targetted_projectils;
- } minion;
- 
- typedef struct _turret{
- float timeUntilNextAttack; // Tempo de espera até atirar novamente.
- float turretType; // isto define o tipo de tiro. Alguma função usará este valor para escolher qual tiro é gerado.
- float radius; // alcance da torre.
- node node;
- } turret;
- 
- typedef struct _projectile {
-	int speed;
- int damage;
- node node;
- } projectile;
-
- */
 
 /**
  Draws a node considering it's x and y points at the center of the drawn point.
