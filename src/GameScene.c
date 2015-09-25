@@ -10,8 +10,35 @@
 #include "Estruturas.h"
 
 #include <stdbool.h>
+#include <SDL2/SDL.h>
 
 int grid[17][13];
+SDL_Surface *map_Image;
+
+bool initMap(){
+    //Load map image
+    map_Image = IMG_Load("../images/Mapa.png");
+    if(!map_Image){
+        printf("Imagem do mapa não encontrada! %s\n", IMG_GetError());
+        return false;
+    }
+    
+    //Load map grid
+    FILE *mapGrid = fopen("Map1.txt", "r");
+    if(!mapGrid){
+        printf("Txt de grid do mapa não encontrado!\n");
+        return false;
+    }
+    
+    for(int w = 0; w < 17; w++){
+        for(int h = 0; h < 13; h++){
+            fscanf(mapGrid, "%d ", &grid[w][h]);
+        }
+        fscanf(mapGrid, "\n");
+    }
+    
+    return true;
+}
 
 
 /*
