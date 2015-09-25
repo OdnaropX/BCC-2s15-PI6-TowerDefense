@@ -1,2 +1,5 @@
 w = 1280
 h = 720
+music_effect = true
+music_ambiance = true
+language = pt_br

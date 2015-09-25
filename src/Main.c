@@ -39,6 +39,8 @@ SDL_Rect title_Rect = {265, 0, 750, 150};
 SDL_Rect desc_Rect = {440, 375, 400, 50};
 SDL_Rect credits_Rect = {530, 690, 750, 30};
 
+CONFIGURATION *config;
+
 bool main_Init();
 void main_Quit();
 
@@ -52,7 +54,9 @@ int main(int argc, const char * argv[]) {
 	screen current_screen = MAIN;
 	screen previous_screen = MAIN;
 	main_options main_option = OPT_NONE;
-    config_options options = NONE;
+	main_options select_option = OPT_PLAY;
+    config_options config_option = NONE;
+	config_options select_config_option = MUSIC_EFFECT;
     tab current_tab = TOP_MENU;
     SDL_Event event;
     
@@ -87,30 +91,44 @@ int main(int argc, const char * argv[]) {
 						//Keypad enter
 						case SDLK_KP_ENTER:
 							//Check current selected option
-							
-							
+							if (select_option != OPT_NONE){
+								main_option = select_option;
+							}
 							break;
 						//Keyboard enter
 						case SDLK_RETURN:
 							//Check current selected option and initiated it.
-						
+							if (select_option != OPT_NONE){
+								main_option = select_option;
+							}
                             break;
 						case SDLK_UP:
 							//Change current selected option
+							if (select_option == OPT_PLAY) {
+								select_option = OPT_CREDIT;
+							}
+							else {
+								select_option--;
+							}
 							break;
 						
 						case SDLK_LEFT:
 							//Change current selected option
-						
+							select_option = (select_option + 1) % 5;
 							break;
 						case SDLK_RIGHT:
 							//Change current selected option
-						
+							if (select_option == OPT_PLAY) {
+								select_option = OPT_CREDIT;
+							}
+							else {
+								select_option--;
+							}
 							break;
 						
 						case SDLK_DOWN:
 							//Change current selected option
-							
+							select_option = (select_option + 1) % 5;
 							break;
 						
 						//Handle mouse event
@@ -120,43 +138,41 @@ int main(int argc, const char * argv[]) {
 										
 							if(event.button.button == SDL_BUTTON_LEFT){
 								//Check if location selected is a valid one
-                                /* Para evitar erros
-								if (event.motion.x >=  && event.motion.x <= ) {//Near main config
-									if (event.motion.y >= && event.motion.y <= ) {//First option
+                                
+								if (event.motion.x >= 980 && event.motion.x <= 980 + BUTTON_MENU_WIDTH) {//Near main config
+									if (event.motion.y >= 480 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT) {//First option PLAY
 										clicked = true;
-										main_option = PLAY;
+										main_option = OPT_PLAY;
 									}
-									else if(event.motion.y >= && event.motion.y <= ) {
+									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 2) {
 										clicked = true;
-										main_option = CONFIG;
+										main_option = OPT_CONFIG;
+									}
+									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 3) {
+										clicked = true;
+										main_option = OPT_SCORE;
+									}
+									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
+										clicked = true;
+										main_option = OPT_EXIT;
 										
 									}
-									else if(event.motion.y >= && event.motion.y <= ) {
+									
+								}
+								else if (event.motion.x >= 30 && event.motion.x <= 30 + BUTTON_MENU_WIDTH / 2) {
+								//Near credits 
+									if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
 										clicked = true;
-										main_option = SCORE;
-										
-									}
-									else if(event.motion.y >= && event.motion.y <= ) {
-										clicked = true;
-										main_option = EXIT;
-										
+										main_option = OPT_CREDIT;
 									}
 								}
-								else if (event.motion.x >= && event.motion.x <= ) {
-								//Near credits 
-									if(event.motion.y >= && event.motion.y <= ) {
-										clicked = true;
-										main_option = CREDIT;
-									}
-								}*/
 							}
-                            
 							break;
 					}
 					
 					break;
                     
-				case CONFIG:
+				case CONFIG:					
 					switch (event.type) {
 						//Quit
 						case SDL_QUIT:
@@ -164,13 +180,21 @@ int main(int argc, const char * argv[]) {
 							break;
 						//Escape
 						case SDLK_ESCAPE:
-							//Go back main screen
-							
+							//Go back main screen or paused screem
+							if (previous_screen = MAIN){
+								current_screen = MAIN;
+							}
+							else {
+								current_screen = GAME_PAUSED;
+							}
 							break;	
 						//Keypad enter
 						case SDLK_KP_ENTER:
 							//Check current selected option
+							if (select_config_option != NONE) {
+								
 							
+							}
 							break;
 						//Keyboard enter
 						case SDLK_RETURN:
@@ -447,13 +471,26 @@ int main(int argc, const char * argv[]) {
 				
 				break;
 			case CONFIG:
+				//Set selected option to show on MAIN to OPT_PLAY
+				select_option = OPT_PLAY;
 				switch(config_option) {
 					case MUSIC_EFFECT:
 						//Trogle efffect muisc
+						if (config->music_effect == true) {
+							config->music_effect = false;
+						}
+						else {
+							config->music_effect = true;
+						}
 						break;
 					case MUSIC_AMBIENCE:
 						//Trogle ambience music
-						
+						if (config->music_ambience == true) {
+							config->music_ambience = false;
+						}
+						else {
+							config->music_ambience = true;
+						}
 						break;
 					case LANGUAGE:
 						//Change select language
@@ -487,6 +524,8 @@ int main(int argc, const char * argv[]) {
 				break;
 			
 			case GAME_PAUSED:
+				//Set selected option to show on MAIN to OPT_PLAY
+				select_option = OPT_PLAY;
 				if(clicked) {
 					
 				}
@@ -546,9 +585,31 @@ bool main_Init(){
     }
     
     int screen_Width, screen_Height;
+	char* music_effect, music_ambience, language;
+	
     fscanf(settings, "w = %d\n", &screen_Width);
     fscanf(settings, "h = %d\n", &screen_Height);
-    
+    fscanf(settings, "music_effect = %s\n", &music_effect);
+    fscanf(settings, "music_ambiance = %s\n", &music_ambience);
+    fscanf(settings, "language = %s\n", &language);
+	
+	if(!config){
+		config = malloc(sizeof(CONFIGURATION));
+	}
+	
+	if (strcmp(music_effect, "true")){
+		config->music_effect = true;
+	}
+	else {
+		config->music_effect = false;
+	}
+	if (strcmp(music_ambience, "true")){
+		config->music_ambience = true;
+	}
+	else {
+		config->music_ambience = false;
+	}
+	config->language = *language;
     fclose(settings);
     
     //Init SDL
@@ -664,6 +725,10 @@ void main_Quit(){
     IMG_Quit();
     TTF_Quit();
     SDL_Quit();
+	
+	//Free config
+	free(config->language);
+	free(config);
 }
 
 int getTouchedGridValue(int x, int y){
