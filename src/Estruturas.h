@@ -79,7 +79,7 @@ typedef struct _list_turret {
 	struct _list_turret *next;
 } list_turret;
 
-#Define MAIN_SCREEN
+#define MAIN_SCREEN
 typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS} screen;
 
 	 

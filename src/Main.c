@@ -16,6 +16,7 @@
 #include <SDL2_ttf/SDL_ttf.h>
 
 #include "Estruturas.h"
+#include "GameScene.h"
 
 SDL_Window *main_Window;
 SDL_Surface *main_Surface;
@@ -38,6 +39,10 @@ SDL_Rect desc_Rect = {440, 375, 400, 50};
 SDL_Rect credits_Rect = {530, 690, 750, 30};
 
 CONFIGURATION *config;
+
+list_minion *minions;
+list_projectile *projectiles;
+list_turret *turrets;
 
 bool main_Init();
 void main_Quit();
@@ -178,7 +183,7 @@ int main(int argc, const char * argv[]) {
 						//Escape
 						case SDLK_ESCAPE:
 							//Go back main screen or paused screem
-							if (previous_screen = MAIN){
+							if (previous_screen == MAIN){
 								current_screen = MAIN;
 							}
 							else {
@@ -190,7 +195,7 @@ int main(int argc, const char * argv[]) {
 							//Check current selected option
 							switch(select_config_option){
 								case BACK:
-									if (previous_screen = MAIN){
+									if (previous_screen == MAIN){
 										current_screen = MAIN;
 									}
 									else {
@@ -216,7 +221,7 @@ int main(int argc, const char * argv[]) {
 							//Check current selected option and initiated it.
 							switch(select_config_option){
 								case BACK:
-									if (previous_screen = MAIN){
+									if (previous_screen == MAIN){
 										current_screen = MAIN;
 									}
 									else {
@@ -619,6 +624,35 @@ int main(int argc, const char * argv[]) {
 		
 		//Scene Renderer 
 		/////////////////////////////////////////////////////
+        //Draw turrets
+        list_turret *t = turrets;
+        
+        while (t) {
+            turret *target = t->e;
+            draw_Node(main_Surface, &target->node, true);
+            
+            t = t->next;
+        }
+        
+        //Draw minions
+        list_minion *m = minions;
+        
+        while (m) {
+            minion *target = m->e;
+            draw_Node(main_Surface, &target->node, false);
+            
+            m = m->next;
+        }
+        
+        //Draw projectiles
+        list_projectile *p = projectiles;
+        
+        while (p) {
+            projectile *target = p->e;
+            draw_Node(main_Surface, &target->node, false);
+            
+            p = p->next;
+        }
 		
 		//delay render to 60 fps.
 		
@@ -649,13 +683,13 @@ bool main_Init(){
     }
     
     int screen_Width, screen_Height;
-	char* music_effect, music_ambience, language;
+	char *music_effect, *music_ambience, *language;
 	
     fscanf(settings, "w = %d\n", &screen_Width);
     fscanf(settings, "h = %d\n", &screen_Height);
-    fscanf(settings, "music_effect = %s\n", &music_effect);
-    fscanf(settings, "music_ambiance = %s\n", &music_ambience);
-    fscanf(settings, "language = %s\n", &language);
+    fscanf(settings, "music_effect = %s\n", music_effect);
+    fscanf(settings, "music_ambiance = %s\n", music_ambience);
+    fscanf(settings, "language = %s\n", language);
 	
 	if(!config){
 		config = malloc(sizeof(CONFIGURATION));
@@ -673,7 +707,7 @@ bool main_Init(){
 	else {
 		config->music_ambience = false;
 	}
-	config->language = *language;
+	config->language = language;
     fclose(settings);
     
     //Init SDL

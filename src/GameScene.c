@@ -47,12 +47,12 @@ bool initMap(){
 int move_bullet(minion *target, projectile *shoot){
     
     // 1 - Get required properties.
-    int diff_x = target.node.xPos - shoot.node.xPos;
-    int diff_y = target.node.yPos - shoot.node.yPos;
+    int diff_x = target->node.xPos - shoot->node.xPos;
+    int diff_y = target->node.yPos - shoot->node.yPos;
     diff_x = abs(diff_x);
     diff_y = abs(diff_y);
-    int moveX = projectile.speed;
-    int moveY = projectile.speed;
+    int moveX = shoot->speed;
+    int moveY = shoot->speed;
     
     if(diff_x - moveX < 0)
         moveX = diff_x;
@@ -60,19 +60,19 @@ int move_bullet(minion *target, projectile *shoot){
         moveY = diff_y;
     
     // 2 - Sees position, then sums value
-    if(target.node.xPos < shoot.node.xPos){ // Tiro à direita, inverte sinal
+    if(target->node.xPos < shoot->node.xPos){ // Tiro à direita, inverte sinal
         moveX = -moveX;
     }
-    if(target.node.yPos < shoot.node.yPos){ // Tiro abaixo, inverte sinal
+    if(target->node.yPos < shoot->node.yPos){ // Tiro abaixo, inverte sinal
         moveY = -moveY;
     }
     
-    shoot.node.xPos += moveX;
-    shoot.node.yPos += moveY;
+    shoot->node.xPos += moveX;
+    shoot->node.yPos += moveY;
 
     // 3 - Finishing touches, verifies collision.
-    int diff_x = target.node.xPos - shoot.node.xPos;
-    int diff_y = target.node.yPos - shoot.node.yPos;
+    diff_x = target->node.xPos - shoot->node.xPos;
+    diff_y = target->node.yPos - shoot->node.yPos;
     diff_x = abs(diff_x);
     diff_y = abs(diff_y);
     
@@ -81,31 +81,6 @@ int move_bullet(minion *target, projectile *shoot){
     else
         return 0;
 }
-
-
-/**
- Draws a node considering it's x and y points at the center of the drawn point.
- 1- The screen is where to draw.
- 2- The drawn_node is the node you want to draw.
- 3- Boolean value tower limits draw position, so that towers are placed into slots properly.
- **/
-int Draw_Node(SDL_Surface *screen, node *drawn_node, bool tower){
-    SDL_Rect rect;
-    rect.w = drawn_node->sprite->w;
-    rect.h = drawn_node->sprite->h;
-    rect.x = drawn_node->xPos - (rect.w/2);
-    rect.y = drawn_node->yPos - (rect.h/2);
-    
-    if(tower){
-        rect.y = drawn_node->yPos - rect.h + (rect.w/2);
-    }
-    
-    SDL_BlitSurface(drawn_node->sprite, NULL, screen, &rect);
-    
-    return 0;
-}
-
-
 
 /**
  Fills sent array with array adress for touched grid squares. 
