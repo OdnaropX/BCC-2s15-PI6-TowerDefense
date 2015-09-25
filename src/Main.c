@@ -167,7 +167,6 @@ int main(int argc, const char * argv[]) {
 							}
 							break;
 					}
-					
 					break;
                     
 				case CONFIG:					
@@ -210,6 +209,7 @@ int main(int argc, const char * argv[]) {
 								case NONE:
 									//do nothing
 									break;
+							}
 							break;
 						//Keyboard enter
 						case SDLK_RETURN:
@@ -235,6 +235,7 @@ int main(int argc, const char * argv[]) {
 								case NONE:
 									//do nothing
 									break;
+							}
 							break;
 						case SDLK_UP:
 							//Change current selected option
@@ -253,7 +254,7 @@ int main(int argc, const char * argv[]) {
 							}
 							else {
 								config_option = select_config_option;
-								}
+							}
 							break;
 						case SDLK_RIGHT:
 							//Change current selected option
@@ -262,7 +263,7 @@ int main(int argc, const char * argv[]) {
 							}
 							else {
 								config_option = select_config_option;
-								}
+							}
 							break;
 						
 						case SDLK_DOWN:
@@ -273,35 +274,47 @@ int main(int argc, const char * argv[]) {
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
 							clicked = false;
-							main_option = OPT_NONE;
+							config_option = NONE;
 										
-							if(event.button.button == SDL_BUTTON_LEFT){
-                                /*Comment p/ evitar erros
-								//Check if location selected is a valid one
-								if (event.motion.x >=  && event.motion.x <= ) {//Near main config
-									if (event.motion.y >= && event.motion.y <= ) {//First option
+							if(event.button.button == SDL_BUTTON_LEFT){							
+                                //Check if location selected is a valid one
+								if (event.motion.x >= 400 && event.motion.x <= 400 + BUTTON_MENU_WIDTH ) {//Near main config
+									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
 										//Trogle option
 										clicked = true;
-										
+										config_option = MUSIC_EFFECT;
 									}
-									else if(event.motion.y >= && event.motion.y <= ) {
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
 										clicked = true;
-										
+										config_option = MUSIC_AMBIENCE;
 										
 									}
-									else if(event.motion.y >= && event.motion.y <= ) {
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
 										clicked = true;
-										
-										
+										config_option = LANGUAGE;
 									}
-									else if(event.motion.y >= && event.motion.y <= ) {
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 4) {
 										clicked = true;
-										
+										config_option = BACK;
+									}
+								}
+								else if (event.motion.x >= 420 + BUTTON_MENU_WIDTH &&  event.motion.x >= 420 + BUTTON_MENU_WIDTH + BUTTON_MENU_WIDTH / 2){
+									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
+										//Trogle option
+										clicked = true;
+										config_option = MUSIC_EFFECT;
+									}
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
+										clicked = true;
+										config_option = MUSIC_AMBIENCE;
 										
 									}
-								}*/
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
+										clicked = true;
+										config_option = LANGUAGE;
+									}
+								}
 							}
-                            
 							break;
 					}
 					break;
