@@ -663,8 +663,3 @@ void main_Quit(){
     TTF_Quit();
     SDL_Quit();
 }
-
-int getTouchedGridValue(int x, int y){
-    int value = grid[x/block_width][y/block_height];
-    return value;
-}
