@@ -12,6 +12,8 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
+#include "Renderer.h"
+
 int grid[17][13];
 SDL_Surface *map_Image;
 

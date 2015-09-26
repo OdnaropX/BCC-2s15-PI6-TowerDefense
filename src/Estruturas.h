@@ -12,14 +12,18 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
-#include "Renderer.h"
 
 #define TOP_LAYER_SPACING 83
+
+#define block_width 64
+#define block_height 43
+#define map_array_width 17
+#define map_array_height 13
 
 typedef struct _list_projectile list_projectile;
 
 
-typedef struct node
+typedef struct _node
 {
     double xPos;
     double yPos;
@@ -80,7 +84,7 @@ typedef struct _list_turret {
 } list_turret;
 
 #define MAIN_SCREEN
-typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS} screen;
+typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE} screen;
 
 	 
 typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA} tab;

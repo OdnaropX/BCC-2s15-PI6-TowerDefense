@@ -14,10 +14,6 @@
 
 #include "Estruturas.h"
 
-#define block_width 64
-#define block_height 43
-#define map_array_width 17
-#define map_array_height 13
 #define window_width 1280
 #define window_height 720
 #define BUTTON_MENU_HEIGHT 30
@@ -47,6 +43,5 @@ void draw_screen_game_paused();
  3- Boolean value tower limits draw position, so that towers are placed into slots properly.
  **/
 void draw_Node(SDL_Surface *screen, node *drawn_node, bool tower);
-
 
 #endif /* defined(__Tower_Defense__Renderer__) */

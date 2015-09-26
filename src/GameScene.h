@@ -13,8 +13,6 @@
 #include <stdbool.h>
 #include "Estruturas.h"
 
-typedef enum _screens {MAIN, CONFIGConfig = 2, GameRunning = 3, GamePaused = 4} screen;
-
 /**
  Fills sent array with array adress for touched grid squares.
  Returns:

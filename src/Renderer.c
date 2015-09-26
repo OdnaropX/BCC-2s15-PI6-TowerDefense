@@ -7,7 +7,6 @@
 //
 
 #include "Renderer.h"
-#include <stdio.h>
 
 /**
  Draws a node considering it's x and y points at the center of the drawn point.

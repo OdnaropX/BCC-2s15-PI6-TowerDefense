@@ -16,6 +16,7 @@
 #include <SDL2_ttf/SDL_ttf.h>
 
 #include "Estruturas.h"
+#include "Renderer.h"
 #include "GameScene.h"
 
 SDL_Window *main_Window;
@@ -581,6 +582,7 @@ int main(int argc, const char * argv[]) {
 				}
 				break;
 			
+            /*
 			case GAME_RUNNING:
 				switch(game_option) {
 					if (clicked){
@@ -590,7 +592,7 @@ int main(int argc, const char * argv[]) {
 					}
 					
 				}
-				break;
+            break;
 			
 			case GAME_PAUSED:
 				//Set selected option to show on MAIN to OPT_PLAY
@@ -619,7 +621,8 @@ int main(int argc, const char * argv[]) {
 						//Do nothing
 						break;
 				}
-				break;
+            break;
+            */
 		}
 		
 		//Scene Renderer 
@@ -687,14 +690,17 @@ bool main_Init(){
 	
     fscanf(settings, "w = %d\n", &screen_Width);
     fscanf(settings, "h = %d\n", &screen_Height);
+    /*
     fscanf(settings, "music_effect = %s\n", music_effect);
     fscanf(settings, "music_ambiance = %s\n", music_ambience);
     fscanf(settings, "language = %s\n", language);
+     */
 	
 	if(!config){
 		config = malloc(sizeof(CONFIGURATION));
 	}
 	
+    /*
 	if (strcmp(music_effect, "true")){
 		config->music_effect = true;
 	}
@@ -708,6 +714,8 @@ bool main_Init(){
 		config->music_ambience = false;
 	}
 	config->language = language;
+    */
+    		
     fclose(settings);
     
     //Init SDL
