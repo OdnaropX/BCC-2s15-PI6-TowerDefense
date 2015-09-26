@@ -42,6 +42,6 @@ void draw_screen_game_paused(SDL_Surface *screen);
  2- The drawn_node is the node you want to draw.
  3- Boolean value tower limits draw position, so that towers are placed into slots properly.
  **/
-void draw_Node(SDL_Surface *screen, node *drawn_node, bool tower);
+void draw_node(SDL_Surface *screen, node *drawn_node, bool tower);
 
 #endif /* defined(__Tower_Defense__Renderer__) */

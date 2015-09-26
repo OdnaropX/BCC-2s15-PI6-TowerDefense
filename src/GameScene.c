@@ -17,7 +17,7 @@
 int grid[17][13];
 
 //Use this on main init(or when loading a map)
-SDL_Surface *initMap(){
+SDL_Surface *init_map(){
     //Load map image
     SDL_Surface *map_Image = IMG_Load("../images/Mapa.png");
     if(!map_Image){

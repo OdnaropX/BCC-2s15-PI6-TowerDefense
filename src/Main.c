@@ -50,13 +50,13 @@ list_minion *minions;
 list_projectile *projectiles;
 list_turret *turrets;
 
-bool main_Init();
-void main_Quit();
+bool main_init();
+void main_quit();
 
 int main(int argc, const char * argv[]) {
     //Main init
-    if(!main_Init()){
-        main_Quit();
+    if(!main_init()){
+        main_quit();
     }
     
     bool quit = false;
@@ -89,7 +89,7 @@ int main(int argc, const char * argv[]) {
         //FPS Handling
         t2 = SDL_GetTicks() - t1;
         if(t2 < delay)
-            SDL_Delay(delay - t2);        }
+            SDL_Delay(delay - t2);
         
         t1 = SDL_GetTicks();
 
@@ -685,12 +685,12 @@ int main(int argc, const char * argv[]) {
     }
     
     //Quit
-    main_Quit();
+    main_quit();
     return 0;
 }
 
 //Init SDL, configs e menu principal
-bool main_Init(){
+bool main_init(){
     //Read Settings
     FILE *settings = fopen("Config.txt", "r");
     if(!settings){
@@ -825,7 +825,7 @@ bool main_Init(){
     return true;
 }
 
-void main_Quit(){
+void main_quit(){
     //Close fonts
     TTF_CloseFont(title_Font);
     TTF_CloseFont(desc_Font);

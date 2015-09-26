@@ -14,7 +14,7 @@
  2- The drawn_node is the node you want to draw.
  3- Boolean value tower limits draw position, so that towers are placed into slots properly.
  **/
-void draw_Node(SDL_Surface *screen, node *drawn_node, bool tower){
+void draw_node(SDL_Surface *screen, node *drawn_node, bool tower){
     SDL_Rect rect;
     rect.w = drawn_node->sprite->w;
     rect.h = drawn_node->sprite->h;
@@ -42,7 +42,7 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
     
     while (t) {
         turret *target = t->e;
-        draw_Node(screen, &target->node, true);
+        draw_node(screen, &target->node, true);
         
         t = t->next;
     }
@@ -52,7 +52,7 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
     
     while (m) {
         minion *target = m->e;
-        draw_Node(screen, &target->node, false);
+        draw_node(screen, &target->node, false);
         
         m = m->next;
     }
@@ -62,7 +62,7 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
     
     while (p) {
         projectile *target = p->e;
-        draw_Node(screen, &target->node, false);
+        draw_node(screen, &target->node, false);
         
         p = p->next;
     }
