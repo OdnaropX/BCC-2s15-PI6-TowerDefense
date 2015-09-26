@@ -15,21 +15,21 @@
 #include "Renderer.h"
 
 int grid[17][13];
-SDL_Surface *map_Image;
 
-bool initMap(){
+//Use this on main init(or when loading a map)
+SDL_Surface *initMap(){
     //Load map image
-    map_Image = IMG_Load("../images/Mapa.png");
+    SDL_Surface *map_Image = IMG_Load("../images/Mapa.png");
     if(!map_Image){
         printf("Imagem do mapa não encontrada! %s\n", IMG_GetError());
-        return false;
+        return NULL;
     }
     
     //Load map grid
     FILE *mapGrid = fopen("Map1.txt", "r");
     if(!mapGrid){
         printf("Txt de grid do mapa não encontrado!\n");
-        return false;
+        return NULL;
     }
     
     for(int w = 0; w < 17; w++){
@@ -39,7 +39,7 @@ bool initMap(){
         fscanf(mapGrid, "\n");
     }
     
-    return true;
+    return map_Image;
 }
 
 

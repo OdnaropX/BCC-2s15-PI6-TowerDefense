@@ -19,10 +19,12 @@
 #include "Renderer.h"
 #include "GameScene.h"
 
+//SDL stuff
 SDL_Window *main_Window;
 SDL_Surface *main_Surface;
 SDL_Renderer *renderer;
 
+//Media
 TTF_Font *title_Font;
 TTF_Font *desc_Font;
 TTF_Font *credits_Font;
@@ -30,6 +32,9 @@ SDL_Texture *title_Texture;
 SDL_Texture *desc_Texture;
 SDL_Texture *credits_Texture;
 
+SDL_Surface *map_Surface;
+
+//Constants
 SDL_Color black = {0, 0, 0, 255};
 SDL_Color white = {0, 0, 0, 255};
 SDL_Color green = {0, 255, 0, 255};
@@ -71,11 +76,23 @@ int main(int argc, const char * argv[]) {
     int lifes = 1;
     int gold = 0;
     
+    //FPS
+    int t1, t2;
+    int delay = 17; //Aprox. de 1000ms/60
+    t1 = SDL_GetTicks();
+    
     // Following parts are only for first interation;
     int monsterSpawner[] = {6, 8, 12, 14, 17, 18, 25, 16, 18, 50};
 	
     //Main loop
     while(!quit){
+        //FPS Handling
+        t2 = SDL_GetTicks() - t1;
+        if(t2 < delay)
+            SDL_Delay(delay - t2);        }
+        
+        t1 = SDL_GetTicks();
+
         //Event Handler
         ///////////////////////////////////////////////////
 		while(SDL_PollEvent(&event) != 0){
@@ -627,41 +644,37 @@ int main(int argc, const char * argv[]) {
 		
 		//Scene Renderer 
 		/////////////////////////////////////////////////////
-        //Draw turrets
-        list_turret *t = turrets;
-        
-        while (t) {
-            turret *target = t->e;
-            draw_Node(main_Surface, &target->node, true);
+        switch (current_screen) {
+            case CONFIG:
+                draw_screen_config(main_Surface);
+                break;
             
-            t = t->next;
+            case CREDITS:
+                break;
+                
+            case GAME_PAUSED:
+                draw_screen_game_paused(main_Surface);
+                break;
+                
+            case GAME_RUNNING:
+                draw_screen_game_running(main_Surface, map_Surface, minions, projectiles, turrets);
+                break;
+                
+            case MAIN:
+                draw_screen_main(main_Surface);
+                break;
+                
+            case SCORE:
+                break;
+                
+            default:
+                break;
         }
-        
-        //Draw minions
-        list_minion *m = minions;
-        
-        while (m) {
-            minion *target = m->e;
-            draw_Node(main_Surface, &target->node, false);
-            
-            m = m->next;
-        }
-        
-        //Draw projectiles
-        list_projectile *p = projectiles;
-        
-        while (p) {
-            projectile *target = p->e;
-            draw_Node(main_Surface, &target->node, false);
-            
-            p = p->next;
-        }
-		
-		//delay render to 60 fps.
 		
         //Clear render
         SDL_RenderClear(renderer);
         
+
         //Draw textures
         SDL_RenderCopy(renderer, title_Texture, NULL, &title_Rect);
         SDL_RenderCopy(renderer, desc_Texture, NULL, &desc_Rect);
@@ -715,7 +728,7 @@ bool main_Init(){
 	}
 	config->language = language;
     */
-    		
+    
     fclose(settings);
     
     //Init SDL

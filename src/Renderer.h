@@ -26,15 +26,15 @@ int get_center(int space_size, int object_size);
 
 void draw_phrase();
 
-void draw_text();
+void draw_text(SDL_Renderer *renderer, SDL_Texture *text);
 
-void draw_screen_main();
+void draw_screen_main(SDL_Surface *screen);
 
-void draw_screen_config();
+void draw_screen_config(SDL_Surface *screen);
 
-void draw_screen_game_running();
+void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion *minions, list_projectile *projectiles, list_turret *turrets);
 
-void draw_screen_game_paused();
+void draw_screen_game_paused(SDL_Surface *screen);
 
 /**
  Draws a node considering it's x and y points at the center of the drawn point.

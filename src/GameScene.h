@@ -26,5 +26,8 @@ int get_touched_grid_address(int x_touch, int y_touch, int array[]);
  **/
 void get_center_position_to_grid(int x, int y, int array[]);
 
+//Use this on main init(or when loading a map)
+SDL_Surface *initMap();
+
 
 #endif /* defined(____GameScene__) */
