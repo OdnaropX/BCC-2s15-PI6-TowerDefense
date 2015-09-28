@@ -28,7 +28,11 @@ void draw_node(SDL_Surface *screen, node *drawn_node, bool tower){
     SDL_BlitSurface(drawn_node->sprite, NULL, screen, &rect);
 }
 
-void draw_screen_main(SDL_Surface *screen){}
+void draw_screen_main(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rectangles, int count){
+    for(int i = 0; i < count; i++){
+        SDL_RenderCopy(renderer, texts[i], NULL, &rectangles[i]);
+    }
+}
 
 void draw_screen_config(SDL_Surface *screen){}
 

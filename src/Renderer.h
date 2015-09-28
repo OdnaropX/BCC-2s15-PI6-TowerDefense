@@ -28,7 +28,7 @@ void draw_phrase();
 
 void draw_text(SDL_Renderer *renderer, SDL_Texture *text);
 
-void draw_screen_main(SDL_Surface *screen);
+void draw_screen_main(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rectangles, int count);
 
 void draw_screen_config(SDL_Surface *screen);
 
