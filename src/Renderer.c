@@ -38,7 +38,7 @@ void draw_screen_config(SDL_Surface *screen){}
 
 void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion *minions, list_projectile *projectiles, list_turret *turrets){
     //Draw map
-    SDL_Rect map_Rect = {map->w, map->h, 0, 0};
+    SDL_Rect map_Rect = {0, 0, map->w, map->h};
     SDL_BlitSurface(map, NULL, screen, &map_Rect);
     
     //Draw turrets

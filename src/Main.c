@@ -38,10 +38,6 @@ SDL_Color white = {0, 0, 0, 255};
 SDL_Color green = {0, 255, 0, 255};
 SDL_Color red = {255, 0, 0, 255};
 
-SDL_Rect title_Rect = {265, 0, 750, 150};
-SDL_Rect desc_Rect = {440, 375, 400, 50};
-SDL_Rect credits_Rect = {530, 690, 750, 30};
-
 //Static texts
 //Main menu order: title, play, config, score, credits, exit
 SDL_Texture *main_menu_texts[main_menu_text_count];
@@ -920,6 +916,7 @@ int main(int argc, const char * argv[]) {
 					
 						//Change current screen.
 						current_screen = GAME_RUNNING;
+                        break;
 					case OPT_EXIT:
 						quit = true;
 						break;
@@ -1060,8 +1057,9 @@ int main(int argc, const char * argv[]) {
                 break;
         }
         
-        //Update render
+        //Update render and surfaces
         SDL_RenderPresent(renderer);
+        //SDL_UpdateWindowSurface(main_Window);
     }
     
     //Quit
@@ -1144,6 +1142,7 @@ bool main_init(){
         char *text;
         SDL_Rect rect;
         
+        //Set texts and rects
         switch (i) {
             case 0:
                 text = "PI-6 Tower Defense";
@@ -1196,6 +1195,13 @@ bool main_init(){
         }
         
         SDL_FreeSurface(surface);
+    }
+    
+    map_Surface = init_map();
+    
+    if(!map_Surface){
+        printf("Falha ao inicializar mapa!\n");
+        return false;
     }
     
     return true;
