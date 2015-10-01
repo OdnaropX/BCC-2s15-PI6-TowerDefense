@@ -178,9 +178,10 @@ int get_touched_grid_address(int x_touch, int y_touch, int array[]){
 
 /**
  Fills sent array[2] with x and y positions for screen, as center of the rect.
+ x and y are values returned on get_touched_grid_address.
  **/
 void get_center_position_to_grid(int x, int y, int array[]){
-    array[0] = x * block_width + block_width/2;
+    array[0] = x * block_width + block_width /2;
     array[1] = TOP_LAYER_SPACING + y*block_height + block_height/2;
 }
 
@@ -190,4 +191,10 @@ void get_center_position_to_grid(int x, int y, int array[]){
 **/
 int get_grid_address_linear(int grid_x, int grid_y, int limit_x){
 	return grid_x * limit_x + grid_y;	
+}
+
+int get_touched_menu_address(int x_touch, int y_touch, int center_position[], int tower = 0){
+	
+	//get_center_position_to_grid(grid_clicked[0], grid_clicked[1], grid_clicked);
+	//get_menu_size_minion(int[] size);
 }

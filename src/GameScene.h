@@ -21,6 +21,8 @@
  **/
 int get_touched_grid_address(int x_touch, int y_touch, int array[]);
 
+int get_touched_menu_address(int x_touch, int y_touch, int center_position[], int tower = 0);
+
 /**
  Fills sent array[2] with x and y positions for screen, as center of the rect.
  **/
