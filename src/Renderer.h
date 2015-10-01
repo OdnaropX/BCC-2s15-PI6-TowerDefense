@@ -10,12 +10,10 @@
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_Image.h>
+#include <SDL2_image/SDL_image.h>
 
-#define block_width 64
-#define block_height 43
-#define map_array_width 17
-#define map_array_height 13
+#include "Estruturas.h"
+
 #define window_width 1280
 #define window_height 720
 #define BUTTON_MENU_HEIGHT 30
@@ -26,20 +24,24 @@
 //Function used to get the center of a object on a position, given a space and object.
 int get_center(int space_size, int object_size);
 
-void drawn_phrase();
+void draw_phrase();
 
-void drawn_text();
+void draw_text(SDL_Renderer *renderer, SDL_Texture *text);
 
-void drawn_screen_main();
+void draw_screen_main(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rectangles, int count);
 
-void drawn_screen_config();
+void draw_screen_config(SDL_Surface *screen);
 
-void drawn_screen_game_running();
+void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion *minions, list_projectile *projectiles, list_turret *turrets);
 
-void drawn_screen_game_paused();
+void draw_screen_game_paused(SDL_Surface *screen);
 
-//Screen used while initiating game and loading required data.
-void drawn_screen_sprite();
-
+/**
+ Draws a node considering it's x and y points at the center of the drawn point.
+ 1- The screen is where to draw.
+ 2- The drawn_node is the node you want to draw.
+ 3- Boolean value tower limits draw position, so that towers are placed into slots properly.
+ **/
+void draw_node(SDL_Surface *screen, node *drawn_node, bool tower);
 
 #endif /* defined(__Tower_Defense__Renderer__) */

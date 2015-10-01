@@ -16,18 +16,21 @@
 #include <SDL2_ttf/SDL_ttf.h>
 
 #include "Estruturas.h"
+#include "Renderer.h"
+#include "GameScene.h"
 
+#define main_menu_text_count 3
+
+//SDL stuff
 SDL_Window *main_Window;
 SDL_Surface *main_Surface;
 SDL_Renderer *renderer;
 
-TTF_Font *title_Font;
-TTF_Font *desc_Font;
-TTF_Font *credits_Font;
-SDL_Texture *title_Texture;
-SDL_Texture *desc_Texture;
-SDL_Texture *credits_Texture;
+//Media
+TTF_Font *font;
+SDL_Surface *map_Surface;
 
+//Constants
 SDL_Color black = {0, 0, 0, 255};
 SDL_Color white = {0, 0, 0, 255};
 SDL_Color green = {0, 255, 0, 255};
@@ -37,15 +40,24 @@ SDL_Rect title_Rect = {265, 0, 750, 150};
 SDL_Rect desc_Rect = {440, 375, 400, 50};
 SDL_Rect credits_Rect = {530, 690, 750, 30};
 
+//Static texts
+//Main menu order: title, desc, credits
+SDL_Texture *main_menu_texts[3];
+SDL_Rect main_menu_rects[3] = {{265, 0, 750, 150}, {440, 375, 400, 50}, {530, 690, 750, 30}};
+
 CONFIGURATION *config;
 
-bool main_Init();
-void main_Quit();
+list_minion *minions;
+list_projectile *projectiles;
+list_turret *turrets;
+
+bool main_init();
+void main_quit();
 
 int main(int argc, const char * argv[]) {
     //Main init
-    if(!main_Init()){
-        main_Quit();
+    if(!main_init()){
+        main_quit();
     }
     
     bool quit = false;
@@ -65,11 +77,23 @@ int main(int argc, const char * argv[]) {
     int lifes = 1;
     int gold = 0;
     
+    //FPS
+    int t1, t2;
+    int delay = 17; //Aprox. de 1000ms/60
+    t1 = SDL_GetTicks();
+    
     // Following parts are only for first interation;
     int monsterSpawner[] = {6, 8, 12, 14, 17, 18, 25, 16, 18, 50};
 	
     //Main loop
     while(!quit){
+        //FPS Handling
+        t2 = SDL_GetTicks() - t1;
+        if(t2 < delay)
+            SDL_Delay(delay - t2);
+        
+        t1 = SDL_GetTicks();
+
         //Event Handler
         ///////////////////////////////////////////////////
 		while(SDL_PollEvent(&event) != 0){
@@ -83,7 +107,7 @@ int main(int argc, const char * argv[]) {
 							quit = true;
 							break;
 						//Escape key
-						case SDLK_ESCAPE:
+                        case SDLK_ESCAPE:
 							quit = true;
 							break;
 						//Keypad enter
@@ -141,19 +165,24 @@ int main(int argc, const char * argv[]) {
 									if (event.motion.y >= 480 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT) {//First option PLAY
 										clicked = true;
 										main_option = OPT_PLAY;
+                                        printf("Play\n");
 									}
 									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 2) {
 										clicked = true;
 										main_option = OPT_CONFIG;
+                                        printf("Config\n");
 									}
 									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 3) {
 										clicked = true;
 										main_option = OPT_SCORE;
+                                        printf("Score\n");
 									}
 									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
 										clicked = true;
 										main_option = OPT_EXIT;
-										
+                                        
+                                        quit = true;
+                                        printf("exit");
 									}
 									
 								}
@@ -178,7 +207,7 @@ int main(int argc, const char * argv[]) {
 						//Escape
 						case SDLK_ESCAPE:
 							//Go back main screen or paused screem
-							if (previous_screen = MAIN){
+							if (previous_screen == MAIN){
 								current_screen = MAIN;
 							}
 							else {
@@ -190,7 +219,7 @@ int main(int argc, const char * argv[]) {
 							//Check current selected option
 							switch(select_config_option){
 								case BACK:
-									if (previous_screen = MAIN){
+									if (previous_screen == MAIN){
 										current_screen = MAIN;
 									}
 									else {
@@ -216,7 +245,7 @@ int main(int argc, const char * argv[]) {
 							//Check current selected option and initiated it.
 							switch(select_config_option){
 								case BACK:
-									if (previous_screen = MAIN){
+									if (previous_screen == MAIN){
 										current_screen = MAIN;
 									}
 									else {
@@ -576,6 +605,7 @@ int main(int argc, const char * argv[]) {
 				}
 				break;
 			
+            /*
 			case GAME_RUNNING:
 				switch(game_option) {
 					if (clicked){
@@ -585,7 +615,7 @@ int main(int argc, const char * argv[]) {
 					}
 					
 				}
-				break;
+            break;
 			
 			case GAME_PAUSED:
 				//Set selected option to show on MAIN to OPT_PLAY
@@ -614,33 +644,53 @@ int main(int argc, const char * argv[]) {
 						//Do nothing
 						break;
 				}
-				break;
+            break;
+            */
 		}
+        
+        //Clear render
+        SDL_RenderClear(renderer);
 		
 		//Scene Renderer 
 		/////////////////////////////////////////////////////
-		
-		//delay render to 60 fps.
-		
-        //Clear render
-        SDL_RenderClear(renderer);
-        
-        //Draw textures
-        SDL_RenderCopy(renderer, title_Texture, NULL, &title_Rect);
-        SDL_RenderCopy(renderer, desc_Texture, NULL, &desc_Rect);
-        SDL_RenderCopy(renderer, credits_Texture, NULL, &credits_Rect);
+        switch (current_screen) {
+            case CONFIG:
+                draw_screen_config(main_Surface);
+                break;
+            
+            case CREDITS:
+                break;
+                
+            case GAME_PAUSED:
+                draw_screen_game_paused(main_Surface);
+                break;
+                
+            case GAME_RUNNING:
+                draw_screen_game_running(main_Surface, map_Surface, minions, projectiles, turrets);
+                break;
+                
+            case MAIN:
+                draw_screen_main(renderer, main_menu_texts, main_menu_rects, main_menu_text_count);
+                break;
+                
+            case SCORE:
+                break;
+                
+            default:
+                break;
+        }
         
         //Update render
         SDL_RenderPresent(renderer);
     }
     
     //Quit
-    main_Quit();
+    main_quit();
     return 0;
 }
 
 //Init SDL, configs e menu principal
-bool main_Init(){
+bool main_init(){
     //Read Settings
     FILE *settings = fopen("Config.txt", "r");
     if(!settings){
@@ -649,18 +699,21 @@ bool main_Init(){
     }
     
     int screen_Width, screen_Height;
-	char* music_effect, music_ambience, language;
+	char *music_effect, *music_ambience, *language;
 	
     fscanf(settings, "w = %d\n", &screen_Width);
     fscanf(settings, "h = %d\n", &screen_Height);
-    fscanf(settings, "music_effect = %s\n", &music_effect);
-    fscanf(settings, "music_ambiance = %s\n", &music_ambience);
-    fscanf(settings, "language = %s\n", &language);
+    /*
+    fscanf(settings, "music_effect = %s\n", music_effect);
+    fscanf(settings, "music_ambiance = %s\n", music_ambience);
+    fscanf(settings, "language = %s\n", language);
+     */
 	
 	if(!config){
 		config = malloc(sizeof(CONFIGURATION));
 	}
 	
+    /*
 	if (strcmp(music_effect, "true")){
 		config->music_effect = true;
 	}
@@ -673,7 +726,9 @@ bool main_Init(){
 	else {
 		config->music_ambience = false;
 	}
-	config->language = *language;
+	config->language = language;
+    */
+    
     fclose(settings);
     
     //Init SDL
@@ -698,46 +753,39 @@ bool main_Init(){
         printf("TTF init error: %s\n", TTF_GetError());
     }
     
-    //Title text
-    title_Font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 60);
-    if(!title_Font){
+    font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 30);
+    if(!font){
         printf("Title font not loaded! %s\n", TTF_GetError());
         return false;
     }
     
-    SDL_Surface *title_Surface = TTF_RenderText_Solid(title_Font, "PI-6 Tower Defense", black);
+    //Title text
+    SDL_Surface *title_Surface = TTF_RenderText_Solid(font, "PI-6 Tower Defense", black);
     
     if(!title_Surface){
         printf("Title Text Surface not rendered! %s\n", TTF_GetError());
         return false;
     }
     
-    title_Texture = SDL_CreateTextureFromSurface(renderer, title_Surface);
+    main_menu_texts[0] = SDL_CreateTextureFromSurface(renderer, title_Surface);
     
-    if(!title_Texture){
+    if(!main_menu_texts[0]){
         printf("Title text texture not created! %s\n", SDL_GetError());
         return false;
     }
     
     SDL_FreeSurface(title_Surface);
     
-    //Desc text
-    desc_Font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 36);
-    if(!desc_Font){
-        printf("Desc font not loaded! %s\n", TTF_GetError());
-        return false;
-    }
-    
-    SDL_Surface *desc_Surface = TTF_RenderText_Solid(desc_Font, "Click to start game", black);
+    SDL_Surface *desc_Surface = TTF_RenderText_Solid(font, "Click to start game", black);
     
     if(!desc_Surface){
         printf("Desc Text Surface not rendered! %s\n", TTF_GetError());
         return false;
     }
     
-    desc_Texture = SDL_CreateTextureFromSurface(renderer, desc_Surface);
+    main_menu_texts[1] = SDL_CreateTextureFromSurface(renderer, desc_Surface);
     
-    if(!desc_Texture){
+    if(!main_menu_texts[1]){
         printf("Desc text texture not created! %s\n", SDL_GetError());
         return false;
     }
@@ -745,22 +793,16 @@ bool main_Init(){
     SDL_FreeSurface(desc_Surface);
     
     //Credits text
-    credits_Font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 18);
-    if(!credits_Font){
-        printf("Credits font not loaded! %s\n", TTF_GetError());
-        return false;
-    }
-    
-    SDL_Surface *credits_Surface = TTF_RenderText_Solid(credits_Font, "Made by: Danilo Ikuta, Gabriel Fontenelle and Gabriel Nopper", black);
+    SDL_Surface *credits_Surface = TTF_RenderText_Solid(font, "Made by: Danilo Ikuta, Gabriel Fontenelle and Gabriel Nopper", black);
     
     if(!credits_Surface){
         printf("Credits Text Surface not rendered! %s\n", TTF_GetError());
         return false;
     }
     
-    credits_Texture = SDL_CreateTextureFromSurface(renderer, credits_Surface);
+    main_menu_texts[2] = SDL_CreateTextureFromSurface(renderer, credits_Surface);
     
-    if(!credits_Texture){
+    if(!main_menu_texts[2]){
         printf("Credits text texture not created! %s\n", SDL_GetError());
         return false;
     }
@@ -770,16 +812,14 @@ bool main_Init(){
     return true;
 }
 
-void main_Quit(){
+void main_quit(){
     //Close fonts
-    TTF_CloseFont(title_Font);
-    TTF_CloseFont(desc_Font);
-    TTF_CloseFont(credits_Font);
+    TTF_CloseFont(font);
     
     //Destroy textures
-    SDL_DestroyTexture(title_Texture);
-    SDL_DestroyTexture(desc_Texture);
-    SDL_DestroyTexture(credits_Texture);
+    for(int i = 0; i < main_menu_text_count; i++){
+        SDL_DestroyTexture(main_menu_texts[i]);
+    }
     
     //Free window
     SDL_DestroyRenderer(renderer);
@@ -791,6 +831,6 @@ void main_Quit(){
     SDL_Quit();
 	
 	//Free config
-	free(config->language);
+	//free(config->language);
 	free(config);
 }

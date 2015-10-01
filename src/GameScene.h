@@ -10,18 +10,8 @@
 #define ____GameScene__
 
 #include <stdio.h>
-
-typedef enum _screens {MAIN, CONFIGConfig = 2, GameRunning = 3, GamePaused = 4} screen;
-
-
-
-/**
- Draws a node considering it's x and y points at the center of the drawn point.
- 1- The screen is where to draw.
- 2- The drawn_node is the node you want to draw.
- 3- Boolean value tower limits draw position, so that towers are placed into slots properly.
- **/
-int draw_Node(SDL_Surface *screen, node *drawn_node, bool tower);
+#include <stdbool.h>
+#include "Estruturas.h"
 
 /**
  Fills sent array with array adress for touched grid squares.
@@ -35,6 +25,9 @@ int get_touched_grid_address(int x_touch, int y_touch, int array[]);
  Fills sent array[2] with x and y positions for screen, as center of the rect.
  **/
 void get_center_position_to_grid(int x, int y, int array[]);
+
+//Use this on main init(or when loading a map)
+SDL_Surface *init_map();
 
 
 #endif /* defined(____GameScene__) */
