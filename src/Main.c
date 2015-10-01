@@ -760,7 +760,7 @@ int main(int argc, const char * argv[]) {
 						//Escape
 						case SDLK_ESCAPE:
 							//Return to play the game
-							current_screen = GAME_RUNNING
+                            current_screen = GAME_RUNNING;
 							
 							break;	
 						//Keypad enter
@@ -786,7 +786,8 @@ int main(int argc, const char * argv[]) {
 								case OPT_P_MAIN:
 									current_screen = MAIN;
 									break;
-								case OPT_P_NONE:	
+								case OPT_P_NONE:
+                                    break;
 									//Do nothing
 							}
 							
@@ -814,8 +815,9 @@ int main(int argc, const char * argv[]) {
 								case OPT_P_MAIN:
 									current_screen = MAIN;
 									break;
-								case OPT_P_NONE:	
+								case OPT_P_NONE:
 									//Do nothing
+                                    break;
 							}
 							break;
 						case SDLK_UP:

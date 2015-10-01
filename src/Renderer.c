@@ -74,6 +74,6 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
 
 void draw_screen_game_paused(SDL_Surface *screen){}
 
-void get_menu_size_tower(int[] size){}
+void get_menu_size_tower(int size[]){}
 
-void get_menu_size_minion(int[] size){}
+void get_menu_size_minion(int size[]){}

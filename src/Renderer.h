@@ -25,9 +25,9 @@
 //Function used to get the center of a object on a position, given a space and object.
 int get_center(int space_size, int object_size);
 
-void get_menu_size_tower(int[] size);
+void get_menu_size_tower(int size[]);
 
-void get_menu_size_minion(int[] size);
+void get_menu_size_minion(int size[]);
 
 void draw_phrase();
 

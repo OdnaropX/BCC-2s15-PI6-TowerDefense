@@ -193,8 +193,11 @@ int get_grid_address_linear(int grid_x, int grid_y, int limit_x){
 	return grid_x * limit_x + grid_y;	
 }
 
-int get_touched_menu_address(int x_touch, int y_touch, int center_position[], int tower = 0){
+int get_touched_menu_address(int x_touch, int y_touch, int center_position[], int tower){
 	
 	//get_center_position_to_grid(grid_clicked[0], grid_clicked[1], grid_clicked);
 	//get_menu_size_minion(int[] size);
+    
+    //Substituir
+    return 0;
 }

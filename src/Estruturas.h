@@ -102,7 +102,7 @@ typedef struct _list_turret {
 	struct _list_turret *next;
 } list_turret;
 
-#Define MAIN_SCREEN
+#define MAIN_SCREEN
 
 list_turret *init_list_turret();
 void free_list_turret(list_turret *list);
