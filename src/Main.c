@@ -20,7 +20,7 @@
 #include "Renderer.h"
 #include "GameScene.h"
 
-#define main_menu_text_count 3
+#define main_menu_text_count 6
 #define FRAMES_PER_SEC 60
 
 //SDL stuff
@@ -43,9 +43,9 @@ SDL_Rect desc_Rect = {440, 375, 400, 50};
 SDL_Rect credits_Rect = {530, 690, 750, 30};
 
 //Static texts
-//Main menu order: title, desc, credits
-SDL_Texture *main_menu_texts[3];
-SDL_Rect main_menu_rects[3] = {{265, 0, 750, 150}, {440, 375, 400, 50}, {530, 690, 750, 30}};
+//Main menu order: title, play, config, score, credits, exit
+SDL_Texture *main_menu_texts[main_menu_text_count];
+SDL_Rect main_menu_rects[main_menu_text_count];
 
 CONFIGURATION *config;
 
@@ -1139,55 +1139,64 @@ bool main_init(){
         return false;
     }
     
-    //Title text
-    SDL_Surface *title_Surface = TTF_RenderText_Solid(font, "PI-6 Tower Defense", black);
-    
-    if(!title_Surface){
-        printf("Title Text Surface not rendered! %s\n", TTF_GetError());
-        return false;
+    //Init main menu texts
+    for(int i = 0; i < main_menu_text_count; i++){
+        char *text;
+        SDL_Rect rect;
+        
+        switch (i) {
+            case 0:
+                text = "PI-6 Tower Defense";
+                rect = (SDL_Rect){265, 0, 750, 150};
+                break;
+                
+            case 1:
+                text = "Play";
+                rect = (SDL_Rect){980, 480, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 2:
+                text = "Config";
+                rect = (SDL_Rect){980, 480 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 3:
+                text = "Score";
+                rect = (SDL_Rect){980, 480 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 4:
+                text = "Credits";
+                rect = (SDL_Rect){30, 480 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 5:
+                text = "Exit";
+                rect = (SDL_Rect){980, 480 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            default:
+                break;
+        }
+        
+        main_menu_rects[i] = rect;
+        
+        SDL_Surface *surface = TTF_RenderText_Solid(font, text, black);
+        
+        if(!surface){
+            printf("Text not rendered! %s\n", TTF_GetError());
+            return false;
+        }
+        
+        main_menu_texts[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        
+        if(!main_menu_texts[i]){
+            printf("Text texture not rendered! %s\n", SDL_GetError());
+            return false;
+        }
+        
+        SDL_FreeSurface(surface);
     }
-    
-    main_menu_texts[0] = SDL_CreateTextureFromSurface(renderer, title_Surface);
-    
-    if(!main_menu_texts[0]){
-        printf("Title text texture not created! %s\n", SDL_GetError());
-        return false;
-    }
-    
-    SDL_FreeSurface(title_Surface);
-    
-    SDL_Surface *desc_Surface = TTF_RenderText_Solid(font, "Click to start game", black);
-    
-    if(!desc_Surface){
-        printf("Desc Text Surface not rendered! %s\n", TTF_GetError());
-        return false;
-    }
-    
-    main_menu_texts[1] = SDL_CreateTextureFromSurface(renderer, desc_Surface);
-    
-    if(!main_menu_texts[1]){
-        printf("Desc text texture not created! %s\n", SDL_GetError());
-        return false;
-    }
-    
-    SDL_FreeSurface(desc_Surface);
-    
-    //Credits text
-    SDL_Surface *credits_Surface = TTF_RenderText_Solid(font, "Made by: Danilo Ikuta, Gabriel Fontenelle and Gabriel Nopper", black);
-    
-    if(!credits_Surface){
-        printf("Credits Text Surface not rendered! %s\n", TTF_GetError());
-        return false;
-    }
-    
-    main_menu_texts[2] = SDL_CreateTextureFromSurface(renderer, credits_Surface);
-    
-    if(!main_menu_texts[2]){
-        printf("Credits text texture not created! %s\n", SDL_GetError());
-        return false;
-    }
-    
-    SDL_FreeSurface(credits_Surface);
     
     return true;
 }
