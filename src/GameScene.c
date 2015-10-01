@@ -166,7 +166,7 @@ int get_touched_grid_address(int x_touch, int y_touch, int array[]){
     int xAdd = x_touch/block_width;
     int yAdd = newY/block_height;
     
-    if(xAdd > 17 || yAdd > 13){
+    if(xAdd >= 17 || yAdd >= 13){
         return 0; // Out of bounds
     }
     
@@ -180,8 +180,14 @@ int get_touched_grid_address(int x_touch, int y_touch, int array[]){
  Fills sent array[2] with x and y positions for screen, as center of the rect.
  **/
 void get_center_position_to_grid(int x, int y, int array[]){
-    array[0] = x*block_width + block_width/2;
+    array[0] = x * block_width + block_width/2;
     array[1] = TOP_LAYER_SPACING + y*block_height + block_height/2;
 }
 
-
+/***
+  Get linear address from array address.
+  use example: get_grid_address_linear(1, 1, 16) --> 17
+**/
+int get_grid_address_linear(int grid_x, int grid_y, int limit_x){
+	return grid_x * limit_x + grid_y;	
+}

@@ -29,5 +29,10 @@ void get_center_position_to_grid(int x, int y, int array[]);
 //Use this on main init(or when loading a map)
 SDL_Surface *init_map();
 
+/***
+  Get linear address from array address.
+  use example: get_grid_address_linear(1, 1, 16) --> 17
+**/
+int get_grid_address_linear(int grid_x, int grid_y, int limit_x);
 
 #endif /* defined(____GameScene__) */
