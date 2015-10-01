@@ -935,11 +935,13 @@ int main(int argc, const char * argv[]) {
 						
 						
 						current_screen = SCORE;
+						previous_screen = MAIN;
 						break;
 					case OPT_CREDIT:
 						//Load Credits from file or use hardcoded.
 
 						current_screen = CREDITS;
+						previous_screen = MAIN;
 					case OPT_NONE:
 						//Do nothing.
 						break;
@@ -1019,9 +1021,11 @@ int main(int argc, const char * argv[]) {
 						current_screen = CONFIG;
 						previous_screen = GAME_PAUSED;
 					case OPT_P_SCORE:
+						previous_screen = GAME_PAUSED;
 						current_screen = SCORE;
 						break;
 					case OPT_P_CREDITS:
+						previous_screen = GAME_PAUSED;
 						current_screen = CREDITS;
 						break;
 					case OPT_P_NONE:
