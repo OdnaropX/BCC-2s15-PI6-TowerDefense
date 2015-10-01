@@ -195,8 +195,16 @@ int get_grid_address_linear(int grid_x, int grid_y, int limit_x){
 }
 
 int get_touched_menu_address(int x_touch, int y_touch, int center_position[], int tower){
-	int number = 3;//8
-	int row;
+	int number;
+	int row, width, height, columns, correction;
+	
+	if (tower) {
+		number = 3; //Get from file or some other means.
+	}
+	else {
+		number = 3; //Get from file or some other means.
+	
+	}
 	
 	if (number == 3) {
 		row = 1;
