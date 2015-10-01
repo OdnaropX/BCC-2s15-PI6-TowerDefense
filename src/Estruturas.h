@@ -80,7 +80,7 @@ typedef struct _list_turret {
 } list_turret;
 
 #Define MAIN_SCREEN
-typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS} screen;
+typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE} screen;
 
 	 
 typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA} tab;
