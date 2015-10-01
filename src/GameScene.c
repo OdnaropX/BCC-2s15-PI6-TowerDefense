@@ -203,7 +203,6 @@ int get_touched_menu_address(int x_touch, int y_touch, int center_position[], in
 	}
 	else {
 		number = 3; //Get from file or some other means.
-	
 	}
 	
 	if (number == 3) {
