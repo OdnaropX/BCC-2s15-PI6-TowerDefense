@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
@@ -96,7 +97,7 @@ int main(int argc, const char * argv[]) {
 	//Game area control
     bool selected_left = false;//Right click equals to tower and left to minions.
 	int add_tower = 0;
-	int add_mnion = 0;
+	int add_minion = 0;
     int game_is_active = 1;
     int lifes = 1;
     int gold = 0;
@@ -691,7 +692,61 @@ int main(int argc, const char * argv[]) {
 							
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
-						
+							if(event.button.button == SDL_BUTTON_LEFT){
+								//Game area
+								if(get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
+									if (!active_clicked){
+										select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 16);
+										active_clicked = true;
+										selected_left = true;
+									}
+									else {
+										//Check where was clicked.
+										if (selected_left) {
+											add_tower = get_touched_menu_address(grid_clicked[0], grid_clicked[1], grid_clicked, 1);
+										}
+										else {
+											add_minion = get_touched_menu_address(grid_clicked[0], grid_clicked[1], grid_clicked, 0);
+										}
+									}
+								}
+								//Top menu
+								else if(event.motion.y >= 0 && event.motion.y <= BUTTON_MENU_HEIGHT){
+									if (event.motion.x >= BUTTON_MENU_HEIGHT && event.motion.x <= BUTTON_MENU_HEIGHT * 2){
+										//Pause game
+										game_paused = !game_paused;
+										//Not sure if must use current_screen to show the pause screen or just change status to make network request.
+										current_screen = GAME_PAUSED;
+									}
+
+								}
+								else if(event.motion.x >= window_width - 10 - BUTTON_MENU_HEIGHT && event.motion.y <= window_width - 10) {
+									if (event.motion.y >= TOP_LAYER_SPACING && event.motion.y <= TOP_LAYER_SPACING + BUTTON_MENU_HEIGHT) {
+										//Set selected gold
+										show_gold_info = true;
+										show_timer = 0;
+									}
+									else if (event.motion.y >= TOP_LAYER_SPACING + BUTTON_MENU_HEIGHT + 5 && event.motion.y <= TOP_LAYER_SPACING + 5 + BUTTON_MENU_HEIGHT * 2) {
+										//Set selected mana
+										show_mana_info = true;
+										show_timer = 0;
+									}
+									else if (event.motion.y >= TOP_LAYER_SPACING + BUTTON_MENU_HEIGHT * 2 + 5 && event.motion.y <= TOP_LAYER_SPACING + 5 + BUTTON_MENU_HEIGHT * 3) {
+										//Set selected life
+										show_life_info = true;
+										show_timer = 0;
+									}
+
+								}
+							}
+							//Left click only work on grid and when there is no grid already selected 
+							else if (event.button.button == SDL_BUTTON_RIGHT && !active_clicked){
+								if (get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
+									select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 16);
+									active_clicked = true;
+									selected_left = false;
+								}
+							}
 							break;
 					}
 					break;
