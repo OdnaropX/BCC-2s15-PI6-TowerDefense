@@ -21,6 +21,7 @@
 #include "GameScene.h"
 
 #define main_menu_text_count 6
+#define config_menu_text_count 5
 #define FRAMES_PER_SEC 60
 
 //SDL stuff
@@ -43,6 +44,10 @@ SDL_Color red = {255, 0, 0, 255};
 SDL_Texture *main_menu_texts[main_menu_text_count];
 SDL_Rect main_menu_rects[main_menu_text_count];
 
+//Config order: Config, sfx, music, language, back
+SDL_Texture *config_menu_texts[config_menu_text_count];
+SDL_Rect config_menu_rects[config_menu_text_count];
+
 CONFIGURATION *config;
 
 list_minion *minions;
@@ -51,6 +56,8 @@ list_turret *turrets;
 
 bool main_init();
 void main_quit();
+
+void get_config();
 
 int main(int argc, const char * argv[]) {
     //Main init
@@ -76,7 +83,7 @@ int main(int argc, const char * argv[]) {
 	
 	//Keyboard options control
 	main_options select_option = OPT_PLAY;
-	config_options select_config_option = MUSIC_EFFECT;
+	config_options select_config_option = AUDIO_SFX;
 	pause_options select_pause_option = OPT_P_NONE;
     running_top_options select_running_top_option = OPT_R_T_NONE;
 	running_left_options select_running_left_option = OPT_R_L_NONE;
@@ -251,7 +258,7 @@ int main(int argc, const char * argv[]) {
 					}
 					break;
                     
-				case CONFIG:					
+				case CONFIG:
 					switch (event.type) {
 						//Quit
 						case SDL_QUIT:
@@ -279,11 +286,11 @@ int main(int argc, const char * argv[]) {
 										current_screen = GAME_PAUSED;
 									}
 									break;
-								case MUSIC_EFFECT:
-									config_option = MUSIC_EFFECT;
+								case AUDIO_SFX:
+									config_option = AUDIO_SFX;
 									break;
-								case MUSIC_AMBIENCE:
-									config_option = MUSIC_AMBIENCE;
+								case AUDIO_MUSIC:
+									config_option = AUDIO_MUSIC;
 									break;
 								case LANGUAGE:
 									config_option = LANGUAGE;
@@ -305,11 +312,11 @@ int main(int argc, const char * argv[]) {
 										current_screen = GAME_PAUSED;
 									}
 									break;
-								case MUSIC_EFFECT:
-									config_option = MUSIC_EFFECT;
+								case AUDIO_SFX:
+									config_option = AUDIO_SFX;
 									break;
-								case MUSIC_AMBIENCE:
-									config_option = MUSIC_AMBIENCE;
+								case AUDIO_MUSIC:
+									config_option = AUDIO_MUSIC;
 									break;
 								case LANGUAGE:
 									config_option = LANGUAGE;
@@ -321,7 +328,7 @@ int main(int argc, const char * argv[]) {
 							break;
 						case SDLK_UP:
 							//Change current selected option
-							if (select_config_option == MUSIC_EFFECT) {
+							if (select_config_option == AUDIO_SFX) {
 								select_config_option = BACK;
 							}
 							else {
@@ -362,11 +369,10 @@ int main(int argc, const char * argv[]) {
                                 //Check if location selected is a valid one
 								if (event.motion.x >= 400 && event.motion.x <= 400 + BUTTON_MENU_WIDTH ) {//Near main config
 									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
-										//Trogle option
-										config_option = MUSIC_EFFECT;
+										config_option = AUDIO_SFX;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
-										config_option = MUSIC_AMBIENCE;									
+										config_option = AUDIO_MUSIC;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
 										config_option = LANGUAGE;
@@ -378,10 +384,19 @@ int main(int argc, const char * argv[]) {
 								else if (event.motion.x >= 420 + BUTTON_MENU_WIDTH &&  event.motion.x >= 420 + BUTTON_MENU_WIDTH + BUTTON_MENU_WIDTH / 2){
 									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
 										//Trogle option
+<<<<<<< HEAD
 										config_option = MUSIC_EFFECT;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
 										config_option = MUSIC_AMBIENCE;
+=======
+										clicked = true;
+										config_option = AUDIO_SFX;
+									}
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
+										clicked = true;
+										config_option = AUDIO_MUSIC;
+>>>>>>> 1e901bcd3acdcb913632293f459f30129c55a915
 										
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
@@ -978,7 +993,6 @@ int main(int argc, const char * argv[]) {
 			case MAIN:
 				
 				//if option
-                printf("%d", main_option);
 				switch(main_option){
 					case OPT_PLAY:
 						game_started = true;
@@ -1017,22 +1031,22 @@ int main(int argc, const char * argv[]) {
 				//Set selected option to show on MAIN to OPT_PLAY
 				select_option = OPT_PLAY;
 				switch(config_option){
-					case MUSIC_EFFECT:
+					case AUDIO_SFX:
 						//Trogle efffect muisc
-						if (config->music_effect == true) {
-							config->music_effect = false;
+						if (config->audio_sfx == true) {
+							config->audio_sfx = false;
 						}
 						else {
-							config->music_effect = true;
+							config->audio_sfx = true;
 						}
 						break;
-					case MUSIC_AMBIENCE:
+					case AUDIO_MUSIC:
 						//Trogle ambience music
-						if (config->music_ambience == true) {
-							config->music_ambience = false;
+						if (config->audio_music == true) {
+							config->audio_music = false;
 						}
 						else {
-							config->music_ambience = true;
+							config->audio_music = true;
 						}
 						break;
 					case LANGUAGE:
@@ -1053,6 +1067,10 @@ int main(int argc, const char * argv[]) {
 						//Do nothing.
 						break;
 				}
+                
+                //Recarrega textos de config
+                get_config();
+                
 				break;
 			
             
@@ -1164,9 +1182,13 @@ int main(int argc, const char * argv[]) {
 		/////////////////////////////////////////////////////
         switch (current_screen) {
             case CONFIG:
+<<<<<<< HEAD
 				//select_config_option
 				
                 draw_screen_config(main_Surface);
+=======
+                draw_screen_config(renderer, config_menu_texts, config_menu_rects, config_menu_text_count);
+>>>>>>> 1e901bcd3acdcb913632293f459f30129c55a915
                 break;
             
             case CREDITS:
@@ -1211,7 +1233,7 @@ int main(int argc, const char * argv[]) {
                 break;
         }
         
-        if(current_screen != MAIN){
+        if(current_screen != MAIN && current_screen != CONFIG){
             SDL_Texture *surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
             SDL_RenderCopy(renderer, surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
         }
@@ -1235,35 +1257,32 @@ bool main_init(){
     }
     
     int screen_Width, screen_Height;
-	char *music_effect, *music_ambience, *language;
+	char language[6], audio_sfx[6], audio_music[6];
 	
     fscanf(settings, "w = %d\n", &screen_Width);
     fscanf(settings, "h = %d\n", &screen_Height);
-    /*
-    fscanf(settings, "music_effect = %s\n", music_effect);
-    fscanf(settings, "music_ambiance = %s\n", music_ambience);
+    
+    fscanf(settings, "audio_sfx = %s\n", audio_sfx);
+    fscanf(settings, "audio_music = %s\n", audio_music);
     fscanf(settings, "language = %s\n", language);
-     */
 	
 	if(!config){
 		config = malloc(sizeof(CONFIGURATION));
 	}
 	
-    /*
-	if (strcmp(music_effect, "true")){
-		config->music_effect = true;
+	if (strcmp(audio_sfx, "true")){
+		config->audio_sfx = true;
 	}
 	else {
-		config->music_effect = false;
+		config->audio_sfx = false;
 	}
-	if (strcmp(music_ambience, "true")){
-		config->music_ambience = true;
+	if (strcmp(audio_music, "true")){
+		config->audio_music = true;
 	}
 	else {
-		config->music_ambience = false;
+		config->audio_music = false;
 	}
 	config->language = language;
-    */
     
     fclose(settings);
     
@@ -1357,10 +1376,9 @@ bool main_init(){
         
         SDL_FreeSurface(surface);
     }
-    
-	//Init config screen texts
 	
 	//Init game running screen texts
+    get_config();
 	
 	//Init game paused screen texts
 	
@@ -1379,6 +1397,7 @@ bool main_init(){
     return true;
 }
 
+//Encerra SDL
 void main_quit(){
     //Close fonts
     TTF_CloseFont(font);
@@ -1387,6 +1406,13 @@ void main_quit(){
     for(int i = 0; i < main_menu_text_count; i++){
         SDL_DestroyTexture(main_menu_texts[i]);
     }
+    
+    for(int i = 0; i < config_menu_text_count; i++){
+        SDL_DestroyTexture(config_menu_texts[i]);
+    }
+    
+    //Free surfaces
+    SDL_FreeSurface(map_Surface);
     
     //Free window
     SDL_DestroyRenderer(renderer);
@@ -1400,4 +1426,79 @@ void main_quit(){
 	//Free config
 	//free(config->language);
 	free(config);
+    
+    //Free lists
+    if(minions)
+        free_list_minion(minions);
+    if(turrets)
+        free_list_turret(turrets);
+    if(projectiles)
+        free_list_projectile(projectiles);
+}
+
+//Carrega textos do menu de configurações
+void get_config(){
+    for(int i = 0; i < config_menu_text_count; i++){
+        char *text;
+        SDL_Rect rect;
+        
+        //Set texts and rects
+        switch(i){
+            case 0:
+                text = "Config";
+                rect = (SDL_Rect){265, 0, 750, 150};
+                break;
+                
+            case 1:
+                if(config->audio_sfx)
+                    text = "Sound Effects:  ON";
+                else
+                    text = "Sound Effects:  OFF";
+                
+                rect = (SDL_Rect){400, 150, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 2:
+                if(config->audio_music)
+                    text = "Music:  ON";
+                else
+                    text = "Music:  OFF";
+                
+                rect = (SDL_Rect){400, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 3:
+                text = "Language";
+                
+                rect = (SDL_Rect){400, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 4:
+                text = "Back";
+                
+                rect = (SDL_Rect){400, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            default:
+                break;
+        }
+        
+        config_menu_rects[i] = rect;
+        
+        SDL_Surface *surface = TTF_RenderText_Solid(font, text, black);
+        
+        if(!surface){
+            printf("Text not rendered! %s\n", TTF_GetError());
+            return;
+        }
+        
+        config_menu_texts[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        
+        if(!config_menu_texts[i]){
+            printf("Text texture not rendered! %s\n", SDL_GetError());
+            return;
+        }
+        
+        SDL_FreeSurface(surface);
+    }
 }
