@@ -119,7 +119,7 @@ typedef enum _main_options {OPT_PLAY, OPT_CONFIG, OPT_SCORE, OPT_EXIT, OPT_CREDI
 
 typedef enum _pause_options {OPT_P_RESUME, OPT_P_CONFIG, OPT_P_SCORE, OPT_P_EXIT, OPT_P_MAIN, OPT_P_CREDITS, OPT_P_NONE} pause_options;
 
-typedef enum _config_options{MUSIC_EFFECT, MUSIC_AMBIENCE, LANGUAGE, BACK, NONE} config_options;
+typedef enum _config_options{AUDIO_SFX, AUDIO_MUSIC, LANGUAGE, BACK, NONE} config_options;
 
 typedef enum _running_top_option {OPT_R_T_PAUSE, OPT_R_T_RESUME, OPT_R_T_NONE} running_top_options;
 typedef enum _running_left_option {OPT_R_L_GOLD, OPT_R_L_MANA, OPT_R_L_LIFE, OPT_R_L_NONE} running_left_options;
@@ -128,8 +128,8 @@ typedef enum _running_area_right_option {OPT_R_A_R_MINION_1, OPT_R_A_R_MINION_2,
 typedef enum _running_area_left_option {OPT_R_A_L_TOWER_1, OPT_R_A_L_TOWER_2, OPT_R_A_L_TOWER_3, OPT_R_A_L_NONE} running_area_left_options;
 
 typedef struct _configuration {
-	bool music_effect;
-	bool music_ambience;
+	bool audio_sfx;
+	bool audio_music;
 	char *language;
 } CONFIGURATION;
 

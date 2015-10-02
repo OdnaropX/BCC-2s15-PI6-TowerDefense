@@ -96,6 +96,8 @@ void free_list_projectile(list_projectile *list){
         aux = aux->next;
         free(rmv);
     }
+    
+    free(aux);
 }
 
 void add_projectile_to_list(list_projectile *list, projectile *projectile){
@@ -155,6 +157,8 @@ void free_list_minion(list_minion *list){
         aux = aux->next;
         free(rmv);
     }
+    
+    free(aux);
 }
 
 void add_minion_to_list(list_minion *list, minion *minion){
@@ -214,6 +218,8 @@ void free_list_turret(list_turret *list){
         aux = aux->next;
         free(rmv);
     }
+    
+    free(aux);
 }
 
 void add_turret_to_list(list_turret *list, turret *turret){
