@@ -232,8 +232,8 @@ int get_touched_menu_address(int x_touch, int y_touch, int center_position[], in
 	x_touch = x_touch - center_position[0] - width / 2;
 	y_touch = y_touch - center_position[1] - height / 2;
 	
-	xAdd = x_touch/BUTTON_MENU_HEIGHT;
-	yAdd = y_touch/BUTTON_MENU_HEIGHT;
+	int xAdd = x_touch/BUTTON_MENU_HEIGHT;
+	int yAdd = y_touch/BUTTON_MENU_HEIGHT;
 	
 	center_position[0] = xAdd;
 	center_position[1] = yAdd;

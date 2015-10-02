@@ -37,4 +37,10 @@ SDL_Surface *init_map();
 **/
 int get_grid_address_linear(int grid_x, int grid_y, int limit_x);
 
+/**
+ Moves target minion a frame. He will go towards the center of the next grid to be moved into.
+ **/
+void move_minion(minion *enemy);
+
+
 #endif /* defined(____GameScene__) */
