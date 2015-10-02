@@ -8,6 +8,7 @@
 
 #include "GameScene.h"
 #include "Estruturas.h"
+#include <math.h>
 
 #include <stdbool.h>
 #include <SDL2/SDL.h>
@@ -194,10 +195,48 @@ int get_grid_address_linear(int grid_x, int grid_y, int limit_x){
 }
 
 int get_touched_menu_address(int x_touch, int y_touch, int center_position[], int tower){
+	int number;
+	int row, width, height, columns, correction;
 	
-	//get_center_position_to_grid(grid_clicked[0], grid_clicked[1], grid_clicked);
-	//get_menu_size_minion(int[] size);
-    
-    //Substituir
-    return 0;
+	if (tower) {
+		number = 3; //Get from file or some other means.
+	}
+	else {
+		number = 3; //Get from file or some other means.
+	}
+	
+	if (number == 3) {
+		row = 1;
+	}
+	else {
+		row = (int) sqrt((double) number) + 1;//3
+	}
+	
+	correction = 0;
+	if (number % row > 0) {
+		correction = 1;
+	}
+	
+	columns = (number / row) + correction; //3
+	
+	width = columns * BUTTON_MENU_HEIGHT;
+	height = row * BUTTON_MENU_HEIGHT;
+	
+	if (x_touch < center_position[0] - width / 2 && x_touch > center_position[0] + width / 2) {
+		return 0;
+	}
+	if (y_touch < center_position[1] - height / 2 && x_touch > center_position[1] + height / 2) {
+		return 0;
+	}
+	
+	x_touch = x_touch - center_position[0] - width / 2;
+	y_touch = y_touch - center_position[1] - height / 2;
+	
+	int xAdd = x_touch/BUTTON_MENU_HEIGHT;
+	int yAdd = y_touch/BUTTON_MENU_HEIGHT;
+	
+	center_position[0] = xAdd;
+	center_position[1] = yAdd;
+	
+	return 1;
 }

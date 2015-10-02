@@ -820,7 +820,7 @@ int main(int argc, const char * argv[]) {
 						case SDLK_UP:
 							//Move to option above
 							if (select_pause_option == OPT_P_RESUME) {
-								select_pause_option = OPT_P_MAIN;
+								select_pause_option = OPT_P_CREDITS;
 							}
 							else {
 								select_pause_option--;
@@ -833,7 +833,7 @@ int main(int argc, const char * argv[]) {
 						case SDLK_RIGHT:
 							//Move to option right
 							if (select_pause_option == OPT_P_RESUME) {
-								select_pause_option = OPT_P_MAIN;
+								select_pause_option = OPT_P_CREDITS;
 							}
 							else {
 								select_pause_option--;
@@ -879,6 +879,11 @@ int main(int argc, const char * argv[]) {
 										pause_option = OPT_P_MAIN;
 										printf("Main\n");
 									}
+									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 5 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 6) {
+										clicked = true;
+										pause_option = OPT_P_CREDITS;
+										printf("Main\n");
+									}
 								}
 							}
 							break;
@@ -908,6 +913,7 @@ int main(int argc, const char * argv[]) {
 		/////////////////////////////////////////////////////
 		switch(current_screen) {
 			case MAIN:
+				
 				//if option
                 printf("%d", main_option);
 				switch(main_option){
@@ -931,11 +937,13 @@ int main(int argc, const char * argv[]) {
 						
 						
 						current_screen = SCORE;
+						previous_screen = MAIN;
 						break;
 					case OPT_CREDIT:
 						//Load Credits from file or use hardcoded.
 
 						current_screen = CREDITS;
+						previous_screen = MAIN;
 					case OPT_NONE:
 						//Do nothing.
 						break;
@@ -945,7 +953,7 @@ int main(int argc, const char * argv[]) {
 			case CONFIG:
 				//Set selected option to show on MAIN to OPT_PLAY
 				select_option = OPT_PLAY;
-				switch(config_option) {
+				switch(config_option){
 					case MUSIC_EFFECT:
 						//Trogle efffect muisc
 						if (config->music_effect == true) {
@@ -1030,38 +1038,39 @@ int main(int argc, const char * argv[]) {
             }
                 
             break;
-            
-             
-             /*
+
 			case GAME_PAUSED:
-				//Set selected option to show on MAIN to OPT_PLAY
-				select_option = OPT_PLAY;
-				if(clicked) {
-					
-				}
-			
-				switch(pause_option) {
-					case RESUME:
+				//Set selected option to show on MAIN to OPT_PLAY			
+				switch(pause_option){
+					case OPT_P_RESUME:
 						current_screen = GAME_RUNNING;
-						
+						show_timer = 0;
+						game_paused = false;
 						break;
-						
-					case EXIT:
+					case OPT_P_EXIT:
 						quit = true;
 						break;
-					case MAIN:
+					case OPT_P_MAIN:
 						current_screen = MAIN;
 						game_started = false;
 						game_paused = false;
-					case CONFIG:
+					case OPT_P_CONFIG:
 						current_screen = CONFIG;
 						previous_screen = GAME_PAUSED;
-					case NONE:
+					case OPT_P_SCORE:
+						previous_screen = GAME_PAUSED;
+						current_screen = SCORE;
+						break;
+					case OPT_P_CREDITS:
+						previous_screen = GAME_PAUSED;
+						current_screen = CREDITS;
+						break;
+					case OPT_P_NONE:
 						//Do nothing
 						break;
 				}
-            break;
-            */
+				break;
+            
 		}
         
         //Clear render
