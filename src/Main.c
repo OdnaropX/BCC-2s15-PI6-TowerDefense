@@ -87,7 +87,6 @@ int main(int argc, const char * argv[]) {
     
 	bool game_started = false;
 	bool game_paused = false;
-	bool clicked = false;
 	bool active_clicked = false;
 	
 	//Game area control
@@ -189,7 +188,6 @@ int main(int argc, const char * argv[]) {
 						
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
-							clicked = false;
 							main_option = OPT_NONE;
 										
 							if(event.button.button == SDL_BUTTON_LEFT){
@@ -197,24 +195,19 @@ int main(int argc, const char * argv[]) {
                                 
 								if (event.motion.x >= 980 && event.motion.x <= 980 + BUTTON_MENU_WIDTH) {//Near main config
 									if (event.motion.y >= 480 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT) {//First option PLAY
-										clicked = true;
 										main_option = OPT_PLAY;
                                         printf("Play\n");
 									}
 									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 2) {
-										clicked = true;
 										main_option = OPT_CONFIG;
                                         printf("Config\n");
 									}
 									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 3) {
-										clicked = true;
 										main_option = OPT_SCORE;
                                         printf("Score\n");
 									}
 									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
-										clicked = true;
 										main_option = OPT_EXIT;
-                                        
                                         quit = true;
                                         printf("exit");
 									}
@@ -223,12 +216,37 @@ int main(int argc, const char * argv[]) {
 								else if (event.motion.x >= 30 && event.motion.x <= 30 + BUTTON_MENU_WIDTH / 2) {
 								//Near credits 
 									if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
-										clicked = true;
 										main_option = OPT_CREDIT;
 									}
 								}
 							}
 							break;
+						
+						case SDL_MOUSEMOTION:
+							//Change select_option with mouse over data.
+							if (event.motion.x >= 980 && event.motion.x <= 980 + BUTTON_MENU_WIDTH) {//Near main config
+								if (event.motion.y >= 480 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT) {//First option PLAY
+									select_option = OPT_PLAY;
+								}
+								else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 2) {
+									select_option = OPT_CONFIG;
+								}
+								else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 3) {
+									select_option = OPT_SCORE;
+                                }
+								else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
+									select_option = OPT_EXIT;
+								}
+							}
+							else if (event.motion.x >= 30 && event.motion.x <= 30 + BUTTON_MENU_WIDTH / 2) {
+							//Near credits 
+								if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
+									select_option = OPT_CREDIT;
+								}
+							}
+							
+							break;
+						
 					}
 					break;
                     
@@ -344,40 +362,60 @@ int main(int argc, const char * argv[]) {
 								if (event.motion.x >= 400 && event.motion.x <= 400 + BUTTON_MENU_WIDTH ) {//Near main config
 									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
 										//Trogle option
-										clicked = true;
 										config_option = MUSIC_EFFECT;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
-										clicked = true;
-										config_option = MUSIC_AMBIENCE;
-										
+										config_option = MUSIC_AMBIENCE;									
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
-										clicked = true;
 										config_option = LANGUAGE;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 4) {
-										clicked = true;
 										config_option = BACK;
 									}
 								}
 								else if (event.motion.x >= 420 + BUTTON_MENU_WIDTH &&  event.motion.x >= 420 + BUTTON_MENU_WIDTH + BUTTON_MENU_WIDTH / 2){
 									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
 										//Trogle option
-										clicked = true;
 										config_option = MUSIC_EFFECT;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
-										clicked = true;
 										config_option = MUSIC_AMBIENCE;
 										
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
-										clicked = true;
 										config_option = LANGUAGE;
 									}
 								}
 							}
+							break;
+						case SDL_MOUSEMOTION:
+							if (event.motion.x >= 400 && event.motion.x <= 400 + BUTTON_MENU_WIDTH ) {//Near main config
+									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
+										select_config_option = MUSIC_EFFECT;
+									}
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
+										select_config_option = MUSIC_AMBIENCE;									
+									}
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
+										select_config_option = LANGUAGE;
+									}
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 4) {
+										select_config_option = BACK;
+									}
+								}
+								else if (event.motion.x >= 420 + BUTTON_MENU_WIDTH &&  event.motion.x >= 420 + BUTTON_MENU_WIDTH + BUTTON_MENU_WIDTH / 2){
+									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
+										select_config_option = MUSIC_EFFECT;
+									}
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
+										select_config_option = MUSIC_AMBIENCE;
+										
+									}
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
+										select_config_option = LANGUAGE;
+									}
+								}
 							break;
 					}
 					break;
@@ -847,7 +885,6 @@ int main(int argc, const char * argv[]) {
 						
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
-							clicked = false;
 							pause_option = OPT_P_NONE;
 							
 							if(event.button.button == SDL_BUTTON_LEFT){
@@ -855,39 +892,61 @@ int main(int argc, const char * argv[]) {
 								if (event.motion.x >= 1100 && event.motion.x <= 1100 + BUTTON_MENU_WIDTH) {
 									//Check buttons
 									if(event.motion.y >= 30 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT){
-										clicked = true;
 										pause_option = OPT_P_RESUME;
 										printf("Play\n");
 									}
 									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 2) {
-										clicked = true;
 										pause_option = OPT_P_CONFIG;
 										printf("Config\n");
 									}
 									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 3) {
-										clicked = true;
 										pause_option = OPT_P_SCORE;
 										printf("Score\n");
 									}
 									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 4) {
-										clicked = true;
 										pause_option = OPT_P_EXIT;
 										printf("Exit\n");
 									}
 									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 4 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 5) {
-										clicked = true;
 										pause_option = OPT_P_MAIN;
 										printf("Main\n");
 									}
 									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 5 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 6) {
-										clicked = true;
 										pause_option = OPT_P_CREDITS;
 										printf("Main\n");
 									}
 								}
 							}
 							break;
-                            
+                        case SDL_MOUSEMOTION:
+							if (event.motion.x >= 1100 && event.motion.x <= 1100 + BUTTON_MENU_WIDTH) {
+								//Check buttons
+								if(event.motion.y >= 30 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT){
+									select_pause_option = OPT_P_RESUME;
+									}
+								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 2) {
+									select_pause_option = OPT_P_CONFIG;
+									printf("Config\n");
+								}
+								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 3) {
+									select_pause_option = OPT_P_SCORE;
+									printf("Score\n");
+								}
+								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 4) {
+									select_pause_option = OPT_P_EXIT;
+										printf("Exit\n");
+								}
+								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 4 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 5) {
+									select_pause_option = OPT_P_MAIN;
+									printf("Main\n");
+								}
+								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 5 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 6) {
+									select_pause_option = OPT_P_CREDITS;
+									printf("Main\n");
+								}
+							}
+							break;
+						
 					}
             }
         }
@@ -1090,26 +1149,43 @@ int main(int argc, const char * argv[]) {
 		/////////////////////////////////////////////////////
         switch (current_screen) {
             case CONFIG:
+				//select_config_option
+				
                 draw_screen_config(main_Surface);
                 break;
             
             case CREDITS:
+				
                 break;
                 
             case GAME_PAUSED:
-                draw_screen_game_paused(main_Surface);
-                break;
+                //show_gold_info
+				//show_mana_info
+				//show_life_info 
+             
+				//select_pause_option
+				
+				draw_screen_game_paused(main_Surface);
+			
+				break;
                 
             case GAME_RUNNING:
 				//active_clicked
 				//select_grid
 				//selected_left
-		
+				
+				//show_gold_info
+				//show_mana_info
+				//show_life_info 
+				
+				
 			
                 draw_screen_game_running(main_Surface, map_Surface, minions, projectiles, turrets);
                 break;
                 
             case MAIN:
+				//select_option
+				
                 draw_screen_main(renderer, main_menu_texts, main_menu_rects, main_menu_text_count);
                 break;
                 
