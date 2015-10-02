@@ -95,7 +95,7 @@ int main(int argc, const char * argv[]) {
 	int add_tower = 0;
 	int add_minion = 0;
     int game_is_active = 1;
-    int lifes = 1;
+    int lifes = 5;
     int gold = 0;
 	
 	//Display control
@@ -392,7 +392,7 @@ int main(int argc, const char * argv[]) {
 						case SDLK_ESCAPE:
 							//Show Game Pause screen with options
 							current_screen = GAME_PAUSED;
-							pause_option = OPT_P_RESUME;
+							select_pause_option = OPT_P_RESUME;
 							break;	
 						case SDLK_q:
 							if (current_tab == GAME_AREA && !active_clicked){
@@ -895,20 +895,23 @@ int main(int argc, const char * argv[]) {
         //Timer handling
 		frame++;
 		if (frame == FRAMES_PER_SEC) {
+			//One second timer
 			show_timer++;
 			frame = 0;
 		}
 		
 		//Check if display time for menu if over. If it is, dont display info anymore.
-		if (show_gold_info || show_mana_info || show_life_info){
-			if (show_timer >= 60){
-				show_gold_info = false;
-				show_mana_info = false;
-				show_life_info = false;
-				show_timer = 0;
+		if (current_screen == GAME_RUNNING || current_screen = GAME_PAUSED) {
+			if (show_gold_info || show_mana_info || show_life_info){
+				if (show_timer >= 60){
+					show_gold_info = false;
+					show_mana_info = false;
+					show_life_info = false;
+					show_timer = 0;
+				}
 			}
 		}
-		
+				
 		//Action Performancer
 		/////////////////////////////////////////////////////
 		switch(current_screen) {
@@ -994,15 +997,23 @@ int main(int argc, const char * argv[]) {
 			
             
             case GAME_RUNNING:{
-//				switch(game_option) {
-//					if (clicked){
-//						
-//						
-//						
-//					}
-//					
-//				}
-                
+				if (!game_paused){
+				
+					if (add_tower > 0){
+						//Add tower
+					
+						//Reset tower
+						add_tower = 0;
+					}
+					if (add_minion > 0){
+						//Add minion
+						
+						//Reset minion
+						add_minion = 0;
+					
+					}
+				}
+				                
                 // DEM ROUTINES, YO!
                 
                 list_minion* enemy = minions;
@@ -1091,6 +1102,11 @@ int main(int argc, const char * argv[]) {
                 break;
                 
             case GAME_RUNNING:
+				//active_clicked
+				//select_grid
+				//selected_left
+		
+			
                 draw_screen_game_running(main_Surface, map_Surface, minions, projectiles, turrets);
                 break;
                 
@@ -1247,9 +1263,13 @@ bool main_init(){
     
 	//Init config screen texts
 	
-	//Init options screen texts
+	//Init game running screen texts
 	
-	//Init options screen texts
+	//Init game paused screen texts
+	
+	//Init game credits screen texts
+	
+	//Init game score screen texts
 	
 	
     map_Surface = init_map();
