@@ -1012,7 +1012,6 @@ int main(int argc, const char * argv[]) {
 						add_minion = 0;
 					
 					}
-				}
 				                
                 // DEM ROUTINES, YO!
                 
@@ -1044,7 +1043,7 @@ int main(int argc, const char * argv[]) {
                     turret->next;
                 }
                 
-                
+                }
                 
             }
                 
