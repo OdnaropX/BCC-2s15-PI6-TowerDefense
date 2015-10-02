@@ -1208,6 +1208,13 @@ bool main_init(){
         SDL_FreeSurface(surface);
     }
     
+	//Init config screen texts
+	
+	//Init options screen texts
+	
+	//Init options screen texts
+	
+	
     map_Surface = init_map();
     
     if(!map_Surface){
