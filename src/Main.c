@@ -383,21 +383,10 @@ int main(int argc, const char * argv[]) {
 								}
 								else if (event.motion.x >= 420 + BUTTON_MENU_WIDTH &&  event.motion.x >= 420 + BUTTON_MENU_WIDTH + BUTTON_MENU_WIDTH / 2){
 									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
-										//Trogle option
-<<<<<<< HEAD
-										config_option = MUSIC_EFFECT;
-									}
-									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
-										config_option = MUSIC_AMBIENCE;
-=======
-										clicked = true;
 										config_option = AUDIO_SFX;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
-										clicked = true;
 										config_option = AUDIO_MUSIC;
->>>>>>> 1e901bcd3acdcb913632293f459f30129c55a915
-										
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
 										config_option = LANGUAGE;
@@ -1182,13 +1171,7 @@ int main(int argc, const char * argv[]) {
 		/////////////////////////////////////////////////////
         switch (current_screen) {
             case CONFIG:
-<<<<<<< HEAD
-				//select_config_option
-				
-                draw_screen_config(main_Surface);
-=======
                 draw_screen_config(renderer, config_menu_texts, config_menu_rects, config_menu_text_count);
->>>>>>> 1e901bcd3acdcb913632293f459f30129c55a915
                 break;
             
             case CREDITS:
