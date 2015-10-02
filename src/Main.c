@@ -1121,9 +1121,13 @@ int main(int argc, const char * argv[]) {
                 break;
         }
         
+        if(current_screen != MAIN){
+            SDL_Texture *surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
+            SDL_RenderCopy(renderer, surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
+        }
+        
         //Update render and surfaces
         SDL_RenderPresent(renderer);
-        //SDL_UpdateWindowSurface(main_Window);
     }
     
     //Quit
@@ -1185,6 +1189,9 @@ bool main_init(){
         printf("SDL_CreateWindow error: %s\n", SDL_GetError());
         return false;
     }
+    
+    //Set main_Surface
+    main_Surface = SDL_CreateRGBSurface(0, 1280, 720, 32, 0, 0, 0, 0);
     
     //Init renderer
     renderer = SDL_CreateRenderer(main_Window, -1, SDL_RENDERER_ACCELERATED);
