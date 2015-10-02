@@ -42,5 +42,11 @@ int get_grid_address_linear(int grid_x, int grid_y, int limit_x);
  **/
 void move_minion(minion *enemy);
 
+/**
+ Moves target bullet. It returns 1 if it hit the target, and 0 if it still not got there.
+ **/
+int move_bullet(minion *target, projectile *shoot);
+
+
 
 #endif /* defined(____GameScene__) */

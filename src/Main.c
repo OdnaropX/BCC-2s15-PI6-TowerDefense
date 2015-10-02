@@ -960,7 +960,7 @@ int main(int argc, const char * argv[]) {
 		}
 		
 		//Check if display time for menu if over. If it is, dont display info anymore.
-		if (current_screen == GAME_RUNNING || current_screen = GAME_PAUSED) {
+		if (current_screen == GAME_RUNNING || current_screen == GAME_PAUSED) {
 			if (show_gold_info || show_mana_info || show_life_info){
 				if (show_timer >= 60){
 					show_gold_info = false;
@@ -1072,38 +1072,54 @@ int main(int argc, const char * argv[]) {
 					
 					}
 				                
-                // DEM ROUTINES, YO!
-                
-                list_minion* enemy = minions;
-                while(enemy){
-                    move_minion(enemy->e);
-                    enemy = enemy->next;
-                }
-                list_turret *turret = turrets;
-                while (turret) {
-                    turret->e->timeUntilNextAttack -= 0.05;
-                    if(turret->e->timeUntilNextAttack <= 0){
-                        enemy = minions;
-                        minion *target = NULL;
+                    // DEM ROUTINES, YO!
+
+                    list_minion* enemy = minions;
+                    while(enemy){
+                        move_minion(enemy->e);
+                        list_projectile *shoot = enemy->e->targetted_projectils;
+                        while (shoot) {
+                            if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
+                                remove_projectile_from_list(enemy->e->targetted_projectils, shoot->e);
+                                enemy->e->HP -= shoot->e->damage;
+                                list_projectile *temp = shoot;
+                                shoot = shoot->next;
+                                remove_projectile(temp->e);
+                                free_list_projectile(temp);
+                                
+                            }
+                            else
+                                shoot = shoot->next;
+                        }
                         
-                        while(enemy && target == NULL){
-                            
-                            if((target->node.xPos - turret->e->node.xPos) * 2 + (target->node.yPos - turret->e->node.yPos) < 22500)
-                                target = enemy->e;
-                            
-                            enemy = enemy->next;
-                        }
-                        if(target){
-                            
-                        }
-                            
+                        enemy = enemy->next;
                     }
-                    
-                    turret->next;
-                }
+                    list_turret *turret = turrets;
+                    while (turret) {
+                        turret->e->timeUntilNextAttack -= 0.017;
+                        if(turret->e->timeUntilNextAttack <= 0){
+                            enemy = minions;
+                            minion *target = NULL;
+                            
+                            while(enemy && target == NULL){
+                                
+                                if((target->node.xPos - turret->e->node.xPos) * 2 + (target->node.yPos - turret->e->node.yPos) < 22500) // If within range 150px
+                                    if(enemy->e->HP > 0) // If enemy not dead
+                                        target = enemy->e;
+                                
+                                enemy = enemy->next;
+                            }
+                            if(target){
+                                projectile* newShoot = init_projectile(0, turret->e);
+                                add_projectile_to_list(target->targetted_projectils, newShoot);
+                                turret->e->timeUntilNextAttack = 1.0;
+                            }
+                        }
+                        turret = turret->next;
+                    }
                 
                 }
-                
+
             }
                 
             break;
