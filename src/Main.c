@@ -95,7 +95,7 @@ int main(int argc, const char * argv[]) {
 	int add_tower = 0;
 	int add_minion = 0;
     int game_is_active = 1;
-    int lifes = 1;
+    int lifes = 5;
     int gold = 0;
 	
 	//Display control
@@ -392,7 +392,7 @@ int main(int argc, const char * argv[]) {
 						case SDLK_ESCAPE:
 							//Show Game Pause screen with options
 							current_screen = GAME_PAUSED;
-							pause_option = OPT_P_RESUME;
+							select_pause_option = OPT_P_RESUME;
 							break;	
 						case SDLK_q:
 							if (current_tab == GAME_AREA && !active_clicked){
@@ -895,20 +895,23 @@ int main(int argc, const char * argv[]) {
         //Timer handling
 		frame++;
 		if (frame == FRAMES_PER_SEC) {
+			//One second timer
 			show_timer++;
 			frame = 0;
 		}
 		
 		//Check if display time for menu if over. If it is, dont display info anymore.
-		if (show_gold_info || show_mana_info || show_life_info){
-			if (show_timer >= 60){
-				show_gold_info = false;
-				show_mana_info = false;
-				show_life_info = false;
-				show_timer = 0;
+		if (current_screen == GAME_RUNNING || current_screen == GAME_PAUSED) {
+			if (show_gold_info || show_mana_info || show_life_info){
+				if (show_timer >= 60){
+					show_gold_info = false;
+					show_mana_info = false;
+					show_life_info = false;
+					show_timer = 0;
+				}
 			}
 		}
-		
+				
 		//Action Performancer
 		/////////////////////////////////////////////////////
 		switch(current_screen) {
@@ -994,61 +997,70 @@ int main(int argc, const char * argv[]) {
 			
             
             case GAME_RUNNING:{
-//				switch(game_option) {
-//					if (clicked){
-//						
-//						
-//						
-//					}
-//					
-//				}
-                
-                // DEM ROUTINES, YO!
+				if (!game_paused){
+				
+					if (add_tower > 0){
+						//Add tower
+					
+						//Reset tower
+						add_tower = 0;
+					}
+					if (add_minion > 0){
+						//Add minion
+						
+						//Reset minion
+						add_minion = 0;
+					
+					}
+				                
+                    // DEM ROUTINES, YO!
 
-                list_minion* enemy = minions;
-                while(enemy){
-                    move_minion(enemy->e);
-                    list_projectile *shoot = enemy->e->targetted_projectils;
-                    while (shoot) {
-                        if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
-                            remove_projectile_from_list(enemy->e->targetted_projectils, shoot->e);
-                            enemy->e->HP -= shoot->e->damage;
-                            list_projectile *temp = shoot;
-                            shoot = shoot->next;
-                            remove_projectile(temp->e);
-                            free_list_projectile(temp);
-                            
+                    list_minion* enemy = minions;
+                    while(enemy){
+                        move_minion(enemy->e);
+                        list_projectile *shoot = enemy->e->targetted_projectils;
+                        while (shoot) {
+                            if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
+                                remove_projectile_from_list(enemy->e->targetted_projectils, shoot->e);
+                                enemy->e->HP -= shoot->e->damage;
+                                list_projectile *temp = shoot;
+                                shoot = shoot->next;
+                                remove_projectile(temp->e);
+                                free_list_projectile(temp);
+                                
+                            }
+                            else
+                                shoot = shoot->next;
                         }
-                        else
-                            shoot = shoot->next;
-                    }
-                    
-                    enemy = enemy->next;
-                }
-                list_turret *turret = turrets;
-                while (turret) {
-                    turret->e->timeUntilNextAttack -= 0.017;
-                    if(turret->e->timeUntilNextAttack <= 0){
-                        enemy = minions;
-                        minion *target = NULL;
                         
-                        while(enemy && target == NULL){
-                            
-                            if((target->node.xPos - turret->e->node.xPos) * 2 + (target->node.yPos - turret->e->node.yPos) < 22500) // If within range 150px
-                                if(enemy->e->HP > 0) // If enemy not dead
-                                    target = enemy->e;
-                            
-                            enemy = enemy->next;
-                        }
-                        if(target){
-                            projectile* newShoot = init_projectile(0, turret->e);
-                            add_projectile_to_list(target->targetted_projectils, newShoot);
-                            turret->e->timeUntilNextAttack = 1.0;
-                        }
+                        enemy = enemy->next;
                     }
-                    turret = turret->next;
-                }
+                    list_turret *turret = turrets;
+                    while (turret) {
+                        turret->e->timeUntilNextAttack -= 0.017;
+                        if(turret->e->timeUntilNextAttack <= 0){
+                            enemy = minions;
+                            minion *target = NULL;
+                            
+                            while(enemy && target == NULL){
+                                
+                                if((target->node.xPos - turret->e->node.xPos) * 2 + (target->node.yPos - turret->e->node.yPos) < 22500) // If within range 150px
+                                    if(enemy->e->HP > 0) // If enemy not dead
+                                        target = enemy->e;
+                                
+                                enemy = enemy->next;
+                            }
+                            if(target){
+                                projectile* newShoot = init_projectile(0, turret->e);
+                                add_projectile_to_list(target->targetted_projectils, newShoot);
+                                turret->e->timeUntilNextAttack = 1.0;
+                            }
+                        }
+                        turret = turret->next;
+                    }
                 
+                }
+
             }
                 
             break;
@@ -1105,6 +1117,11 @@ int main(int argc, const char * argv[]) {
                 break;
                 
             case GAME_RUNNING:
+				//active_clicked
+				//select_grid
+				//selected_left
+		
+			
                 draw_screen_game_running(main_Surface, map_Surface, minions, projectiles, turrets);
                 break;
                 
@@ -1119,9 +1136,13 @@ int main(int argc, const char * argv[]) {
                 break;
         }
         
+        if(current_screen != MAIN){
+            SDL_Texture *surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
+            SDL_RenderCopy(renderer, surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
+        }
+        
         //Update render and surfaces
         SDL_RenderPresent(renderer);
-        //SDL_UpdateWindowSurface(main_Window);
     }
     
     //Quit
@@ -1183,6 +1204,9 @@ bool main_init(){
         printf("SDL_CreateWindow error: %s\n", SDL_GetError());
         return false;
     }
+    
+    //Set main_Surface
+    main_Surface = SDL_CreateRGBSurface(0, 1280, 720, 32, 0, 0, 0, 0);
     
     //Init renderer
     renderer = SDL_CreateRenderer(main_Window, -1, SDL_RENDERER_ACCELERATED);
@@ -1259,6 +1283,17 @@ bool main_init(){
         SDL_FreeSurface(surface);
     }
     
+	//Init config screen texts
+	
+	//Init game running screen texts
+	
+	//Init game paused screen texts
+	
+	//Init game credits screen texts
+	
+	//Init game score screen texts
+	
+	
     map_Surface = init_map();
     
     if(!map_Surface){
