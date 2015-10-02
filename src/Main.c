@@ -114,6 +114,7 @@ int main(int argc, const char * argv[]) {
 	
     // Following parts are only for first interation;
     int monsterSpawner[] = {6, 8, 12, 14, 17, 18, 25, 16, 18, 50};
+	//Wave 20 seconds, after 
 	
 	int grid_clicked[] = {0,0};
 	
@@ -1060,7 +1061,7 @@ int main(int argc, const char * argv[]) {
 				
 					if (add_tower > 0){
 						//Add tower
-					
+						
 						//Reset tower
 						add_tower = 0;
 					}
@@ -1086,12 +1087,10 @@ int main(int argc, const char * argv[]) {
                                 shoot = shoot->next;
                                 remove_projectile(temp->e);
                                 free_list_projectile(temp);
-                                
                             }
                             else
                                 shoot = shoot->next;
                         }
-                        
                         enemy = enemy->next;
                     }
                     list_turret *turret = turrets;
