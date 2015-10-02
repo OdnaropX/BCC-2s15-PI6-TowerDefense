@@ -130,6 +130,7 @@ int main(int argc, const char * argv[]) {
         //Event Handler
         ///////////////////////////////////////////////////
 		while(SDL_PollEvent(&event) != 0){
+            printf("");
 			switch (current_screen){
 				//Main screen event
 				case MAIN:
@@ -908,6 +909,7 @@ int main(int argc, const char * argv[]) {
 		switch(current_screen) {
 			case MAIN:
 				//if option
+                printf("%d", main_option);
 				switch(main_option){
 					case OPT_PLAY:
 						game_started = true;
@@ -982,18 +984,55 @@ int main(int argc, const char * argv[]) {
 				}
 				break;
 			
-            /*
-			case GAME_RUNNING:
-				switch(game_option) {
-					if (clicked){
-						
-						
-						
-					}
-					
-				}
+            
+            case GAME_RUNNING:{
+//				switch(game_option) {
+//					if (clicked){
+//						
+//						
+//						
+//					}
+//					
+//				}
+                
+                // DEM ROUTINES, YO!
+                
+                list_minion* enemy = minions;
+                while(enemy){
+                    move_minion(enemy->e);
+                    enemy = enemy->next;
+                }
+                list_turret *turret = turrets;
+                while (turret) {
+                    turret->e->timeUntilNextAttack -= 0.05;
+                    if(turret->e->timeUntilNextAttack <= 0){
+                        enemy = minions;
+                        minion *target = NULL;
+                        
+                        while(enemy && target == NULL){
+                            
+                            if((target->node.xPos - turret->e->node.xPos) * 2 + (target->node.yPos - turret->e->node.yPos) < 22500)
+                                target = enemy->e;
+                            
+                            enemy = enemy->next;
+                        }
+                        if(target){
+                            
+                        }
+                            
+                    }
+                    
+                    turret->next;
+                }
+                
+                
+                
+            }
+                
             break;
-			
+            
+             
+             /*
 			case GAME_PAUSED:
 				//Set selected option to show on MAIN to OPT_PLAY
 				select_option = OPT_PLAY;
