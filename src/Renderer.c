@@ -34,7 +34,11 @@ void draw_screen_main(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rec
     }
 }
 
-void draw_screen_config(SDL_Surface *screen){}
+void draw_screen_config(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rectangles, int count){
+    for(int i = 0; i < count; i++){
+        SDL_RenderCopy(renderer, texts[i], NULL, &rectangles[i]);
+    }
+}
 
 void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion *minions, list_projectile *projectiles, list_turret *turrets){
     //Draw map

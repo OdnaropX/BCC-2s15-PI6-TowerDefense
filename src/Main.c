@@ -21,6 +21,7 @@
 #include "GameScene.h"
 
 #define main_menu_text_count 6
+#define config_menu_text_count 5
 #define FRAMES_PER_SEC 60
 
 //SDL stuff
@@ -43,6 +44,10 @@ SDL_Color red = {255, 0, 0, 255};
 SDL_Texture *main_menu_texts[main_menu_text_count];
 SDL_Rect main_menu_rects[main_menu_text_count];
 
+//Config order: Config, sfx, music, language, back
+SDL_Texture *config_menu_texts[config_menu_text_count];
+SDL_Rect config_menu_rects[config_menu_text_count];
+
 CONFIGURATION *config;
 
 list_minion *minions;
@@ -51,6 +56,8 @@ list_turret *turrets;
 
 bool main_init();
 void main_quit();
+
+void get_config();
 
 int main(int argc, const char * argv[]) {
     //Main init
@@ -76,7 +83,7 @@ int main(int argc, const char * argv[]) {
 	
 	//Keyboard options control
 	main_options select_option = OPT_PLAY;
-	config_options select_config_option = MUSIC_EFFECT;
+	config_options select_config_option = AUDIO_SFX;
 	pause_options select_pause_option = OPT_P_NONE;
     running_top_options select_running_top_option = OPT_R_T_NONE;
 	running_left_options select_running_left_option = OPT_R_L_NONE;
@@ -87,7 +94,6 @@ int main(int argc, const char * argv[]) {
     
 	bool game_started = false;
 	bool game_paused = false;
-	bool clicked = false;
 	bool active_clicked = false;
 	
 	//Game area control
@@ -115,6 +121,7 @@ int main(int argc, const char * argv[]) {
 	
     // Following parts are only for first interation;
     int monsterSpawner[] = {6, 8, 12, 14, 17, 18, 25, 16, 18, 50};
+	//Wave 20 seconds, after 
 	
 	int grid_clicked[] = {0,0};
 	
@@ -139,200 +146,224 @@ int main(int argc, const char * argv[]) {
 						case SDL_QUIT:
 							quit = true;
 							break;
-						//Escape key
-                        case SDLK_ESCAPE:
-							quit = true;
-							break;
-						//Keypad enter
-						case SDLK_KP_ENTER:
-							//Check current selected option
-							if (select_option != OPT_NONE){
-								main_option = select_option;
-							}
-							break;
-						//Keyboard enter
-						case SDLK_RETURN:
-							//Check current selected option and initiated it.
-							if (select_option != OPT_NONE){
-								main_option = select_option;
-							}
-                            break;
-						case SDLK_UP:
-							//Change current selected option
-							if (select_option == OPT_PLAY) {
-								select_option = OPT_CREDIT;
-							}
-							else {
-								select_option--;
-							}
-							break;
-						
-						case SDLK_LEFT:
-							//Change current selected option
-							select_option = (select_option + 1) % 5;
-							break;
-						case SDLK_RIGHT:
-							//Change current selected option
-							if (select_option == OPT_PLAY) {
-								select_option = OPT_CREDIT;
-							}
-							else {
-								select_option--;
-							}
-							break;
-						
-						case SDLK_DOWN:
-							//Change current selected option
-							select_option = (select_option + 1) % 5;
-							break;
+						//Handle keyboard key release event.
+						case SDL_KEYUP:
+							switch(event.key.keysym.sym){
+								//Escape key
+								case SDLK_ESCAPE:
+									quit = true;
+									break;
+								//Keypad enter
+								case SDLK_KP_ENTER:
+									//Check current selected option
+									if (select_option != OPT_NONE){
+										main_option = select_option;
+									}
+									break;
+								//Keyboard enter
+								case SDLK_RETURN:
+									//Check current selected option and initiated it.
+									if (select_option != OPT_NONE){
+										main_option = select_option;
+									}
+									break;
+								case SDLK_UP:
+									//Change current selected option
+									if (select_option == OPT_PLAY) {
+										select_option = OPT_CREDIT;
+									}
+									else {
+										select_option--;
+									}
+									break;
+								
+								case SDLK_LEFT:
+									//Change current selected option
+									select_option = (select_option + 1) % 5;
+									break;
+								case SDLK_RIGHT:
+									//Change current selected option
+									if (select_option == OPT_PLAY) {
+										select_option = OPT_CREDIT;
+									}
+									else {
+										select_option--;
+									}
+									break;
+								
+								case SDLK_DOWN:
+									//Change current selected option
+									select_option = (select_option + 1) % 5;
+									break;
+								}
 						
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
-							clicked = false;
 							main_option = OPT_NONE;
-										
+												
 							if(event.button.button == SDL_BUTTON_LEFT){
 								//Check if location selected is a valid one
-                                
+										
 								if (event.motion.x >= 980 && event.motion.x <= 980 + BUTTON_MENU_WIDTH) {//Near main config
 									if (event.motion.y >= 480 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT) {//First option PLAY
-										clicked = true;
 										main_option = OPT_PLAY;
-                                        printf("Play\n");
+										printf("Play\n");
 									}
 									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 2) {
-										clicked = true;
 										main_option = OPT_CONFIG;
-                                        printf("Config\n");
+										printf("Config\n");
 									}
 									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 3) {
-										clicked = true;
 										main_option = OPT_SCORE;
-                                        printf("Score\n");
+										printf("Score\n");
 									}
 									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
-										clicked = true;
 										main_option = OPT_EXIT;
-                                        
-                                        quit = true;
-                                        printf("exit");
+										quit = true;
+										printf("exit");
 									}
-									
+											
 								}
 								else if (event.motion.x >= 30 && event.motion.x <= 30 + BUTTON_MENU_WIDTH / 2) {
-								//Near credits 
+									//Near credits 
 									if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
-										clicked = true;
 										main_option = OPT_CREDIT;
 									}
 								}
 							}
 							break;
+								
+						case SDL_MOUSEMOTION:
+							//Change select_option with mouse over data.
+							if (event.motion.x >= 980 && event.motion.x <= 980 + BUTTON_MENU_WIDTH) {//Near main config
+								if (event.motion.y >= 480 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT) {//First option PLAY
+									select_option = OPT_PLAY;
+								}
+								else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 2) {
+									select_option = OPT_CONFIG;
+								}
+								else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 3) {
+									select_option = OPT_SCORE;
+								}
+								else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
+									select_option = OPT_EXIT;
+								}
+							}
+							else if (event.motion.x >= 30 && event.motion.x <= 30 + BUTTON_MENU_WIDTH / 2) {
+							//Near credits 
+								if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
+									select_option = OPT_CREDIT;
+								}
+							}			
+							break;
 					}
 					break;
                     
-				case CONFIG:					
+				case CONFIG:
 					switch (event.type) {
 						//Quit
 						case SDL_QUIT:
 							quit = true;
 							break;
-						//Escape
-						case SDLK_ESCAPE:
-							//Go back main screen or paused screem
-							if (previous_screen == MAIN){
-								current_screen = MAIN;
-							}
-							else {
-								current_screen = GAME_PAUSED;
-							}
-							break;	
-						//Keypad enter
-						case SDLK_KP_ENTER:
-							//Check current selected option
-							switch(select_config_option){
-								case BACK:
+						//Handle keyboard event
+						case SDL_KEYUP:
+							switch(event.key.keysym.sym){
+								//Escape
+								case SDLK_ESCAPE:
+									//Go back main screen or paused screem
 									if (previous_screen == MAIN){
 										current_screen = MAIN;
 									}
 									else {
 										current_screen = GAME_PAUSED;
 									}
+									break;	
+								//Keypad enter
+								case SDLK_KP_ENTER:
+									//Check current selected option
+									switch(select_config_option){
+										case BACK:
+											if (previous_screen == MAIN){
+												current_screen = MAIN;
+											}
+											else {
+												current_screen = GAME_PAUSED;
+											}
+											break;
+										case AUDIO_SFX:
+											config_option = AUDIO_SFX;
+											break;
+										case AUDIO_MUSIC:
+											config_option = AUDIO_MUSIC;
+											break;
+										case LANGUAGE:
+											config_option = LANGUAGE;
+											break;
+										case NONE:
+											//do nothing
+											break;
+									}
 									break;
-								case MUSIC_EFFECT:
-									config_option = MUSIC_EFFECT;
+								//Keyboard enter
+								case SDLK_RETURN:
+									//Check current selected option and initiated it.
+									switch(select_config_option){
+										case BACK:
+											if (previous_screen == MAIN){
+												current_screen = MAIN;
+											}
+											else {
+												current_screen = GAME_PAUSED;
+											}
+											break;
+										case AUDIO_SFX:
+											config_option = AUDIO_SFX;
+											break;
+										case AUDIO_MUSIC:
+											config_option = AUDIO_MUSIC;
+											break;
+										case LANGUAGE:
+											config_option = LANGUAGE;
+											break;
+										case NONE:
+											//do nothing
+											break;
+									}
 									break;
-								case MUSIC_AMBIENCE:
-									config_option = MUSIC_AMBIENCE;
-									break;
-								case LANGUAGE:
-									config_option = LANGUAGE;
-									break;
-								case NONE:
-									//do nothing
-									break;
-							}
-							break;
-						//Keyboard enter
-						case SDLK_RETURN:
-							//Check current selected option and initiated it.
-							switch(select_config_option){
-								case BACK:
-									if (previous_screen == MAIN){
-										current_screen = MAIN;
+								case SDLK_UP:
+									//Change current selected option
+									if (select_config_option == AUDIO_SFX) {
+										select_config_option = BACK;
 									}
 									else {
-										current_screen = GAME_PAUSED;
+										select_config_option--;
 									}
 									break;
-								case MUSIC_EFFECT:
-									config_option = MUSIC_EFFECT;
+								
+								case SDLK_LEFT:
+									//Change current selected option
+									if (select_config_option == LANGUAGE) {
+									
+									}
+									else {
+										config_option = select_config_option;
+									}
 									break;
-								case MUSIC_AMBIENCE:
-									config_option = MUSIC_AMBIENCE;
+								case SDLK_RIGHT:
+									//Change current selected option
+									if (select_config_option == LANGUAGE) {
+									
+									}
+									else {
+										config_option = select_config_option;
+									}
 									break;
-								case LANGUAGE:
-									config_option = LANGUAGE;
+								
+								case SDLK_DOWN:
+									//Change current selected option
+									select_config_option = (select_config_option + 1) % 4;
 									break;
-								case NONE:
-									//do nothing
-									break;
 							}
-							break;
-						case SDLK_UP:
-							//Change current selected option
-							if (select_config_option == MUSIC_EFFECT) {
-								select_config_option = BACK;
-							}
-							else {
-								select_config_option--;
-							}
-							break;
-						
-						case SDLK_LEFT:
-							//Change current selected option
-							if (select_config_option == LANGUAGE) {
-							
-							}
-							else {
-								config_option = select_config_option;
-							}
-							break;
-						case SDLK_RIGHT:
-							//Change current selected option
-							if (select_config_option == LANGUAGE) {
-							
-							}
-							else {
-								config_option = select_config_option;
-							}
-							break;
-						
-						case SDLK_DOWN:
-							//Change current selected option
-							select_config_option = (select_config_option + 1) % 4;
-							break;
-							
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
 							clicked = false;
@@ -342,41 +373,58 @@ int main(int argc, const char * argv[]) {
                                 //Check if location selected is a valid one
 								if (event.motion.x >= 400 && event.motion.x <= 400 + BUTTON_MENU_WIDTH ) {//Near main config
 									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
-										//Trogle option
-										clicked = true;
-										config_option = MUSIC_EFFECT;
+										config_option = AUDIO_SFX;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
-										clicked = true;
-										config_option = MUSIC_AMBIENCE;
-										
+										config_option = AUDIO_MUSIC;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
-										clicked = true;
 										config_option = LANGUAGE;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 4) {
-										clicked = true;
 										config_option = BACK;
 									}
 								}
 								else if (event.motion.x >= 420 + BUTTON_MENU_WIDTH &&  event.motion.x >= 420 + BUTTON_MENU_WIDTH + BUTTON_MENU_WIDTH / 2){
 									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
-										//Trogle option
-										clicked = true;
-										config_option = MUSIC_EFFECT;
+										config_option = AUDIO_SFX;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
-										clicked = true;
-										config_option = MUSIC_AMBIENCE;
-										
+										config_option = AUDIO_MUSIC;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
-										clicked = true;
 										config_option = LANGUAGE;
 									}
 								}
 							}
+							break;
+						case SDL_MOUSEMOTION:
+							if (event.motion.x >= 400 && event.motion.x <= 400 + BUTTON_MENU_WIDTH ) {//Near main config
+									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
+										select_config_option = MUSIC_EFFECT;
+									}
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
+										select_config_option = MUSIC_AMBIENCE;									
+									}
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
+										select_config_option = LANGUAGE;
+									}
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 4) {
+										select_config_option = BACK;
+									}
+								}
+								else if (event.motion.x >= 420 + BUTTON_MENU_WIDTH &&  event.motion.x >= 420 + BUTTON_MENU_WIDTH + BUTTON_MENU_WIDTH / 2){
+									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
+										select_config_option = MUSIC_EFFECT;
+									}
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
+										select_config_option = MUSIC_AMBIENCE;
+										
+									}
+									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
+										select_config_option = LANGUAGE;
+									}
+								}
 							break;
 					}
 					break;
@@ -387,305 +435,309 @@ int main(int argc, const char * argv[]) {
 						case SDL_QUIT:
 							quit = true;
 							break;
-						//Escape
-						case SDLK_ESCAPE:
-							//Show Game Pause screen with options
-							current_screen = GAME_PAUSED;
-							select_pause_option = OPT_P_RESUME;
-							break;	
-						case SDLK_q:
-							if (current_tab == GAME_AREA && !active_clicked){
-								//Active click on current location
-								active_clicked = true;
-								selected_left = true;
-							}
-						case SDLK_e:
-							if (current_tab == GAME_AREA && !active_clicked){
-								//Active click on current location
-								active_clicked = true;
-								selected_left = false;
-							}
-						
-						//Mouse motion
-						case SDL_MOUSEMOTION:
-							//Move mouse selector over game area
-							if (!active_clicked && get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
-								select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 16);
-							}
-							break;
-						
-						//Keypad enter
-						case SDLK_KP_ENTER:
-							//Check current action selected from menu and initiated it.
-							switch(current_tab) {
-								case TOP_MENU:
-									switch(select_running_top_option){
-										case OPT_R_T_PAUSE:
-											//Dont do any action after this, only render the scene. 
-											current_screen = GAME_PAUSED;
-											game_paused = true;
-											break;
-										case OPT_R_T_RESUME:
-											current_screen = GAME_RUNNING;
-											game_paused = false;
-											break;
-									}
-									break;
-								case LEFT_MENU:
-									switch(select_running_left_option){
-										case OPT_R_L_GOLD:
-											show_gold_info = true;
-											show_timer = 0;
-											break;
-										case OPT_R_L_MANA:
-											show_mana_info = true;
-											show_timer = 0;
-											break;
-										case OPT_R_L_LIFE:
-											show_life_info = true;
-											show_timer = 0;
-											break;
-									}
-									break;
-								case GAME_AREA:
-									//Enter only work on active_clicked.
-									if (active_clicked){
-										if (selected_left) {
-											add_tower = select_running_area_right_option + 1;
-										}
-										else {
-											add_minion = select_running_area_left_option + 1;
-										}
-									}
-									break;
-								
-							}
-							break;
-						//Keyboard enter
-						case SDLK_RETURN:
-							//Check current action selected from menu and initiated it.
-							switch(current_tab) {
-								case TOP_MENU:
-									switch(select_running_top_option){
-										case OPT_R_T_PAUSE:
-											//Dont do any action after this, only render the scene. 
-											current_screen = GAME_PAUSED;
-											game_paused = true;
-											break;
-										case OPT_R_T_RESUME:
-											current_screen = GAME_RUNNING;
-											game_paused = false;
-											break;
-									}
-									break;
-								case LEFT_MENU:
-									switch(select_running_left_option){
-										case OPT_R_L_GOLD:
-											show_gold_info = true;
-											show_timer = 0;
-											break;
-										case OPT_R_L_MANA:
-											show_mana_info = true;
-											show_timer = 0;
-											break;
-										case OPT_R_L_LIFE:
-											show_life_info = true;
-											show_timer = 0;
-											break;
-									}
-									break;
-								case GAME_AREA:
-									if (active_clicked){
-										if (selected_left) {
-											add_tower = select_running_area_right_option + 1;
-										}
-										else {
-											add_minion = select_running_area_left_option + 1;
-										}
-									}
-									break;
-								
-							}
-							break;
-						case SDLK_TAB:
-							//Move selector location
-							current_tab = (current_tab + 1) % 4;
+						//Handle keyboard release
+						case SDL_KEYUP:
+							switch(event.key.keysym.sym){
 							
-							break;
-						case SDLK_UP:
-							//Move selected selector. Selector is choose with tab.
-							switch(current_tab) {
-								case TOP_MENU:
-									//Move up top menu
-									if (select_running_top_option == OPT_R_T_PAUSE) {
-										select_running_top_option = OPT_R_T_RESUME;
+								//Escape
+								case SDLK_ESCAPE:
+									//Show Game Pause screen with options
+									current_screen = GAME_PAUSED;
+									select_pause_option = OPT_P_RESUME;
+									break;	
+								case SDLK_q:
+									if (current_tab == GAME_AREA && !active_clicked){
+										//Active click on current location
+										active_clicked = true;
+										selected_left = true;
 									}
-									else {
-										select_running_top_option--;
+								case SDLK_e:
+									if (current_tab == GAME_AREA && !active_clicked){
+										//Active click on current location
+										active_clicked = true;
+										selected_left = false;
+									}
+								
+								//Mouse motion
+								case SDL_MOUSEMOTION:
+									//Move mouse selector over game area
+									if (!active_clicked && get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
+										select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 16);
 									}
 									break;
 								
-								case LEFT_MENU:
-									//Move up left menu
-									if (select_running_left_option == OPT_R_L_GOLD) {
-										select_running_left_option = OPT_R_L_LIFE;
-									}
-									else {
-										select_running_left_option--;
+								//Keypad enter
+								case SDLK_KP_ENTER:
+									//Check current action selected from menu and initiated it.
+									switch(current_tab) {
+										case TOP_MENU:
+											switch(select_running_top_option){
+												case OPT_R_T_PAUSE:
+													//Dont do any action after this, only render the scene. 
+													current_screen = GAME_PAUSED;
+													game_paused = true;
+													break;
+												case OPT_R_T_RESUME:
+													current_screen = GAME_RUNNING;
+													game_paused = false;
+													break;
+											}
+											break;
+										case LEFT_MENU:
+											switch(select_running_left_option){
+												case OPT_R_L_GOLD:
+													show_gold_info = true;
+													show_timer = 0;
+													break;
+												case OPT_R_L_MANA:
+													show_mana_info = true;
+													show_timer = 0;
+													break;
+												case OPT_R_L_LIFE:
+													show_life_info = true;
+													show_timer = 0;
+													break;
+											}
+											break;
+										case GAME_AREA:
+											//Enter only work on active_clicked.
+											if (active_clicked){
+												if (selected_left) {
+													add_tower = select_running_area_right_option + 1;
+												}
+												else {
+													add_minion = select_running_area_left_option + 1;
+												}
+											}
+											break;
+										
 									}
 									break;
-								
-								case GAME_AREA:
-									//Move up mouse cursor between options 
-									if(active_clicked) {//Equals to mouse clicked previously
-										if (selected_left) {
-											if (select_running_area_left_option == OPT_R_A_L_TOWER_1) {
-												select_running_area_left_option = OPT_R_A_L_TOWER_3;
+								//Keyboard enter
+								case SDLK_RETURN:
+									//Check current action selected from menu and initiated it.
+									switch(current_tab) {
+										case TOP_MENU:
+											switch(select_running_top_option){
+												case OPT_R_T_PAUSE:
+													//Dont do any action after this, only render the scene. 
+													current_screen = GAME_PAUSED;
+													game_paused = true;
+													break;
+												case OPT_R_T_RESUME:
+													current_screen = GAME_RUNNING;
+													game_paused = false;
+													break;
+											}
+											break;
+										case LEFT_MENU:
+											switch(select_running_left_option){
+												case OPT_R_L_GOLD:
+													show_gold_info = true;
+													show_timer = 0;
+													break;
+												case OPT_R_L_MANA:
+													show_mana_info = true;
+													show_timer = 0;
+													break;
+												case OPT_R_L_LIFE:
+													show_life_info = true;
+													show_timer = 0;
+													break;
+											}
+											break;
+										case GAME_AREA:
+											if (active_clicked){
+												if (selected_left) {
+													add_tower = select_running_area_right_option + 1;
+												}
+												else {
+													add_minion = select_running_area_left_option + 1;
+												}
+											}
+											break;
+										
+									}
+									break;
+								case SDLK_TAB:
+									//Move selector location
+									current_tab = (current_tab + 1) % 4;
+									
+									break;
+								case SDLK_UP:
+									//Move selected selector. Selector is choose with tab.
+									switch(current_tab) {
+										case TOP_MENU:
+											//Move up top menu
+											if (select_running_top_option == OPT_R_T_PAUSE) {
+												select_running_top_option = OPT_R_T_RESUME;
 											}
 											else {
-												select_running_area_left_option--;
+												select_running_top_option--;
 											}
-										}
-										else {
-											if (select_running_area_right_option == OPT_R_A_R_MINION_1) {
-												select_running_area_right_option = OPT_R_A_R_MINION_3;
+											break;
+										
+										case LEFT_MENU:
+											//Move up left menu
+											if (select_running_left_option == OPT_R_L_GOLD) {
+												select_running_left_option = OPT_R_L_LIFE;
 											}
 											else {
-												select_running_area_right_option--;
+												select_running_left_option--;
 											}
-										}
-									}
-									else {
-									//Move up mouse cursor from GAME_AREA. 
-										if (select_grid == 0) {
-											select_grid = max_grid - 1;
-										}
-										else {
-											select_grid--;
-										}
-									}
-									break;
-							}
-							break;
-						
-						case SDLK_LEFT:
-							//Move selected selector. Selector is choose with tab.
-							switch(current_tab) {
-								case TOP_MENU:
-									//Move left top menu - Same as UP because menu is linear.
-									if (select_running_top_option == OPT_R_T_PAUSE) {
-										select_running_top_option = OPT_R_T_RESUME;
-									}
-									else {
-										select_running_top_option--;
+											break;
+										
+										case GAME_AREA:
+											//Move up mouse cursor between options 
+											if(active_clicked) {//Equals to mouse clicked previously
+												if (selected_left) {
+													if (select_running_area_left_option == OPT_R_A_L_TOWER_1) {
+														select_running_area_left_option = OPT_R_A_L_TOWER_3;
+													}
+													else {
+														select_running_area_left_option--;
+													}
+												}
+												else {
+													if (select_running_area_right_option == OPT_R_A_R_MINION_1) {
+														select_running_area_right_option = OPT_R_A_R_MINION_3;
+													}
+													else {
+														select_running_area_right_option--;
+													}
+												}
+											}
+											else {
+											//Move up mouse cursor from GAME_AREA. 
+												if (select_grid == 0) {
+													select_grid = max_grid - 1;
+												}
+												else {
+													select_grid--;
+												}
+											}
+											break;
 									}
 									break;
 								
-								case LEFT_MENU:
-									//Move left left menu
-									if (select_running_left_option == OPT_R_L_GOLD) {
-										select_running_left_option = OPT_R_L_LIFE;
-									}
-									else {
-										select_running_left_option--;
-									}
-									break;
-								
-								case GAME_AREA:
-									//Move left mouse cursor from GAME_AREA
-									if(active_clicked) {//Equals to mouse clicked previously
-										if (selected_left) {
-											if (select_running_area_left_option == OPT_R_A_L_TOWER_1) {
-												select_running_area_left_option = OPT_R_A_L_TOWER_3;
+								case SDLK_LEFT:
+									//Move selected selector. Selector is choose with tab.
+									switch(current_tab) {
+										case TOP_MENU:
+											//Move left top menu - Same as UP because menu is linear.
+											if (select_running_top_option == OPT_R_T_PAUSE) {
+												select_running_top_option = OPT_R_T_RESUME;
 											}
 											else {
-												select_running_area_left_option--;
+												select_running_top_option--;
 											}
-										}
-										else {
-											if (select_running_area_right_option == OPT_R_A_R_MINION_1) {
-												select_running_area_right_option = OPT_R_A_R_MINION_3;
+											break;
+										
+										case LEFT_MENU:
+											//Move left left menu
+											if (select_running_left_option == OPT_R_L_GOLD) {
+												select_running_left_option = OPT_R_L_LIFE;
 											}
 											else {
-												select_running_area_right_option--;
+												select_running_left_option--;
 											}
-										}
+											break;
+										
+										case GAME_AREA:
+											//Move left mouse cursor from GAME_AREA
+											if(active_clicked) {//Equals to mouse clicked previously
+												if (selected_left) {
+													if (select_running_area_left_option == OPT_R_A_L_TOWER_1) {
+														select_running_area_left_option = OPT_R_A_L_TOWER_3;
+													}
+													else {
+														select_running_area_left_option--;
+													}
+												}
+												else {
+													if (select_running_area_right_option == OPT_R_A_R_MINION_1) {
+														select_running_area_right_option = OPT_R_A_R_MINION_3;
+													}
+													else {
+														select_running_area_right_option--;
+													}
+												}
+											}
+											else {
+											//Move left mouse cursor from GAME_AREA
+												if (select_grid == 0) {
+													select_grid = max_grid - 1;
+												}
+												else {
+													select_grid--;
+												}
+											}
+											break;
 									}
-									else {
-									//Move left mouse cursor from GAME_AREA
-										if (select_grid == 0) {
-											select_grid = max_grid - 1;
-										}
-										else {
-											select_grid--;
-										}
-									}
 									break;
-							}
-							break;
-                            
-						case SDLK_RIGHT:
-							//Move selected selector. Selector is choose with tab.
-							switch(current_tab) {
-								case TOP_MENU:
-									//Move right top menu
-									select_running_top_option = (select_running_top_option + 1) % 2;
-									break;
-								
-								case LEFT_MENU:
-									//Move right left menu
-									select_running_left_option = (select_running_left_option + 1) % 3;
-									break;
+									
+								case SDLK_RIGHT:
+									//Move selected selector. Selector is choose with tab.
+									switch(current_tab) {
+										case TOP_MENU:
+											//Move right top menu
+											select_running_top_option = (select_running_top_option + 1) % 2;
+											break;
+										
+										case LEFT_MENU:
+											//Move right left menu
+											select_running_left_option = (select_running_left_option + 1) % 3;
+											break;
 
-								case GAME_AREA:
-									//Move right mouse cursor from GAME_AREA
-									if(active_clicked){
-										if (selected_left) {
-											select_running_area_left_option = (select_running_area_left_option + 1) % 3;
-										}
-										else {
-											select_running_area_right_option = (select_running_area_right_option + 1) % 3;
-										}
+										case GAME_AREA:
+											//Move right mouse cursor from GAME_AREA
+											if(active_clicked){
+												if (selected_left) {
+													select_running_area_left_option = (select_running_area_left_option + 1) % 3;
+												}
+												else {
+													select_running_area_right_option = (select_running_area_right_option + 1) % 3;
+												}
+											}
+											else {
+											//Move left mouse cursor from GAME_AREA. 
+												select_grid = (select_grid + 1) % max_grid;
+											}
+											break;
 									}
-									else {
-									//Move left mouse cursor from GAME_AREA. 
-										select_grid = (select_grid + 1) % max_grid;
+									break;
+								
+								case SDLK_DOWN:
+									//Move selected selector. Selector is choose with tab.
+									switch(current_tab) {
+										case TOP_MENU:
+											//Move down top menu
+											select_running_top_option = (select_running_top_option + 1) % 2;
+											break;
+										
+										case LEFT_MENU:
+											//Move down left menu
+											select_running_left_option = (select_running_left_option + 1) % 3;
+											break;
+										
+										case GAME_AREA:
+											//Move down mouse cursor from GAME_AREA
+											if(active_clicked){
+												if (selected_left) {
+													select_running_area_left_option = (select_running_area_left_option + 1) % 3;
+												}
+												else {
+													select_running_area_right_option = (select_running_area_right_option + 1) % 3;
+												}
+											}
+											else {
+											//Move down mouse cursor from GAME_AREA. 
+												select_grid = (select_grid + 1) % max_grid;
+											}
+											break;
 									}
 									break;
 							}
-							break;
-						
-						case SDLK_DOWN:
-							//Move selected selector. Selector is choose with tab.
-							switch(current_tab) {
-								case TOP_MENU:
-									//Move down top menu
-									select_running_top_option = (select_running_top_option + 1) % 2;
-									break;
-								
-								case LEFT_MENU:
-									//Move down left menu
-									select_running_left_option = (select_running_left_option + 1) % 3;
-									break;
-								
-								case GAME_AREA:
-									//Move down mouse cursor from GAME_AREA
-									if(active_clicked){
-										if (selected_left) {
-											select_running_area_left_option = (select_running_area_left_option + 1) % 3;
-										}
-										else {
-											select_running_area_right_option = (select_running_area_right_option + 1) % 3;
-										}
-									}
-									else {
-									//Move down mouse cursor from GAME_AREA. 
-										select_grid = (select_grid + 1) % max_grid;
-									}
-									break;
-							}
-							break;
-							
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
 							if(event.button.button == SDL_BUTTON_LEFT){
@@ -753,100 +805,103 @@ int main(int argc, const char * argv[]) {
 						case SDL_QUIT:
 							quit = true;
 							break;
-						//Escape
-						case SDLK_ESCAPE:
-							//Return to play the game
-                            current_screen = GAME_RUNNING;
 							
-							break;	
-						//Keypad enter
-						case SDLK_KP_ENTER:
-							//Check current action selected from menu paused and initiated it.
-							switch(select_pause_option){
-								case OPT_P_RESUME:
-									//Resume game
+						//Case Keyboard pressed and release
+						case SDL_KEYUP:
+							switch(event.key.keysym.sym){
+								//Escape
+								case SDLK_ESCAPE:
+									//Return to play the game
 									current_screen = GAME_RUNNING;
 									break;
-								case OPT_P_CONFIG:
-									current_screen = CONFIG;
-									previous_screen = GAME_PAUSED;
+								//Keypad enter
+								case SDLK_KP_ENTER:
+									//Check current action selected from menu paused and initiated it.
+									switch(select_pause_option){
+										case OPT_P_RESUME:
+											//Resume game
+											current_screen = GAME_RUNNING;
+											break;
+										case OPT_P_CONFIG:
+											current_screen = CONFIG;
+											previous_screen = GAME_PAUSED;
+											break;
+										case OPT_P_SCORE:	
+											current_screen = SCORE;
+											previous_screen = GAME_PAUSED;
+											break;
+										case OPT_P_EXIT:
+											//End the game
+											quit = true;
+											break;
+										case OPT_P_MAIN:
+											current_screen = MAIN;
+											break;
+										case OPT_P_NONE:
+											break;
+											//Do nothing
+									}
+									
 									break;
-								case OPT_P_SCORE:	
-									current_screen = SCORE;
-									previous_screen = GAME_PAUSED;
+								//Keyboard enter
+								case SDLK_RETURN:
+									//Check current action selected from menu paused and initiated it.
+									switch(select_pause_option){
+										case OPT_P_RESUME:
+											//Resume game
+											current_screen = GAME_RUNNING;
+											break;
+										case OPT_P_CONFIG:
+											current_screen = CONFIG;
+											previous_screen = GAME_PAUSED;
+											break;
+										case OPT_P_SCORE:	
+											current_screen = SCORE;
+											previous_screen = GAME_PAUSED;
+											break;
+										case OPT_P_EXIT:
+											//End the game
+											quit = true;
+											break;
+										case OPT_P_MAIN:
+											current_screen = MAIN;
+											break;
+										case OPT_P_NONE:
+											//Do nothing
+											break;
+									}
 									break;
-								case OPT_P_EXIT:
-									//End the game
-									quit = true;
+								case SDLK_UP:
+									//Move to option above
+									if (select_pause_option == OPT_P_RESUME) {
+										select_pause_option = OPT_P_CREDITS;
+									}
+									else {
+										select_pause_option--;
+									}
 									break;
-								case OPT_P_MAIN:
-									current_screen = MAIN;
+								case SDLK_LEFT:
+									//Move to option left 
+									select_pause_option = (select_pause_option + 1) % 5;
 									break;
-								case OPT_P_NONE:
-                                    break;
-									//Do nothing
+								case SDLK_RIGHT:
+									//Move to option right
+									if (select_pause_option == OPT_P_RESUME) {
+										select_pause_option = OPT_P_CREDITS;
+									}
+									else {
+										select_pause_option--;
+									}
+									break;
+									
+								case SDLK_DOWN:
+									//Move to option bellow
+									select_pause_option = (select_pause_option + 1) % 5;
+									break;
 							}
-							
-							break;
-						//Keyboard enter
-						case SDLK_RETURN:
-							//Check current action selected from menu paused and initiated it.
-							switch(select_pause_option){
-								case OPT_P_RESUME:
-									//Resume game
-									current_screen = GAME_RUNNING;
-									break;
-								case OPT_P_CONFIG:
-									current_screen = CONFIG;
-									previous_screen = GAME_PAUSED;
-									break;
-								case OPT_P_SCORE:	
-									current_screen = SCORE;
-									previous_screen = GAME_PAUSED;
-									break;
-								case OPT_P_EXIT:
-									//End the game
-									quit = true;
-									break;
-								case OPT_P_MAIN:
-									current_screen = MAIN;
-									break;
-								case OPT_P_NONE:
-									//Do nothing
-                                    break;
-							}
-							break;
-						case SDLK_UP:
-							//Move to option above
-							if (select_pause_option == OPT_P_RESUME) {
-								select_pause_option = OPT_P_CREDITS;
-							}
-							else {
-								select_pause_option--;
-							}
-							break;
-						case SDLK_LEFT:
-							//Move to option left 
-							select_pause_option = (select_pause_option + 1) % 5;
-							break;
-						case SDLK_RIGHT:
-							//Move to option right
-							if (select_pause_option == OPT_P_RESUME) {
-								select_pause_option = OPT_P_CREDITS;
-							}
-							else {
-								select_pause_option--;
-							}
-							break;
-							
-						case SDLK_DOWN:
-							//Move to option bellow
-							select_pause_option = (select_pause_option + 1) % 5;
-							break;
 						
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
-							clicked = false;
 							pause_option = OPT_P_NONE;
 							
 							if(event.button.button == SDL_BUTTON_LEFT){
@@ -854,39 +909,62 @@ int main(int argc, const char * argv[]) {
 								if (event.motion.x >= 1100 && event.motion.x <= 1100 + BUTTON_MENU_WIDTH) {
 									//Check buttons
 									if(event.motion.y >= 30 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT){
-										clicked = true;
 										pause_option = OPT_P_RESUME;
 										printf("Play\n");
 									}
 									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 2) {
-										clicked = true;
 										pause_option = OPT_P_CONFIG;
 										printf("Config\n");
 									}
 									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 3) {
-										clicked = true;
 										pause_option = OPT_P_SCORE;
 										printf("Score\n");
 									}
 									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 4) {
-										clicked = true;
 										pause_option = OPT_P_EXIT;
 										printf("Exit\n");
 									}
 									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 4 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 5) {
-										clicked = true;
 										pause_option = OPT_P_MAIN;
 										printf("Main\n");
 									}
 									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 5 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 6) {
-										clicked = true;
 										pause_option = OPT_P_CREDITS;
 										printf("Main\n");
 									}
 								}
 							}
 							break;
-                            
+						//Handle mouse moved event.
+                        case SDL_MOUSEMOTION:
+							if (event.motion.x >= 1100 && event.motion.x <= 1100 + BUTTON_MENU_WIDTH) {
+								//Check buttons
+								if(event.motion.y >= 30 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT){
+									select_pause_option = OPT_P_RESUME;
+									}
+								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 2) {
+									select_pause_option = OPT_P_CONFIG;
+									printf("Config\n");
+								}
+								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 3) {
+									select_pause_option = OPT_P_SCORE;
+									printf("Score\n");
+								}
+								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 4) {
+									select_pause_option = OPT_P_EXIT;
+										printf("Exit\n");
+								}
+								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 4 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 5) {
+									select_pause_option = OPT_P_MAIN;
+									printf("Main\n");
+								}
+								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 5 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 6) {
+									select_pause_option = OPT_P_CREDITS;
+									printf("Main\n");
+								}
+							}
+							break;
+						
 					}
             }
         }
@@ -955,22 +1033,22 @@ int main(int argc, const char * argv[]) {
 				//Set selected option to show on MAIN to OPT_PLAY
 				select_option = OPT_PLAY;
 				switch(config_option){
-					case MUSIC_EFFECT:
+					case AUDIO_SFX:
 						//Trogle efffect muisc
-						if (config->music_effect == true) {
-							config->music_effect = false;
+						if (config->audio_sfx == true) {
+							config->audio_sfx = false;
 						}
 						else {
-							config->music_effect = true;
+							config->audio_sfx = true;
 						}
 						break;
-					case MUSIC_AMBIENCE:
+					case AUDIO_MUSIC:
 						//Trogle ambience music
-						if (config->music_ambience == true) {
-							config->music_ambience = false;
+						if (config->audio_music == true) {
+							config->audio_music = false;
 						}
 						else {
-							config->music_ambience = true;
+							config->audio_music = true;
 						}
 						break;
 					case LANGUAGE:
@@ -991,6 +1069,10 @@ int main(int argc, const char * argv[]) {
 						//Do nothing.
 						break;
 				}
+                
+                //Recarrega textos de config
+                get_config();
+                
 				break;
 			
             
@@ -999,7 +1081,7 @@ int main(int argc, const char * argv[]) {
 				
 					if (add_tower > 0){
 						//Add tower
-					
+						
 						//Reset tower
 						add_tower = 0;
 					}
@@ -1026,7 +1108,6 @@ int main(int argc, const char * argv[]) {
                                 shoot = shoot->next;
                                 remove_projectile(temp->e);
                                 free_list_projectile(temp);
-                                
                             }
                             else
                                 shoot = shoot->next;
@@ -1040,6 +1121,7 @@ int main(int argc, const char * argv[]) {
                         }
                         else
                             enemy = enemy->next;
+
                     }
                     
                     list_turret *turret = turrets;
@@ -1113,26 +1195,41 @@ int main(int argc, const char * argv[]) {
 		/////////////////////////////////////////////////////
         switch (current_screen) {
             case CONFIG:
-                draw_screen_config(main_Surface);
+                draw_screen_config(renderer, config_menu_texts, config_menu_rects, config_menu_text_count);
                 break;
             
             case CREDITS:
+				
                 break;
                 
             case GAME_PAUSED:
-                draw_screen_game_paused(main_Surface);
-                break;
+                //show_gold_info
+				//show_mana_info
+				//show_life_info 
+             
+				//select_pause_option
+				
+				draw_screen_game_paused(main_Surface);
+			
+				break;
                 
             case GAME_RUNNING:
 				//active_clicked
 				//select_grid
 				//selected_left
-		
+				
+				//show_gold_info
+				//show_mana_info
+				//show_life_info 
+				
+				
 			
                 draw_screen_game_running(main_Surface, map_Surface, minions, projectiles, turrets);
                 break;
                 
             case MAIN:
+				//select_option
+				
                 draw_screen_main(renderer, main_menu_texts, main_menu_rects, main_menu_text_count);
                 break;
                 
@@ -1143,7 +1240,7 @@ int main(int argc, const char * argv[]) {
                 break;
         }
         
-        if(current_screen != MAIN){
+        if(current_screen != MAIN && current_screen != CONFIG){
             SDL_Texture *surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
             SDL_RenderCopy(renderer, surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
         }
@@ -1167,35 +1264,32 @@ bool main_init(){
     }
     
     int screen_Width, screen_Height;
-	char *music_effect, *music_ambience, *language;
+	char language[6], audio_sfx[6], audio_music[6];
 	
     fscanf(settings, "w = %d\n", &screen_Width);
     fscanf(settings, "h = %d\n", &screen_Height);
-    /*
-    fscanf(settings, "music_effect = %s\n", music_effect);
-    fscanf(settings, "music_ambiance = %s\n", music_ambience);
+    
+    fscanf(settings, "audio_sfx = %s\n", audio_sfx);
+    fscanf(settings, "audio_music = %s\n", audio_music);
     fscanf(settings, "language = %s\n", language);
-     */
 	
 	if(!config){
 		config = malloc(sizeof(CONFIGURATION));
 	}
 	
-    /*
-	if (strcmp(music_effect, "true")){
-		config->music_effect = true;
+	if (strcmp(audio_sfx, "true")){
+		config->audio_sfx = true;
 	}
 	else {
-		config->music_effect = false;
+		config->audio_sfx = false;
 	}
-	if (strcmp(music_ambience, "true")){
-		config->music_ambience = true;
+	if (strcmp(audio_music, "true")){
+		config->audio_music = true;
 	}
 	else {
-		config->music_ambience = false;
+		config->audio_music = false;
 	}
 	config->language = language;
-    */
     
     fclose(settings);
     
@@ -1289,10 +1383,9 @@ bool main_init(){
         
         SDL_FreeSurface(surface);
     }
-    
-	//Init config screen texts
 	
 	//Init game running screen texts
+    get_config();
 	
 	//Init game paused screen texts
 	
@@ -1311,6 +1404,7 @@ bool main_init(){
     return true;
 }
 
+//Encerra SDL
 void main_quit(){
     //Close fonts
     TTF_CloseFont(font);
@@ -1319,6 +1413,13 @@ void main_quit(){
     for(int i = 0; i < main_menu_text_count; i++){
         SDL_DestroyTexture(main_menu_texts[i]);
     }
+    
+    for(int i = 0; i < config_menu_text_count; i++){
+        SDL_DestroyTexture(config_menu_texts[i]);
+    }
+    
+    //Free surfaces
+    SDL_FreeSurface(map_Surface);
     
     //Free window
     SDL_DestroyRenderer(renderer);
@@ -1332,4 +1433,79 @@ void main_quit(){
 	//Free config
 	//free(config->language);
 	free(config);
+    
+    //Free lists
+    if(minions)
+        free_list_minion(minions);
+    if(turrets)
+        free_list_turret(turrets);
+    if(projectiles)
+        free_list_projectile(projectiles);
+}
+
+//Carrega textos do menu de configurações
+void get_config(){
+    for(int i = 0; i < config_menu_text_count; i++){
+        char *text;
+        SDL_Rect rect;
+        
+        //Set texts and rects
+        switch(i){
+            case 0:
+                text = "Config";
+                rect = (SDL_Rect){265, 0, 750, 150};
+                break;
+                
+            case 1:
+                if(config->audio_sfx)
+                    text = "Sound Effects:  ON";
+                else
+                    text = "Sound Effects:  OFF";
+                
+                rect = (SDL_Rect){400, 150, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 2:
+                if(config->audio_music)
+                    text = "Music:  ON";
+                else
+                    text = "Music:  OFF";
+                
+                rect = (SDL_Rect){400, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 3:
+                text = "Language";
+                
+                rect = (SDL_Rect){400, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 4:
+                text = "Back";
+                
+                rect = (SDL_Rect){400, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            default:
+                break;
+        }
+        
+        config_menu_rects[i] = rect;
+        
+        SDL_Surface *surface = TTF_RenderText_Solid(font, text, black);
+        
+        if(!surface){
+            printf("Text not rendered! %s\n", TTF_GetError());
+            return;
+        }
+        
+        config_menu_texts[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        
+        if(!config_menu_texts[i]){
+            printf("Text texture not rendered! %s\n", SDL_GetError());
+            return;
+        }
+        
+        SDL_FreeSurface(surface);
+    }
 }
