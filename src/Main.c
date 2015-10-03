@@ -130,7 +130,6 @@ int main(int argc, const char * argv[]) {
         //Event Handler
         ///////////////////////////////////////////////////
 		while(SDL_PollEvent(&event) != 0){
-            printf("");
 			switch (current_screen){
 				//Main screen event
 				case MAIN:
@@ -918,7 +917,6 @@ int main(int argc, const char * argv[]) {
 			case MAIN:
 				
 				//if option
-                printf("%d", main_option);
 				switch(main_option){
 					case OPT_PLAY:
 						game_started = true;
@@ -1015,15 +1013,16 @@ int main(int argc, const char * argv[]) {
 				                
                     // DEM ROUTINES, YO!
 
+                    // Minion movement, Projectile movement, and projectile colision/dealocation.
                     list_minion* enemy = minions;
                     while(enemy){
                         move_minion(enemy->e);
                         list_projectile *shoot = enemy->e->targetted_projectils;
                         while (shoot) {
                             if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
-                                remove_projectile_from_list(enemy->e->targetted_projectils, shoot->e);
                                 enemy->e->HP -= shoot->e->damage;
                                 list_projectile *temp = shoot;
+                                remove_projectile_from_list(enemy->e->targetted_projectils, shoot->e);
                                 shoot = shoot->next;
                                 remove_projectile(temp->e);
                                 free_list_projectile(temp);
@@ -1032,9 +1031,17 @@ int main(int argc, const char * argv[]) {
                             else
                                 shoot = shoot->next;
                         }
-                        
-                        enemy = enemy->next;
+                        if(enemy->e->HP <= 0){ // Death of minions
+                            list_minion *temp = enemy;
+                            remove_minion_from_list(minions, enemy->e);
+                            enemy = enemy -> next;
+                            remove_minion(temp->e);
+                            free_list_minion(temp);
+                        }
+                        else
+                            enemy = enemy->next;
                     }
+                    
                     list_turret *turret = turrets;
                     while (turret) {
                         turret->e->timeUntilNextAttack -= 0.017;
