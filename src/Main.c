@@ -366,7 +366,7 @@ int main(int argc, const char * argv[]) {
 							}
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
-							clicked = false;
+							active_clicked = false;
 							config_option = NONE;
 										
 							if(event.button.button == SDL_BUTTON_LEFT){							
@@ -401,10 +401,10 @@ int main(int argc, const char * argv[]) {
 						case SDL_MOUSEMOTION:
 							if (event.motion.x >= 400 && event.motion.x <= 400 + BUTTON_MENU_WIDTH ) {//Near main config
 									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
-										select_config_option = MUSIC_EFFECT;
+										select_config_option = AUDIO_SFX;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
-										select_config_option = MUSIC_AMBIENCE;									
+										select_config_option = AUDIO_MUSIC;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
 										select_config_option = LANGUAGE;
@@ -415,10 +415,10 @@ int main(int argc, const char * argv[]) {
 								}
 								else if (event.motion.x >= 420 + BUTTON_MENU_WIDTH &&  event.motion.x >= 420 + BUTTON_MENU_WIDTH + BUTTON_MENU_WIDTH / 2){
 									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
-										select_config_option = MUSIC_EFFECT;
+										select_config_option = AUDIO_SFX;
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
-										select_config_option = MUSIC_AMBIENCE;
+										select_config_option = AUDIO_MUSIC;
 										
 									}
 									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
@@ -1027,8 +1027,9 @@ int main(int argc, const char * argv[]) {
 						//Do nothing.
 						break;
 				}
-				
+                main_option = OPT_NONE;
 				break;
+                
 			case CONFIG:
 				//Set selected option to show on MAIN to OPT_PLAY
 				select_option = OPT_PLAY;
@@ -1041,6 +1042,7 @@ int main(int argc, const char * argv[]) {
 						else {
 							config->audio_sfx = true;
 						}
+                        get_config();
 						break;
 					case AUDIO_MUSIC:
 						//Trogle ambience music
@@ -1050,6 +1052,7 @@ int main(int argc, const char * argv[]) {
 						else {
 							config->audio_music = true;
 						}
+                        get_config();
 						break;
 					case LANGUAGE:
 						//Change select language
@@ -1070,9 +1073,7 @@ int main(int argc, const char * argv[]) {
 						break;
 				}
                 
-                //Recarrega textos de config
-                get_config();
-                
+                config_option = NONE;
 				break;
 			
             
@@ -1210,7 +1211,6 @@ int main(int argc, const char * argv[]) {
 				//select_pause_option
 				
 				draw_screen_game_paused(main_Surface);
-			
 				break;
                 
             case GAME_RUNNING:
@@ -1229,7 +1229,7 @@ int main(int argc, const char * argv[]) {
                 
             case MAIN:
 				//select_option
-				
+
                 draw_screen_main(renderer, main_menu_texts, main_menu_rects, main_menu_text_count);
                 break;
                 
