@@ -125,6 +125,8 @@ int main(int argc, const char * argv[]) {
 	
 	int grid_clicked[] = {0,0};
 	
+	int temp_option;
+	
     //Main loop
     while(!quit){
         //FPS Handling
@@ -205,6 +207,12 @@ int main(int argc, const char * argv[]) {
 								//Check if location selected is a valid one
 										
 								if (event.motion.x >= 980 && event.motion.x <= 980 + BUTTON_MENU_WIDTH) {//Near main config
+									//This is the same as the code commented below, because I have yet to test I didnt remove the comment. If someone can test tell me if is working as aspect.
+									temp_option = (event.motion.y - 480) / BUTTON_MENU_HEIGHT;
+									if temp_option < OPT_CREDIT && temp_option >= 0) {
+										main_option = temp_option;
+									}
+									/* Remove after test:
 									if (event.motion.y >= 480 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT) {//First option PLAY
 										main_option = OPT_PLAY;
 										printf("Play\n");
@@ -221,7 +229,7 @@ int main(int argc, const char * argv[]) {
 										main_option = OPT_EXIT;
 										quit = true;
 										printf("exit");
-									}
+									}*/
 											
 								}
 								else if (event.motion.x >= 30 && event.motion.x <= 30 + BUTTON_MENU_WIDTH / 2) {
@@ -996,6 +1004,9 @@ int main(int argc, const char * argv[]) {
 				
 				//if option
 				switch(main_option){
+					case OPT_EXIT:
+						quit = true;
+						break;
 					case OPT_PLAY:
 						game_started = true;
 						//Generate Map and resources to use on Game_Running
@@ -1003,9 +1014,6 @@ int main(int argc, const char * argv[]) {
 					
 						//Change current screen.
 						current_screen = GAME_RUNNING;
-                        break;
-					case OPT_EXIT:
-						quit = true;
 						break;
 					case OPT_CONFIG:
 						current_screen = CONFIG;
