@@ -39,6 +39,8 @@ void draw_screen_config(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *r
 
 void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion *minions, list_projectile *projectiles, list_turret *turrets);
 
+void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count);
+
 void draw_screen_game_paused(SDL_Surface *screen);
 
 

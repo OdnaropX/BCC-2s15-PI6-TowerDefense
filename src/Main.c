@@ -22,6 +22,7 @@
 
 #define main_menu_text_count 6
 #define config_menu_text_count 5
+#define game_interface_assets_count 1   //Change
 #define FRAMES_PER_SEC 60
 
 //SDL stuff
@@ -47,6 +48,10 @@ SDL_Rect main_menu_rects[main_menu_text_count];
 //Config order: Config, sfx, music, language, back
 SDL_Texture *config_menu_texts[config_menu_text_count];
 SDL_Rect config_menu_rects[config_menu_text_count];
+
+//Game interface order: Pause button, ...
+SDL_Texture *game_interface_assets[game_interface_assets_count];
+SDL_Rect game_interface_rects[game_interface_assets_count];
 
 CONFIGURATION *config;
 
@@ -209,7 +214,7 @@ int main(int argc, const char * argv[]) {
 								if (event.motion.x >= 980 && event.motion.x <= 980 + BUTTON_MENU_WIDTH) {//Near main config
 									//This is the same as the code commented below, because I have yet to test I didnt remove the comment. If someone can test tell me if is working as aspect.
 									temp_option = (event.motion.y - 480) / BUTTON_MENU_HEIGHT;
-									if temp_option < OPT_CREDIT && temp_option >= 0) {
+									if (temp_option < OPT_CREDIT && temp_option >= 0) {
 										main_option = temp_option;
 									}
 									/* Remove after test:
@@ -1253,6 +1258,11 @@ int main(int argc, const char * argv[]) {
             SDL_RenderCopy(renderer, surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
         }
         
+        //Draw game interface on top layer
+        if(current_screen == GAME_RUNNING){
+            draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count);
+        }
+        
         //Update render and surfaces
         SDL_RenderPresent(renderer);
     }
@@ -1401,13 +1411,28 @@ bool main_init(){
 	
 	//Init game score screen texts
 	
-	
+	//Init map
     map_Surface = init_map();
     
     if(!map_Surface){
         printf("Falha ao inicializar mapa!\n");
         return false;
     }
+    
+    //Load interface static assets(Pause button, ...)
+    SDL_Surface *pause_surface = IMG_Load("../images/Pause.png");
+    if(!pause_surface){
+        printf("Falha ao carregar botão de pause! %s\n", IMG_GetError());
+        return false;
+    }
+    
+    game_interface_assets[0] = SDL_CreateTextureFromSurface(renderer, pause_surface);
+    if(!game_interface_assets[0]){
+        printf("Falha ao criar textura de botão de pause! %s\n", SDL_GetError());
+        return false;
+    }
+    
+    game_interface_rects[0] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
     
     return true;
 }
