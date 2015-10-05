@@ -22,7 +22,7 @@
 
 #define main_menu_text_count 6
 #define config_menu_text_count 5
-#define game_interface_assets_count 1   //Change
+#define game_interface_assets_count 2
 #define FRAMES_PER_SEC 60
 
 //SDL stuff
@@ -49,7 +49,7 @@ SDL_Rect main_menu_rects[main_menu_text_count];
 SDL_Texture *config_menu_texts[config_menu_text_count];
 SDL_Rect config_menu_rects[config_menu_text_count];
 
-//Game interface order: Pause button, ...
+//Game interface order: Pause button, Right bar
 SDL_Texture *game_interface_assets[game_interface_assets_count];
 SDL_Rect game_interface_rects[game_interface_assets_count];
 
@@ -106,7 +106,7 @@ int main(int argc, const char * argv[]) {
 	int add_tower = 0;
 	int add_minion = 0;
     int game_is_active = 1;
-    int lifes = 5;
+    int health = 5;
     int gold = 0;
 	
 	//Display control
@@ -1207,6 +1207,8 @@ int main(int argc, const char * argv[]) {
 		
 		//Scene Renderer 
 		/////////////////////////////////////////////////////
+        SDL_Texture *screen_surfaces;
+        
         switch (current_screen) {
             case CONFIG:
                 draw_screen_config(renderer, config_menu_texts, config_menu_rects, config_menu_text_count);
@@ -1217,27 +1219,33 @@ int main(int argc, const char * argv[]) {
                 break;
                 
             case GAME_PAUSED:
-                //show_gold_info
-				//show_mana_info
-				//show_life_info 
-             
 				//select_pause_option
 				
 				draw_screen_game_paused(main_Surface);
+                
+                screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
+                SDL_RenderCopy(renderer, screen_surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
+                
+                display_health(renderer, health, font);
+                display_gold(renderer, gold, font);
+                
 				break;
                 
             case GAME_RUNNING:
 				//active_clicked
 				//select_grid
 				//selected_left
-				
-				//show_gold_info
-				//show_mana_info
-				//show_life_info 
-				
-				
 			
                 draw_screen_game_running(main_Surface, map_Surface, minions, projectiles, turrets);
+                
+                screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
+                SDL_RenderCopy(renderer, screen_surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
+                
+                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count);
+                
+                display_health(renderer, health, font);
+                display_gold(renderer, gold, font);
+                
                 break;
                 
             case MAIN:
@@ -1251,16 +1259,6 @@ int main(int argc, const char * argv[]) {
                 
             default:
                 break;
-        }
-        
-        if(current_screen != MAIN && current_screen != CONFIG){
-            SDL_Texture *surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
-            SDL_RenderCopy(renderer, surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
-        }
-        
-        //Draw game interface on top layer
-        if(current_screen == GAME_RUNNING){
-            draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count);
         }
         
         //Update render and surfaces
@@ -1419,7 +1417,7 @@ bool main_init(){
         return false;
     }
     
-    //Load interface static assets(Pause button, ...)
+    //Init interface static assets(Pause button and right bar)
     SDL_Surface *pause_surface = IMG_Load("../images/Pause.png");
     if(!pause_surface){
         printf("Falha ao carregar botão de pause! %s\n", IMG_GetError());
@@ -1432,7 +1430,25 @@ bool main_init(){
         return false;
     }
     
+    SDL_FreeSurface(pause_surface);
+    
     game_interface_rects[0] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
+    
+    SDL_Surface *right_bar_surface = IMG_Load("../images/Right Bar.png");
+    if(!right_bar_surface){
+        printf("Falha ao carregar right bar! %s\n", IMG_GetError());
+        return false;
+    }
+    
+    game_interface_assets[1] = SDL_CreateTextureFromSurface(renderer, right_bar_surface);
+    if(!game_interface_assets[1]){
+        printf("Falha ao criar textura de right bar");
+        return false;
+    }
+    
+    SDL_FreeSurface(right_bar_surface);
+    
+    game_interface_rects[1] = (SDL_Rect){1095, 0, 185, 720};
     
     return true;
 }

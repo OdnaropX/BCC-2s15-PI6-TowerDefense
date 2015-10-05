@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
+#include <SDL2_ttf/SDL_ttf.h>
 
 #include "Estruturas.h"
 
@@ -42,6 +43,12 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
 void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count);
 
 void draw_screen_game_paused(SDL_Surface *screen);
+
+void display_health(SDL_Renderer *renderer, int value, TTF_Font *font);
+
+void display_mana(SDL_Renderer *renderer, int value, TTF_Font *font);
+
+void display_gold(SDL_Renderer *renderer, int value, TTF_Font *font);
 
 
 

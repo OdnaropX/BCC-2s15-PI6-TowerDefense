@@ -87,3 +87,40 @@ void draw_screen_game_paused(SDL_Surface *screen){}
 void get_menu_size_tower(int size[]){}
 
 void get_menu_size_minion(int size[]){}
+
+
+void display_health(SDL_Renderer *renderer, int value, TTF_Font *font){
+    char str[5];
+    sprintf(str, "%d", value);
+    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255});
+    
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, s);
+    
+    SDL_FreeSurface(s);
+    
+    SDL_RenderCopy(renderer, texture, NULL, &(SDL_Rect){1185, 40, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT});
+}
+
+void display_mana(SDL_Renderer *renderer, int value, TTF_Font *font){
+    char str[5];
+    sprintf(str, "%d", value);
+    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255});
+    
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, s);
+    
+    SDL_FreeSurface(s);
+    
+    SDL_RenderCopy(renderer, texture, NULL, &(SDL_Rect){1185, 130, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT});
+}
+
+void display_gold(SDL_Renderer *renderer, int value, TTF_Font *font){
+    char str[5];
+    sprintf(str, "%d", value);
+    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255});
+    
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, s);
+    
+    SDL_FreeSurface(s);
+    
+    SDL_RenderCopy(renderer, texture, NULL, &(SDL_Rect){1185, 240, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT});
+}
