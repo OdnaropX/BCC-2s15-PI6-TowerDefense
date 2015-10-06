@@ -42,7 +42,7 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
 
 void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count);
 
-void draw_screen_game_paused(SDL_Surface *screen);
+void draw_screen_game_paused(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count);
 
 void display_health(SDL_Renderer *renderer, int value, TTF_Font *font);
 

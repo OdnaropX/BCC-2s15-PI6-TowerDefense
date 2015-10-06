@@ -23,6 +23,7 @@
 #define main_menu_text_count 6
 #define config_menu_text_count 5
 #define game_interface_assets_count 2
+#define pause_interface_assets_count 7
 #define FRAMES_PER_SEC 60
 
 //SDL stuff
@@ -36,7 +37,7 @@ SDL_Surface *map_Surface;
 
 //Constants
 SDL_Color black = {0, 0, 0, 255};
-SDL_Color white = {0, 0, 0, 255};
+SDL_Color white = {255, 255, 255, 255};
 SDL_Color green = {0, 255, 0, 255};
 SDL_Color red = {255, 0, 0, 255};
 
@@ -52,6 +53,10 @@ SDL_Rect config_menu_rects[config_menu_text_count];
 //Game interface order: Pause button, Right bar
 SDL_Texture *game_interface_assets[game_interface_assets_count];
 SDL_Rect game_interface_rects[game_interface_assets_count];
+
+//Pause game interface order: overlay, resume, config, score, exit, main, credits
+SDL_Texture *pause_interface_assets[pause_interface_assets_count];
+SDL_Rect pause_interface_rects[pause_interface_assets_count];
 
 CONFIGURATION *config;
 
@@ -108,6 +113,7 @@ int main(int argc, const char * argv[]) {
     int game_is_active = 1;
     int health = 5;
     int gold = 0;
+    int mana = 0;
 	
 	//Display control
 	bool show_gold_info = false;
@@ -919,29 +925,29 @@ int main(int argc, const char * argv[]) {
 							
 							if(event.button.button == SDL_BUTTON_LEFT){
 								//Check if location selected is a valid one
-								if (event.motion.x >= 1100 && event.motion.x <= 1100 + BUTTON_MENU_WIDTH) {
+								if (event.motion.x >= 515 && event.motion.x <= 765) {
 									//Check buttons
-									if(event.motion.y >= 30 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT){
+									if(event.motion.y >= 270 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT){
 										pause_option = OPT_P_RESUME;
 										printf("Play\n");
 									}
-									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 2) {
+									else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 2) {
 										pause_option = OPT_P_CONFIG;
 										printf("Config\n");
 									}
-									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 3) {
+									else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 3) {
 										pause_option = OPT_P_SCORE;
 										printf("Score\n");
 									}
-									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 4) {
+									else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 4) {
 										pause_option = OPT_P_EXIT;
 										printf("Exit\n");
 									}
-									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 4 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 5) {
+									else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 4 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 5) {
 										pause_option = OPT_P_MAIN;
 										printf("Main\n");
 									}
-									else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 5 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 6) {
+									else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 5 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 6) {
 										pause_option = OPT_P_CREDITS;
 										printf("Main\n");
 									}
@@ -950,28 +956,28 @@ int main(int argc, const char * argv[]) {
 							break;
 						//Handle mouse moved event.
                         case SDL_MOUSEMOTION:
-							if (event.motion.x >= 1100 && event.motion.x <= 1100 + BUTTON_MENU_WIDTH) {
+							if (event.motion.x >= 515 && event.motion.x <= 765) {
 								//Check buttons
-								if(event.motion.y >= 30 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT){
+								if(event.motion.y >= 270 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT){
 									select_pause_option = OPT_P_RESUME;
 									}
-								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 2) {
+								else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 2) {
 									select_pause_option = OPT_P_CONFIG;
 									printf("Config\n");
 								}
-								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 3) {
+								else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 3) {
 									select_pause_option = OPT_P_SCORE;
 									printf("Score\n");
 								}
-								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 4) {
+								else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 4) {
 									select_pause_option = OPT_P_EXIT;
 										printf("Exit\n");
 								}
-								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 4 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 5) {
+								else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 4 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 5) {
 									select_pause_option = OPT_P_MAIN;
 									printf("Main\n");
 								}
-								else if (event.motion.y >= 30 + BUTTON_MENU_HEIGHT * 5 && event.motion.y <= 30 + BUTTON_MENU_HEIGHT * 6) {
+								else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 5 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 6) {
 									select_pause_option = OPT_P_CREDITS;
 									printf("Main\n");
 								}
@@ -1220,14 +1226,7 @@ int main(int argc, const char * argv[]) {
                 
             case GAME_PAUSED:
 				//select_pause_option
-				
-				draw_screen_game_paused(main_Surface);
-                
-                screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
-                SDL_RenderCopy(renderer, screen_surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
-                
-                display_health(renderer, health, font);
-                display_gold(renderer, gold, font);
+				draw_screen_game_paused(renderer, pause_interface_assets, pause_interface_rects, pause_interface_assets_count);
                 
 				break;
                 
@@ -1244,13 +1243,13 @@ int main(int argc, const char * argv[]) {
                 draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count);
                 
                 display_health(renderer, health, font);
+                display_mana(renderer, mana, font);
                 display_gold(renderer, gold, font);
                 
                 break;
                 
             case MAIN:
 				//select_option
-
                 draw_screen_main(renderer, main_menu_texts, main_menu_rects, main_menu_text_count);
                 break;
                 
@@ -1342,7 +1341,7 @@ bool main_init(){
     
     //Init main menu texts
     for(int i = 0; i < main_menu_text_count; i++){
-        char *text;
+        char *text = NULL;
         SDL_Rect rect;
         
         //Set texts and rects
@@ -1404,6 +1403,77 @@ bool main_init(){
     get_config();
 	
 	//Init game paused screen texts
+    for(int i = 0; i < pause_interface_assets_count; i++){
+        char *text = NULL;
+        SDL_Rect rect;
+        
+        switch(i){
+            case 0:
+                rect = (SDL_Rect){0, 0, 1280, 720};
+                break;
+                
+            case 1:
+                text = "Resume";
+                rect = (SDL_Rect){515, 270, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 2:
+                text = "Config";
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 3:
+                text = "Score";
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 4:
+                text = "Exit";
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 5:
+                text = "Main Menu";
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 6:
+                text = "Credits";
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            default:
+                break;
+        }
+        
+        pause_interface_rects[i] = rect;
+        
+        SDL_Surface *surface;
+        if(i == 0){
+            surface = IMG_Load("../images/Pause Menu.png");
+            if(!surface){
+                printf("Erro ao carregar pause menu! %s\n", IMG_GetError());
+                return false;
+            }
+        }
+        
+        else{
+            surface = TTF_RenderText_Solid(font, text, white);
+            if(!surface){
+                printf("Text not rendered! %s\n", TTF_GetError());
+                return false;
+            }
+        }
+        
+        pause_interface_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        
+        if(!pause_interface_assets[i]){
+            printf("Erro ao criar textura! %s\n", SDL_GetError());
+            return false;
+        }
+        
+        SDL_FreeSurface(surface);
+    }
 	
 	//Init game credits screen texts
 	
@@ -1495,7 +1565,7 @@ void main_quit(){
 //Carrega textos do menu de configurações
 void get_config(){
     for(int i = 0; i < config_menu_text_count; i++){
-        char *text;
+        char *text = NULL;
         SDL_Rect rect;
         
         //Set texts and rects
