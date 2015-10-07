@@ -38,6 +38,7 @@ typedef struct _minion {
     int HP; // Não é necessário um maxHP, considerando a inexistencia de cura.
     float speed; // Movimento por ciclo.
     node node;
+	int minionType;
 	//Linked list of Shoot
 	list_projectile *targetted_projectils;
 } minion;

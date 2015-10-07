@@ -126,6 +126,11 @@ int main(int argc, const char * argv[]) {
     int gold = 0;
     int mana = 0;
 	
+	int[] current_position = {0,0};
+	
+	minion *new_minion;
+	turret *new_turret;
+	
 	//Display control
 	bool show_gold_info = false;
 	bool show_mana_info = false;
@@ -469,7 +474,7 @@ int main(int argc, const char * argv[]) {
 								case SDL_MOUSEMOTION:
 									//Move mouse selector over game area
 									if (!active_clicked && get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
-										select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 16);
+										select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);
 									}
 									break;
 								
@@ -511,9 +516,11 @@ int main(int argc, const char * argv[]) {
 											if (active_clicked){
 												if (selected_left) {
 													add_tower = select_running_area_right_option + 1;
+													get_cartesian_from_grid_number(select_grid, current_position);
 												}
 												else {
 													add_minion = select_running_area_left_option + 1;
+													get_cartesian_from_grid_number(select_grid, current_position);
 												}
 											}
 											break;
@@ -557,9 +564,11 @@ int main(int argc, const char * argv[]) {
 											if (active_clicked){
 												if (selected_left) {
 													add_tower = select_running_area_right_option + 1;
+													get_cartesian_from_grid_number(select_grid, current_position);
 												}
 												else {
 													add_minion = select_running_area_left_option + 1;
+													get_cartesian_from_grid_number(select_grid, current_position);
 												}
 											}
 											break;
@@ -732,6 +741,7 @@ int main(int argc, const char * argv[]) {
 											if(active_clicked){
 												if (selected_left) {
 													select_running_area_left_option = (select_running_area_left_option + 1) % 3;
+													
 												}
 												else {
 													select_running_area_right_option = (select_running_area_right_option + 1) % 3;
@@ -750,8 +760,11 @@ int main(int argc, const char * argv[]) {
 							if(event.button.button == SDL_BUTTON_LEFT){
 								//Game area
 								if(get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
+									current_position[0] = grid_clicked[0];
+									current_position[1] = grid_clicked[1];
+								
 									if (!active_clicked){
-										select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 16);
+										select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);
 										active_clicked = true;
 										selected_left = true;
 									}
@@ -797,7 +810,7 @@ int main(int argc, const char * argv[]) {
 							//Left click only work on grid and when there is no grid already selected 
 							else if (event.button.button == SDL_BUTTON_RIGHT && !active_clicked){
 								if (get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
-									select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 16);
+									select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);
 									active_clicked = true;
 									selected_left = false;
 								}
@@ -1137,18 +1150,31 @@ int main(int argc, const char * argv[]) {
 				
 					if (add_tower > 0){
 						//Add tower
-						
+						new_turret = malloc(sizeof(turret));
+						new_turret->node.xPos = ;
+						new_turret->node.yPos = ;
+						new_turret->node->sprite = ;
+						new_turret->timeUntilNextAttack = 1.0;
+						new_turret->turretType = (float) add_tower;
+						new_turret->radius = 1.0;
 						//Reset tower
 						add_tower = 0;
 					}
 					if (add_minion > 0){
 						//Add minion
-						
+						new_minion = malloc(sizeof(minion));
+						new_minion->HP = ;
+						new_minion->speed = ;
+						new_minion->node.xPos = ;
+						new_minion->node.yPos = ;
+						new_minion->minionType = add_minion;
+						new_minion->targetted_projectils = NULL;
 						//Reset minion
 						add_minion = 0;
-					
 					}
 				                
+								
+								
                     // DEM ROUTINES, YO!
 
                     // Minion movement, Projectile movement, and projectile colision/dealocation.
