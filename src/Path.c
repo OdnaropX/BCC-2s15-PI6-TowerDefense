@@ -12,6 +12,7 @@ void enqueueTwo(int *array, int x, int y);
 /**
  * Sets given matrix'es shortest paths from target (X,Y) point, around all map. 
  * Width and height are matrix properties.
+ * Returns -1 is left row is empty.
 **/
 int setShortestPaths(int **array, int width, int height, int targetX, int targetY){
 	
@@ -34,6 +35,7 @@ int setShortestPaths(int **array, int width, int height, int targetX, int target
 	array[targetX][targetY] = 1;
 	enqueueTwo(queue, targetX, targetY);
 
+    int reached_left_corner = 0;
 	// 3 - Starts Loop
 	while(queueSize){
 		dequeueTwo(queue, currentX, currentY);
@@ -60,6 +62,9 @@ int setShortestPaths(int **array, int width, int height, int targetX, int target
 				enqueueTwo(queue, currentX - 1, currentY);
 			}
 		}
+        else{
+            reached_left_corner = 1;
+        }
 		if(currentY < height - 1){ // Sees down /
 			int temp = array[currentX][currentY - 1];
 			if(temp < currentValue && temp >= 0){
@@ -70,8 +75,11 @@ int setShortestPaths(int **array, int width, int height, int targetX, int target
 	}
 
 	// 4 - Theorical success;
-	printf("Path is set.\n");
-	return 1;
+    
+    if(reached_left_corner)
+        return 1;
+    else
+        return 0;
 
 }
 
