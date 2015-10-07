@@ -1150,25 +1150,13 @@ int main(int argc, const char * argv[]) {
 				
 					if (add_tower > 0){
 						//Add tower
-						new_turret = malloc(sizeof(turret));
-						new_turret->node.xPos = ;
-						new_turret->node.yPos = ;
-						new_turret->node->sprite = ;
-						new_turret->timeUntilNextAttack = 1.0;
-						new_turret->turretType = (float) add_tower;
-						new_turret->radius = 1.0;
+						new_turret = init_turret(add_tower, current_position[0], current_position[1]);
 						//Reset tower
 						add_tower = 0;
 					}
 					if (add_minion > 0){
 						//Add minion
-						new_minion = malloc(sizeof(minion));
-						new_minion->HP = ;
-						new_minion->speed = ;
-						new_minion->node.xPos = ;
-						new_minion->node.yPos = ;
-						new_minion->minionType = add_minion;
-						new_minion->targetted_projectils = NULL;
+						new_minion = init_minion(add_minion);
 						//Reset minion
 						add_minion = 0;
 					}
