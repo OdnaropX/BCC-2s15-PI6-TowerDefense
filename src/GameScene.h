@@ -47,6 +47,8 @@ void move_minion(minion *enemy);
  **/
 int move_bullet(minion *target, projectile *shoot);
 
+void get_cartesian_from_grid_number(int grid_number, int[] array_position, int limit_x);
 
+void get_grid_address_matriz(int grid_number, int limit_x, int[] matriz);
 
 #endif /* defined(____GameScene__) */
