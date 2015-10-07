@@ -115,6 +115,7 @@ int main(int argc, const char * argv[]) {
 	bool game_started = false;
 	bool game_paused = false;
 	bool active_clicked = false;
+    bool return_to_previous_screen = false;     //For scores and credits menus
 	
 	//Game area control
     bool selected_left = false;//Right click equals to tower and left to minions.
@@ -981,13 +982,13 @@ int main(int argc, const char * argv[]) {
                             
                         case SDL_KEYUP:
                             if(event.key.keysym.sym == SDLK_ESCAPE || event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_KP_ENTER)
-                                current_screen = previous_screen;
+                                return_to_previous_screen = true;
                             break;
                             
                         case SDL_MOUSEBUTTONUP:
                             if(event.button.button == SDL_BUTTON_LEFT){
                                 if(event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH && event.motion.y >= 650 && event.motion.y <= 650 + BUTTON_MENU_HEIGHT)
-                                    current_screen = previous_screen;
+                                    return_to_previous_screen = true;
                             }
                             break;
                             
@@ -1005,12 +1006,13 @@ int main(int argc, const char * argv[]) {
                             
                         case SDL_KEYUP:
                             if(event.key.keysym.sym == SDLK_ESCAPE || event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_KP_ENTER)
-                                current_screen = previous_screen;
+                                return_to_previous_screen = true;
+                            break;
                             
                         case SDL_MOUSEBUTTONUP:
                             if(event.button.button == SDL_BUTTON_LEFT){
                                 if(event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH && event.motion.y >= 650 && event.motion.y <= 650 + BUTTON_MENU_HEIGHT)
-                                    current_screen = previous_screen;
+                                    return_to_previous_screen = true;
                             }
                             break;
                             
@@ -1238,12 +1240,20 @@ int main(int argc, const char * argv[]) {
 						//Do nothing
 						break;
 				}
+                
+                pause_option = OPT_P_NONE;
 				break;
                 
             case CREDITS:
+                if(return_to_previous_screen)
+                    current_screen = previous_screen;
+                return_to_previous_screen = false;
                 break;
                 
             case SCORE:
+                if(return_to_previous_screen)
+                    current_screen = previous_screen;
+                return_to_previous_screen = false;
                 break;
             
 		}
