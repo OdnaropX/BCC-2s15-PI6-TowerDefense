@@ -44,6 +44,10 @@ void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SD
 
 void draw_screen_game_paused(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count);
 
+void draw_screen_credits(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count);
+
+void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count);
+
 void display_health(SDL_Renderer *renderer, int value, TTF_Font *font);
 
 void display_mana(SDL_Renderer *renderer, int value, TTF_Font *font);

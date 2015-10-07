@@ -88,6 +88,18 @@ void draw_screen_game_paused(SDL_Renderer *renderer, SDL_Texture **assets, SDL_R
     }
 }
 
+void draw_screen_credits(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count){
+    for(int i = 0; i < count; i++){
+        SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+    }
+}
+
+void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count){
+    for(int i = 0; i < count; i++){
+        SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+    }
+}
+
 void get_menu_size_tower(int size[]){}
 
 void get_menu_size_minion(int size[]){}
