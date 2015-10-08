@@ -236,8 +236,8 @@ int get_touched_menu_address(int x_touch, int y_touch, int center_position[], in
 	
 	columns = (number / row) + correction; //3
 	
-	width = columns * BUTTON_MENU_HEIGHT;
-	height = row * BUTTON_MENU_HEIGHT;
+	width = columns * MENU_ICON;
+	height = row * MENU_ICON;
 	
 	if (x_touch < center_position[0] - width / 2 && x_touch > center_position[0] + width / 2) {
 		return 0;
@@ -249,8 +249,8 @@ int get_touched_menu_address(int x_touch, int y_touch, int center_position[], in
 	x_touch = x_touch - center_position[0] - width / 2;
 	y_touch = y_touch - center_position[1] - height / 2;
 	
-	int xAdd = x_touch/BUTTON_MENU_HEIGHT;
-	int yAdd = y_touch/BUTTON_MENU_HEIGHT;
+	int xAdd = x_touch/MENU_ICON;
+	int yAdd = y_touch/MENU_ICON;
 	
 	center_position[0] = xAdd;
 	center_position[1] = yAdd;

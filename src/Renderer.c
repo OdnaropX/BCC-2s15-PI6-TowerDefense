@@ -101,11 +101,45 @@ void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *r
 }
 
 void get_menu_size_tower(int size[]){
+	number = get_tower_avaliable();
 	
+	if (number == 3) {
+		row = 1;
+	}
+	else {
+		row = (int) sqrt((double) number) + 1;//3
+	}
+	
+	correction = 0;
+	if (number % row > 0) {
+		correction = 1;
+	}
+	
+	columns = (number / row) + correction; //3
+	
+	size[0] = columns * MENU_ICON;
+	size[1] = row * MENU_ICON;
 }
 
 void get_menu_size_minion(int size[]){
-
+	number = get_minion_avaliable();
+	
+	if (number == 3) {
+		row = 1;
+	}
+	else {
+		row = (int) sqrt((double) number) + 1;//3
+	}
+	
+	correction = 0;
+	if (number % row > 0) {
+		correction = 1;
+	}
+	
+	columns = (number / row) + correction; //3
+	
+	size[0] = columns * MENU_ICON;
+	size[1] = row * MENU_ICON;
 }
 
 
