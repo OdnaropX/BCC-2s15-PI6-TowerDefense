@@ -8,9 +8,7 @@
 #ifndef __Tower_Defense__Renderer__
 #define __Tower_Defense__Renderer__
 
-#include <stdio.h>
-#include <SDL2/SDL.h>
-#include <SDL2_image/SDL_image.h>
+
 #include <SDL2_ttf/SDL_ttf.h>
 
 #include "Estruturas.h"
