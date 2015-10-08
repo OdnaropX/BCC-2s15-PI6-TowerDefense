@@ -116,8 +116,15 @@ void remove_turret_from_list(list_turret *list, turret *turret);
 
 typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE} screen;
 
-	 
 typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA} tab;
+
+typedef struct _configuration {
+	bool audio_sfx;
+	bool audio_music;
+	char *language;
+} CONFIGURATION;
+
+/* Options */
 
 typedef enum _main_options {OPT_PLAY, OPT_CONFIG, OPT_SCORE, OPT_EXIT, OPT_CREDIT, OPT_NONE} main_options;
 
@@ -131,12 +138,19 @@ typedef enum _running_left_option {OPT_R_L_GOLD, OPT_R_L_MANA, OPT_R_L_LIFE, OPT
 typedef enum _running_area_right_option {OPT_R_A_R_MINION_1, OPT_R_A_R_MINION_2, OPT_R_A_R_MINION_3, OPT_R_A_R_NONE} running_area_right_options;
 typedef enum _running_area_left_option {OPT_R_A_L_TOWER_1, OPT_R_A_L_TOWER_2, OPT_R_A_L_TOWER_3, OPT_R_A_L_NONE} running_area_left_options;
 
-typedef struct _configuration {
-	bool audio_sfx;
-	bool audio_music;
-	char *language;
-} CONFIGURATION;
+typedef struct _select_game_running_inner {
+	running_area_left_options left = OPT_R_A_L_NONE;
+	running_area_right_options right = OPT_R_A_R_NONE;
+} GAME_AREA_OPTIONS;
 
+typedef struct _select_game_running {
+	tab current_tab = TOP_MENU;
+	running_top_options top = OPT_R_T_NONE;
+	running_left_options left = OPT_R_L_NONE;
+	GAME_AREA_OPTIONS game_area;
+} GAME_RUNNING_OPTIONS;
+
+/* End options */
 
 // É importante notar que não temos como nos assegurar de que o monstro existira para o tiro. Eventualmente teremos de, ou fazer o tiro mudar de alvo se o monstro morrer, ou fazer o monstro esperar até não ter tiros mirando nele.
 // Favor importar as libs de SDL. Não tenho os arquivos da aula e não sei o que será necessário importar.

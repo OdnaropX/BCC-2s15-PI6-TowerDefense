@@ -28,13 +28,13 @@ void draw_node(SDL_Surface *screen, node *drawn_node, bool tower){
     SDL_BlitSurface(drawn_node->sprite, NULL, screen, &rect);
 }
 
-void draw_screen_main(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rectangles, int count){
+void draw_screen_main(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rectangles, int count, main_options select_option){
     for(int i = 0; i < count; i++){
         SDL_RenderCopy(renderer, texts[i], NULL, &rectangles[i]);
     }
 }
 
-void draw_screen_config(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rectangles, int count){
+void draw_screen_config(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rectangles, int count, config_options select_config_option){
     for(int i = 0; i < count; i++){
         SDL_RenderCopy(renderer, texts[i], NULL, &rectangles[i]);
     }
@@ -76,13 +76,13 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
     }
 }
 
-void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count){
+void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, bool active_clicked, bool selected_left, int select_grid, GAME_RUNNING_OPTIONS running_option){
     for(int i = 0; i < count; i++){
         SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
     }
 }
 
-void draw_screen_game_paused(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count){
+void draw_screen_game_paused(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, pause_options select_pause_option){
     for(int i = 0; i < count; i++){
         SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
     }

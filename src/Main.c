@@ -95,20 +95,14 @@ int main(int argc, const char * argv[]) {
 	main_options main_option = OPT_NONE;
     config_options config_option = NONE;
 	pause_options pause_option = OPT_P_NONE;
-    tab current_tab = TOP_MENU;
-	running_top_options running_top_option = OPT_R_T_NONE;
-	running_left_options running_left_option = OPT_R_L_NONE;
-	running_area_right_options running_area_right_option = OPT_R_A_R_NONE;
-	running_area_left_options running_area_left_option = OPT_R_A_L_NONE;
+	GAME_RUNNING_OPTIONS running_option; 
+	
 	
 	//Keyboard options control
 	main_options select_option = OPT_PLAY;
 	config_options select_config_option = AUDIO_SFX;
 	pause_options select_pause_option = OPT_P_NONE;
-    running_top_options select_running_top_option = OPT_R_T_NONE;
-	running_left_options select_running_left_option = OPT_R_L_NONE;
-	running_area_right_options select_running_area_right_option = OPT_R_A_R_NONE;
-	running_area_left_options select_running_area_left_option = OPT_R_A_L_NONE;
+	GAME_RUNNING_OPTIONS select_running_option; 
 	
 	SDL_Event event;
     
@@ -464,13 +458,13 @@ int main(int argc, const char * argv[]) {
 									select_pause_option = OPT_P_RESUME;
 									break;	
 								case SDLK_q:
-									if (current_tab == GAME_AREA && !active_clicked){
+									if (running_option.current_tab == GAME_AREA && !active_clicked){
 										//Active click on current location
 										active_clicked = true;
 										selected_left = true;
 									}
 								case SDLK_e:
-									if (current_tab == GAME_AREA && !active_clicked){
+									if (running_option.current_tab == GAME_AREA && !active_clicked){
 										//Active click on current location
 										active_clicked = true;
 										selected_left = false;
@@ -487,9 +481,9 @@ int main(int argc, const char * argv[]) {
 								//Keypad enter
 								case SDLK_KP_ENTER:
 									//Check current action selected from menu and initiated it.
-									switch(current_tab) {
+									switch(running_option.current_tab) {
 										case TOP_MENU:
-											switch(select_running_top_option){
+											switch(select_running_option.top){
 												case OPT_R_T_PAUSE:
 													//Dont do any action after this, only render the scene. 
 													current_screen = GAME_PAUSED;
@@ -502,7 +496,7 @@ int main(int argc, const char * argv[]) {
 											}
 											break;
 										case LEFT_MENU:
-											switch(select_running_left_option){
+											switch(select_running_option.left){
 												case OPT_R_L_GOLD:
 													show_gold_info = true;
 													show_timer = 0;
@@ -521,11 +515,11 @@ int main(int argc, const char * argv[]) {
 											//Enter only work on active_clicked.
 											if (active_clicked){
 												if (selected_left) {
-													add_tower = select_running_area_right_option + 1;
+													add_tower = select_running_option.game_area.right + 1;
                                                     get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
 												else {
-													add_minion = select_running_area_left_option + 1;
+													add_minion = select_running_option.game_area.left + 1;
 													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
 											}
@@ -536,9 +530,9 @@ int main(int argc, const char * argv[]) {
 								//Keyboard enter
 								case SDLK_RETURN:
 									//Check current action selected from menu and initiated it.
-									switch(current_tab) {
+									switch(running_option.current_tab) {
 										case TOP_MENU:
-											switch(select_running_top_option){
+											switch(select_running_option.top){
 												case OPT_R_T_PAUSE:
 													//Dont do any action after this, only render the scene. 
 													current_screen = GAME_PAUSED;
@@ -551,7 +545,7 @@ int main(int argc, const char * argv[]) {
 											}
 											break;
 										case LEFT_MENU:
-											switch(select_running_left_option){
+											switch(select_running_option.left){
 												case OPT_R_L_GOLD:
 													show_gold_info = true;
 													show_timer = 0;
@@ -569,11 +563,11 @@ int main(int argc, const char * argv[]) {
 										case GAME_AREA:
 											if (active_clicked){
 												if (selected_left) {
-													add_tower = select_running_area_right_option + 1;
+													add_tower = select_running_option.game_area.right + 1;
 													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
 												else {
-													add_minion = select_running_area_left_option + 1;
+													add_minion = select_running_option.game_area.left + 1;
 													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
 											}
@@ -583,29 +577,29 @@ int main(int argc, const char * argv[]) {
 									break;
 								case SDLK_TAB:
 									//Move selector location
-									current_tab = (current_tab + 1) % 4;
+									running_option.current_tab = (running_option.current_tab + 1) % 4;
 									
 									break;
 								case SDLK_UP:
 									//Move selected selector. Selector is choose with tab.
-									switch(current_tab) {
+									switch(running_option.current_tab) {
 										case TOP_MENU:
 											//Move up top menu
-											if (select_running_top_option == OPT_R_T_PAUSE) {
-												select_running_top_option = OPT_R_T_RESUME;
+											if (select_running_option.top == OPT_R_T_PAUSE) {
+												select_running_option.top = OPT_R_T_RESUME;
 											}
 											else {
-												select_running_top_option--;
+												select_running_option.top--;
 											}
 											break;
 										
 										case LEFT_MENU:
 											//Move up left menu
-											if (select_running_left_option == OPT_R_L_GOLD) {
-												select_running_left_option = OPT_R_L_LIFE;
+											if (select_running_option.left == OPT_R_L_GOLD) {
+												select_running_option.left = OPT_R_L_LIFE;
 											}
 											else {
-												select_running_left_option--;
+												select_running_option.left--;
 											}
 											break;
 										
@@ -613,19 +607,19 @@ int main(int argc, const char * argv[]) {
 											//Move up mouse cursor between options 
 											if(active_clicked) {//Equals to mouse clicked previously
 												if (selected_left) {
-													if (select_running_area_left_option == OPT_R_A_L_TOWER_1) {
-														select_running_area_left_option = OPT_R_A_L_TOWER_3;
+													if (select_running_option.game_area.left == OPT_R_A_L_TOWER_1) {
+														select_running_option.game_area.left = OPT_R_A_L_TOWER_3;
 													}
 													else {
-														select_running_area_left_option--;
+														select_running_option.game_area.left--;
 													}
 												}
 												else {
-													if (select_running_area_right_option == OPT_R_A_R_MINION_1) {
-														select_running_area_right_option = OPT_R_A_R_MINION_3;
+													if (select_running_option.game_area.right == OPT_R_A_R_MINION_1) {
+														select_running_option.game_area.right = OPT_R_A_R_MINION_3;
 													}
 													else {
-														select_running_area_right_option--;
+														select_running_option.game_area.right--;
 													}
 												}
 											}
@@ -644,24 +638,24 @@ int main(int argc, const char * argv[]) {
 								
 								case SDLK_LEFT:
 									//Move selected selector. Selector is choose with tab.
-									switch(current_tab) {
+									switch(running_option.current_tab) {
 										case TOP_MENU:
 											//Move left top menu - Same as UP because menu is linear.
-											if (select_running_top_option == OPT_R_T_PAUSE) {
-												select_running_top_option = OPT_R_T_RESUME;
+											if (select_running_option.top == OPT_R_T_PAUSE) {
+												select_running_option.top = OPT_R_T_RESUME;
 											}
 											else {
-												select_running_top_option--;
+												select_running_option.top--;
 											}
 											break;
 										
 										case LEFT_MENU:
 											//Move left left menu
-											if (select_running_left_option == OPT_R_L_GOLD) {
-												select_running_left_option = OPT_R_L_LIFE;
+											if (select_running_option.left == OPT_R_L_GOLD) {
+												select_running_option.left = OPT_R_L_LIFE;
 											}
 											else {
-												select_running_left_option--;
+												select_running_option.left--;
 											}
 											break;
 										
@@ -669,19 +663,19 @@ int main(int argc, const char * argv[]) {
 											//Move left mouse cursor from GAME_AREA
 											if(active_clicked) {//Equals to mouse clicked previously
 												if (selected_left) {
-													if (select_running_area_left_option == OPT_R_A_L_TOWER_1) {
-														select_running_area_left_option = OPT_R_A_L_TOWER_3;
+													if (select_running_option.game_area.left == OPT_R_A_L_TOWER_1) {
+														select_running_option.game_area.left = OPT_R_A_L_TOWER_3;
 													}
 													else {
-														select_running_area_left_option--;
+														select_running_option.game_area.left--;
 													}
 												}
 												else {
-													if (select_running_area_right_option == OPT_R_A_R_MINION_1) {
-														select_running_area_right_option = OPT_R_A_R_MINION_3;
+													if (select_running_option.game_area.right == OPT_R_A_R_MINION_1) {
+														select_running_option.game_area.right = OPT_R_A_R_MINION_3;
 													}
 													else {
-														select_running_area_right_option--;
+														select_running_option.game_area.right--;
 													}
 												}
 											}
@@ -700,25 +694,25 @@ int main(int argc, const char * argv[]) {
 									
 								case SDLK_RIGHT:
 									//Move selected selector. Selector is choose with tab.
-									switch(current_tab) {
+									switch(running_option.current_tab) {
 										case TOP_MENU:
 											//Move right top menu
-											select_running_top_option = (select_running_top_option + 1) % 2;
+											select_running_option.top = (select_running_option.top + 1) % 2;
 											break;
 										
 										case LEFT_MENU:
 											//Move right left menu
-											select_running_left_option = (select_running_left_option + 1) % 3;
+											select_running_option.left = (select_running_option.left + 1) % 3;
 											break;
 
 										case GAME_AREA:
 											//Move right mouse cursor from GAME_AREA
 											if(active_clicked){
 												if (selected_left) {
-													select_running_area_left_option = (select_running_area_left_option + 1) % 3;
+													select_running_option.game_area.left = (select_running_option.game_area.left + 1) % 3;
 												}
 												else {
-													select_running_area_right_option = (select_running_area_right_option + 1) % 3;
+													select_running_option.game_area.right = (select_running_option.game_area.right + 1) % 3;
 												}
 											}
 											else {
@@ -731,26 +725,26 @@ int main(int argc, const char * argv[]) {
 								
 								case SDLK_DOWN:
 									//Move selected selector. Selector is choose with tab.
-									switch(current_tab) {
+									switch(running_option.current_tab) {
 										case TOP_MENU:
 											//Move down top menu
-											select_running_top_option = (select_running_top_option + 1) % 2;
+											select_running_option.top = (select_running_option.top + 1) % 2;
 											break;
 										
 										case LEFT_MENU:
 											//Move down left menu
-											select_running_left_option = (select_running_left_option + 1) % 3;
+											select_running_option.left = (select_running_option.left + 1) % 3;
 											break;
 										
 										case GAME_AREA:
 											//Move down mouse cursor from GAME_AREA
 											if(active_clicked){
 												if (selected_left) {
-													select_running_area_left_option = (select_running_area_left_option + 1) % 3;
+													select_running_option.game_area.left = (select_running_option.game_area.left + 1) % 3;
 													
 												}
 												else {
-													select_running_area_right_option = (select_running_area_right_option + 1) % 3;
+													select_running_option.game_area.right = (select_running_option.game_area.right + 1) % 3;
 												}
 											}
 											else {
@@ -1002,6 +996,9 @@ int main(int argc, const char * argv[]) {
                         case SDL_KEYUP:
                             if(event.key.keysym.sym == SDLK_ESCAPE || event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_KP_ENTER)
                                 return_to_previous_screen = true;
+							//Add handle for button go back
+							
+							
                             break;
                             
                         case SDL_MOUSEBUTTONUP:
@@ -1026,12 +1023,17 @@ int main(int argc, const char * argv[]) {
                         case SDL_KEYUP:
                             if(event.key.keysym.sym == SDLK_ESCAPE || event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_KP_ENTER)
                                 return_to_previous_screen = true;
+							//Add handle of buttons.
+							
                             break;
                             
                         case SDL_MOUSEBUTTONUP:
                             if(event.button.button == SDL_BUTTON_LEFT){
                                 if(event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH && event.motion.y >= 650 && event.motion.y <= 650 + BUTTON_MENU_HEIGHT)
                                     return_to_previous_screen = true;
+								
+								
+								//Add handle of buttons.
                             }
                             break;
                             
@@ -1364,30 +1366,33 @@ int main(int argc, const char * argv[]) {
         
         switch (current_screen) {
             case CONFIG:
-                draw_screen_config(renderer, config_menu_assets, config_menu_rects, config_menu_assets_count);
+				//select_config_option
+                draw_screen_config(renderer, config_menu_assets, config_menu_rects, config_menu_assets_count, select_config_option);
                 break;
             
             case CREDITS:
+				//get control of select. < TODO.
+
                 draw_screen_credits(renderer, credits_menu_assets, credits_menu_rects, credits_menu_assets_count);
                 break;
                 
             case GAME_PAUSED:
 				//select_pause_option
-				draw_screen_game_paused(renderer, pause_interface_assets, pause_interface_rects, pause_interface_assets_count);
-                
+				draw_screen_game_paused(renderer, pause_interface_assets, pause_interface_rects, pause_interface_assets_count, select_pause_option);
 				break;
                 
             case GAME_RUNNING:
+				select_running_option.current_tab = running_option.current_tab;
 				//active_clicked
 				//select_grid
 				//selected_left
-			
+				
                 draw_screen_game_running(main_Surface, map_Surface, minions, projectiles, turrets);
                 
                 screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
                 SDL_RenderCopy(renderer, screen_surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
                 
-                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count);
+                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, active_clicked,selected_left,select_grid, select_running_option);
                 
                 display_health(renderer, health, font);
                 display_mana(renderer, mana, font);
@@ -1397,10 +1402,13 @@ int main(int argc, const char * argv[]) {
                 
             case MAIN:
 				//select_option
-                draw_screen_main(renderer, main_menu_assets, main_menu_rects, main_menu_assets_count);
+                draw_screen_main(renderer, main_menu_assets, main_menu_rects, main_menu_assets_count, select_option);
                 break;
                 
             case SCORE:
+				//get control of select. < TODO.
+				
+				
                 draw_screen_score(renderer, score_menu_assets, score_menu_rects, score_menu_assets_count);
                 break;
                 
