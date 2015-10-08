@@ -140,6 +140,7 @@ int main(int argc, const char * argv[]) {
     int t1, t2;
     int delay = 17; //Aprox. de 1000ms/60
 	int show_timer = 0;
+	int timer_count = 0;
 	int frame = 0;
     t1 = SDL_GetTicks();
     
@@ -1040,9 +1041,48 @@ int main(int argc, const char * argv[]) {
         //Timer handling
 		frame++;
 		if (frame == FRAMES_PER_SEC) {
+			frame = 0;
+			
 			//One second timer
 			show_timer++;
-			frame = 0;
+			timer_count++;
+			
+				//Add more gold 1
+				//Add more mana 1
+			
+			//Timer, use this if to run code from 2 to 2 seconds.
+			if (is_timer(timer_count, 2)) {
+
+			}
+			//Timer, use this if to run code from 3 to 3 seconds.			
+			if (is_timer(timer_count, 3)) {
+				
+			}
+			//Timer, use this if to run code from 5 to 5 seconds.			
+			if (is_timer(timer_count, 5)) {
+			
+			}
+			//Timer, use this if to run code from 7 to 7 seconds.			
+			if (is_timer(timer_count, 7)) {
+			
+			}
+			//Timer, use this if to run code from 11 to 11 seconds.			
+			if (is_timer(timer_count, 11)) {
+			
+			}			
+			//Timer, use this if to run code from 13 to 13 seconds.			
+			if (is_timer(timer_count, 13)) {
+			
+			}			
+			//Timer, use this if to run code from 17 to 17 seconds.			
+			if (is_timer(timer_count, 17)) {
+			
+			}			
+			//Timer, use this if to run code from 20 to 20 seconds.			
+			if (is_timer(timer_count, 20)) {
+				//New wave
+				
+			}
 		}
 		
 		//Check if display time for menu if over. If it is, dont display info anymore.
