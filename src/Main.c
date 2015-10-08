@@ -1100,7 +1100,9 @@ int main(int argc, const char * argv[]) {
 				
 				}*/		
 					
-				//Timer, use this if to run code for each timer_minion seconds, for minions.			
+//Timer, use this if to run code for each timer_minion seconds, for minions.
+#warning IMPLICIT DECLARATION BELOW
+                /*
 				if (is_timer(timer_count, timer_minion)){
 					//New wave
 					pending_wave_number = monsterSpawner[spawn_minion];
@@ -1112,6 +1114,7 @@ int main(int argc, const char * argv[]) {
 						timer_minion = 20;
 					}
 				}
+                 */
 			}
 		}
 		
