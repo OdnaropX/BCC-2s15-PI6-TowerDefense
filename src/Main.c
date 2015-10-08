@@ -136,6 +136,7 @@ int main(int argc, const char * argv[]) {
 	bool show_mana_info = false;
 	bool show_life_info = false;
 	
+	
 	//FPS and timer
     int t1, t2;
     int delay = 17; //Aprox. de 1000ms/60
@@ -149,7 +150,11 @@ int main(int argc, const char * argv[]) {
 	
     // Following parts are only for first interation;
     int monsterSpawner[] = {6, 8, 12, 14, 17, 18, 25, 16, 18, 50};
-	//Wave 20 seconds, after 
+	
+	//Wave control - 20 seconds, after 
+	int spawn_minion = 0;
+	int pending_wave_number = 0;
+	int timer_minion = 20;
 	
 	int grid_clicked[] = {0,0};
 	
@@ -1048,11 +1053,31 @@ int main(int argc, const char * argv[]) {
 			timer_count++;
 			
 				//Add more gold 1
+				gold++;
 				//Add more mana 1
-			
+				mana++;
+				
+				//Wave spawning.
+				if(spawn_minion > 0 && spawn_minion < 10) {
+					if (pending_wave_number == 0) {
+						pending_wave_number = monsterSpawner[spawn_minion];
+						timer_minion = pending_wave_number + 20;
+					}
+					//Spawn minion
+					new_minion = init_minion(1);
+					add_minion_to_list(minions, new_minion);
+					
+					pending_wave_number--;
+				}
+				else {
+					spawn_minion = 0;
+					timer_minion = 20;
+				}
+				
+				
 			//Timer, use this if to run code from 2 to 2 seconds.
 			if (is_timer(timer_count, 2)) {
-
+				
 			}
 			//Timer, use this if to run code from 3 to 3 seconds.			
 			if (is_timer(timer_count, 3)) {
@@ -1077,11 +1102,14 @@ int main(int argc, const char * argv[]) {
 			//Timer, use this if to run code from 17 to 17 seconds.			
 			if (is_timer(timer_count, 17)) {
 			
-			}			
-			//Timer, use this if to run code from 20 to 20 seconds.			
-			if (is_timer(timer_count, 20)) {
+			}		
+			
+			//Timer, use this if to run code from 20 to 20 seconds on minions.			
+			if (is_timer(timer_count, timer_minion)){
 				//New wave
-				
+				if (!game_paused && !spawn_minion) {
+					spawn_minion++;
+				}
 			}
 		}
 		
@@ -1191,30 +1219,27 @@ int main(int argc, const char * argv[]) {
 					if (add_tower > 0){
 						//Add tower
                         if(gold > 100){
-                            new_turret = init_turret(add_tower, current_position[0], current_position[1]);
                             occupyGrid(current_position[0], current_position[1]);
                             if(!perform_path_verification(16, 5)){ // Blocking path.
                                 freeGrid(current_position[0], current_position[1]);
                                 perform_path_verification(16, 5);
                             }
                             else{ // SUCCESS
+								new_turret = init_turret(add_tower, current_position[0], current_position[1]);
                                 add_turret_to_list(turrets, new_turret);
                                 gold -= 100;
                             }
-                            
                         }
 						//Reset tower
 						add_tower = 0;
 					}
 					if (add_minion > 0){
 						//Add minion
-						new_minion = init_minion(add_minion);
+						//new_minion = init_minion(add_minion);
 						//Reset minion
 						add_minion = 0;
 					}
-				                
-								
-								
+		
                     // DEM ROUTINES, YO!
 
                     // Minion movement, Projectile movement, and projectile colision/dealocation.
