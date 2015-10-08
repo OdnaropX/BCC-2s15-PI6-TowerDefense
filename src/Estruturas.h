@@ -87,10 +87,10 @@ void remove_projectile(projectile *proj);
 */
 
 // List Shoots
-typedef struct _list_projectile {
+struct _list_projectile {
  	projectile *e;
  	struct _list_projectile *next;
-} list_projectile;
+};
 
 list_projectile *init_list_projectile();
 void free_list_projectile(list_projectile *list);
