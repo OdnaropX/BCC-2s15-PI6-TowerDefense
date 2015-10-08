@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
+#include "Path.h"
 
 #define TOP_LAYER_SPACING 83
 
@@ -19,6 +20,8 @@
 #define block_height 43
 #define map_array_width 17
 #define map_array_height 13
+
+
 
 typedef struct _list_projectile list_projectile;
 

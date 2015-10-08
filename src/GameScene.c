@@ -17,6 +17,8 @@
 
 int grid[17][13];
 
+
+
 //Use this on main init(or when loading a map)
 SDL_Surface *init_map(){
     //Load map image
@@ -198,7 +200,7 @@ int get_grid_address_linear(int grid_x, int grid_y, int limit_x){
 	return grid_y * (limit_x - 1) + grid_x;
 }
 
-void get_grid_address_matriz(int grid_number, int limit_x, int[] matriz) {
+void get_grid_address_matriz(int grid_number, int limit_x, int *matriz) {
 	int grid_x, grid_y, limit;
 	
 	limit = limit_x - 1;
@@ -256,10 +258,22 @@ int get_touched_menu_address(int x_touch, int y_touch, int center_position[], in
 	return 1;
 }
 
-void get_cartesian_from_grid_number(int grid_number, int[] array_position, int limit_x){
+void get_cartesian_from_grid_number(int grid_number, int *array_position, int limit_x){
 	//Get grid coordenate.
 	get_grid_address_matriz(grid_number, limit_x, array_position);
 	
 	//Get pixel central from grid coordenate.
 	get_center_position_to_grid(array_position[0], array_position[1], array_position);	
+}
+
+int perform_path_verification(int targetX, int targetY){
+    return setShortestPaths(grid, 17, 13, targetX, targetY);
+}
+
+void occupyGrid(int targetX, int targetY){
+    grid[targetX][targetY] = -1;
+}
+
+void freeGrid(int targetX, int targetY){
+    grid[targetX][targetY] = 0;
 }

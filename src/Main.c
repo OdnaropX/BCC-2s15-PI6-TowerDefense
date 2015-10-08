@@ -126,7 +126,7 @@ int main(int argc, const char * argv[]) {
     int gold = 0;
     int mana = 0;
 	
-	int[] current_position = {0,0};
+	int current_position[] = {0,0};
 	
 	minion *new_minion;
 	turret *new_turret;
@@ -516,11 +516,11 @@ int main(int argc, const char * argv[]) {
 											if (active_clicked){
 												if (selected_left) {
 													add_tower = select_running_area_right_option + 1;
-													get_cartesian_from_grid_number(select_grid, current_position);
+                                                    get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
 												else {
 													add_minion = select_running_area_left_option + 1;
-													get_cartesian_from_grid_number(select_grid, current_position);
+													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
 											}
 											break;
@@ -564,11 +564,11 @@ int main(int argc, const char * argv[]) {
 											if (active_clicked){
 												if (selected_left) {
 													add_tower = select_running_area_right_option + 1;
-													get_cartesian_from_grid_number(select_grid, current_position);
+													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
 												else {
 													add_minion = select_running_area_left_option + 1;
-													get_cartesian_from_grid_number(select_grid, current_position);
+													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
 											}
 											break;
@@ -1150,7 +1150,19 @@ int main(int argc, const char * argv[]) {
 				
 					if (add_tower > 0){
 						//Add tower
-						new_turret = init_turret(add_tower, current_position[0], current_position[1]);
+                        if(gold > 100){
+                            new_turret = init_turret(add_tower, current_position[0], current_position[1]);
+                            occupyGrid(current_position[0], current_position[1]);
+                            if(!perform_path_verification(16, 5)){ // Blocking path.
+                                freeGrid(current_position[0], current_position[1]);
+                                perform_path_verification(16, 5);
+                            }
+                            else{ // SUCCESS
+                                add_turret_to_list(turrets, new_turret);
+                                gold -= 100;
+                            }
+                            
+                        }
 						//Reset tower
 						add_tower = 0;
 					}

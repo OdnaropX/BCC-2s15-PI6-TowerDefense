@@ -13,6 +13,8 @@
 #include <stdbool.h>
 #include "Estruturas.h"
 
+
+
 /**
  Fills sent array with array adress for touched grid squares.
  Returns:
@@ -47,8 +49,18 @@ void move_minion(minion *enemy);
  **/
 int move_bullet(minion *target, projectile *shoot);
 
-void get_cartesian_from_grid_number(int grid_number, int[] array_position, int limit_x);
+void get_cartesian_from_grid_number(int grid_number, int *array_position, int limit_x);
 
-void get_grid_address_matriz(int grid_number, int limit_x, int[] matriz);
+void get_grid_address_matriz(int grid_number, int limit_x, int *matriz);
+
+
+
+
+int perform_path_verification(int targetX, int targetY);
+
+void occupyGrid(int targetX, int targetY);
+
+void freeGrid(int targetX, int targetY);
+
 
 #endif /* defined(____GameScene__) */
