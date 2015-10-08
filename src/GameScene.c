@@ -216,10 +216,10 @@ int get_touched_menu_address(int x_touch, int y_touch, int center_position[], in
 	int row, width, height, columns, correction;
 	
 	if (tower) {
-		number = 3; //Get from file or some other means.
+		number = get_tower_avaliable(); //Get from file or some other means.
 	}
 	else {
-		number = 3; //Get from file or some other means.
+		number = get_minion_avaliable(); //Get from file or some other means.
 	}
 	
 	if (number == 3) {

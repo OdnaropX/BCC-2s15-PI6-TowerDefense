@@ -79,6 +79,8 @@ void main_quit();
 
 void get_config();
 
+
+
 int main(int argc, const char * argv[]) {
     bool quit = false;
     
@@ -97,12 +99,23 @@ int main(int argc, const char * argv[]) {
 	pause_options pause_option = OPT_P_NONE;
 	GAME_RUNNING_OPTIONS running_option; 
 	
+	running_option.current_tab = TOP_MENU;
+	running_option.top = OPT_R_T_NONE;
+	running_option.left = OPT_R_L_NONE;
+	running_option.game_area.left = OPT_R_A_L_NONE;
+	running_option.game_area.right = OPT_R_A_R_NONE;
 	
 	//Keyboard options control
 	main_options select_option = OPT_PLAY;
 	config_options select_config_option = AUDIO_SFX;
 	pause_options select_pause_option = OPT_P_NONE;
 	GAME_RUNNING_OPTIONS select_running_option; 
+	
+	select_running_option.current_tab = TOP_MENU;
+	select_running_option.top = OPT_R_T_NONE;
+	select_running_option.left = OPT_R_L_NONE;
+	select_running_option.game_area.left = OPT_R_A_L_NONE;
+	select_running_option.game_area.right = OPT_R_A_R_NONE;
 	
 	SDL_Event event;
     
@@ -1302,9 +1315,7 @@ int main(int argc, const char * argv[]) {
                         }
                         turret = turret->next;
                     }
-                
                 }
-
             }
                 
             break;
@@ -1392,7 +1403,7 @@ int main(int argc, const char * argv[]) {
                 screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
                 SDL_RenderCopy(renderer, screen_surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
                 
-                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, active_clicked,selected_left,select_grid, select_running_option);
+                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, active_clicked, selected_left, select_grid, select_running_option);
                 
                 display_health(renderer, health, font);
                 display_mana(renderer, mana, font);

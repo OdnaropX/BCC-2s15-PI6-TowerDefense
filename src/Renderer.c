@@ -100,9 +100,13 @@ void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *r
     }
 }
 
-void get_menu_size_tower(int size[]){}
+void get_menu_size_tower(int size[]){
+	
+}
 
-void get_menu_size_minion(int size[]){}
+void get_menu_size_minion(int size[]){
+
+}
 
 
 void display_health(SDL_Renderer *renderer, int value, TTF_Font *font){
