@@ -80,12 +80,12 @@ void main_quit();
 void get_config();
 
 int main(int argc, const char * argv[]) {
+    bool quit = false;
+    
     //Main init
     if(!main_init()){
-        main_quit();
+        quit = true;
     }
-    
-    bool quit = false;
 	
 	//Screen control
 	screen current_screen = MAIN;
@@ -1065,11 +1065,10 @@ int main(int argc, const char * argv[]) {
 					
 				//Wave spawning.
 				if(pending_wave_number > 0) {
-					//Spawn minion
-					new_minion = init_minion(1);
-					add_minion_to_list(minions, new_minion);
+                    add_minion++;
 					pending_wave_number--;
 				}
+                
 				/*
 				//Timer, use this if to run code for each 2 seconds.
 				if (is_time(timer_count, 2)) {
@@ -1103,7 +1102,6 @@ int main(int argc, const char * argv[]) {
 				//Timer, use this if to run code for each timer_minion seconds, for minions.
 				if (is_time(timer_count, timer_minion)){
 					//New wave
-                    printf("New wave\n");
 					pending_wave_number = monsterSpawner[spawn_minion];
 					timer_minion = pending_wave_number + 20;
 					spawn_minion++;
@@ -1238,7 +1236,9 @@ int main(int argc, const char * argv[]) {
 					}
 					if (add_minion > 0){
 						//Add minion
-						//new_minion = init_minion(add_minion);
+                        minion *m = init_minion(0);     //minion_id not used
+                        add_minion_to_list(minions, m);
+                        
 						//Reset minion
 						add_minion = 0;
 					}
@@ -1247,10 +1247,10 @@ int main(int argc, const char * argv[]) {
 
                     // Minion movement, Projectile movement, and projectile colision/dealocation.
                     list_minion* enemy = minions;
-                    while(enemy){
+                    while(enemy && enemy->e){
                         move_minion(enemy->e);
                         list_projectile *shoot = enemy->e->targetted_projectils;
-                        while (shoot) {
+                        while (shoot && shoot->e) {
                             if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
                                 enemy->e->HP -= shoot->e->damage;
                                 list_projectile *temp = shoot;
@@ -1275,7 +1275,7 @@ int main(int argc, const char * argv[]) {
                     }
                     
                     list_turret *turret = turrets;
-                    while (turret) {
+                    while (turret && turret->e) {
                         turret->e->timeUntilNextAttack -= 0.017;
                         if(turret->e->timeUntilNextAttack <= 0){
                             enemy = minions;
@@ -1716,9 +1716,27 @@ bool main_init(){
 	
 	//Init map
     map_Surface = init_map();
-    
     if(!map_Surface){
         printf("Falha ao inicializar mapa!\n");
+        return false;
+    }
+    
+    //Init lists
+    minions = init_list_minion();
+    if(!minions){
+        printf("Erro em init_list_minion!\n");
+        return false;
+    }
+    
+    turrets = init_list_turret();
+    if(!turrets){
+        printf("Erro em init_list_turret!\n");
+        return false;
+    }
+    
+    projectiles = init_list_projectile();
+    if(!projectiles){
+        printf("Erro em init_list_projectiles!\n");
         return false;
     }
     
@@ -1761,31 +1779,49 @@ bool main_init(){
 //Encerra SDL
 void main_quit(){
     //Close fonts
-    TTF_CloseFont(font);
+    if(font)
+        TTF_CloseFont(font);
     
     //Destroy textures
     for(int i = 0; i < main_menu_assets_count; i++){
-        SDL_DestroyTexture(main_menu_assets[i]);
+        if(main_menu_assets[i])
+            SDL_DestroyTexture(main_menu_assets[i]);
     }
     
     for(int i = 0; i < config_menu_assets_count; i++){
-        SDL_DestroyTexture(config_menu_assets[i]);
+        if(config_menu_assets[i])
+            SDL_DestroyTexture(config_menu_assets[i]);
     }
     
     for(int i = 0; i < game_interface_assets_count; i++){
-        SDL_DestroyTexture(game_interface_assets[i]);
+        if(game_interface_assets[i])
+            SDL_DestroyTexture(game_interface_assets[i]);
     }
     
     for(int i = 0; i < pause_interface_assets_count; i++){
-        SDL_DestroyTexture(pause_interface_assets[i]);
+        if(pause_interface_assets[i])
+            SDL_DestroyTexture(pause_interface_assets[i]);
+    }
+    
+    for(int i = 0; i < credits_menu_assets_count; i++){
+        if(credits_menu_assets[i])
+            SDL_DestroyTexture(credits_menu_assets[i]);
+    }
+    
+    for(int i = 0; i < score_menu_assets_count; i++){
+        if(score_menu_assets[i])
+            SDL_DestroyTexture(score_menu_assets[i]);
     }
     
     //Free surfaces
-    SDL_FreeSurface(map_Surface);
+    if(map_Surface)
+        SDL_FreeSurface(map_Surface);
     
     //Free window
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(main_Window);
+    if(renderer)
+        SDL_DestroyRenderer(renderer);
+    if(main_Window)
+        SDL_DestroyWindow(main_Window);
     
     //Quit SDL, TTF, IMG
     IMG_Quit();
@@ -1794,7 +1830,9 @@ void main_quit(){
 	
 	//Free config
 	//free(config->language);
-	free(config);
+    
+    if(config)
+        free(config);
     
     //Free lists
     if(minions)

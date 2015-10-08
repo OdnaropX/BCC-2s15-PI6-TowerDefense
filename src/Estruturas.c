@@ -25,8 +25,10 @@ node *init_node(char *sprite_filename, double xPos, double yPos){
 }
 
 void free_node(node *node){
-    SDL_FreeSurface(node->sprite);
-    free(node);
+    if(node && node->sprite){
+        SDL_FreeSurface(node->sprite);
+        free(node);
+    }
 }
 
 //Minion
@@ -43,9 +45,10 @@ minion *init_minion(int minionID){
 }
 
 void remove_minion(minion *mium){
-    free_node(&mium->node);
-    free(mium);
-}
+    if(mium){
+        free_node(&mium->node);
+        free(mium);
+    }}
 
 //Turret
 turret *init_turret(int turretID, int gridX, int gridY){
@@ -59,8 +62,10 @@ turret *init_turret(int turretID, int gridX, int gridY){
 }
 
 void remove_turret(turret *turret){
-    free_node(&turret->node);
-    free(turret);
+    if(turret){
+        free_node(&turret->node);
+        free(turret);
+    }
 }
 
 //Projectile
@@ -74,8 +79,10 @@ projectile *init_projectile(int projectileID, turret* shooter){
 }
 
 void remove_projectile(projectile *proj){
-    free_node(&proj->node);
-    free(proj);
+    if(proj){
+        free_node(&proj->node);
+        free(proj);
+    }
 }
 
 //List Projectiles
