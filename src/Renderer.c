@@ -101,6 +101,8 @@ void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *r
 }
 
 void get_menu_size_tower(int size[]){
+	int correction, number, row, columns;
+	
 	number = get_tower_avaliable();
 	
 	if (number == 3) {
@@ -122,6 +124,8 @@ void get_menu_size_tower(int size[]){
 }
 
 void get_menu_size_minion(int size[]){
+	int correction, number, row, columns;
+	
 	number = get_minion_avaliable();
 	
 	if (number == 3) {
