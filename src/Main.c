@@ -1080,7 +1080,7 @@ int main(int argc, const char * argv[]) {
 					
 				//Wave spawning.
 				if(pending_wave_number > 0) {
-					add_minion = (add_minion + 1) % 3;
+					add_minion = (add_minion + 1) % get_minion_avaliable();
 					pending_wave_number--;
 				}
                 
@@ -1114,9 +1114,7 @@ int main(int argc, const char * argv[]) {
 				
 				}*/		
 					
-//Timer, use this if to run code for each timer_minion seconds, for minions.
-#warning IMPLICIT DECLARATION BELOW
-                
+				//Timer, use this if to run code for each timer_minion seconds, for minions.
 				if (is_time(timer_count, timer_minion)){
 					//New wave
 					pending_wave_number = monsterSpawner[spawn_minion];
