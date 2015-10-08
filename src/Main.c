@@ -1080,7 +1080,7 @@ int main(int argc, const char * argv[]) {
 					
 				//Wave spawning.
 				if(pending_wave_number > 0) {
-                    add_minion++;
+					add_minion = (add_minion + 1) % 3;
 					pending_wave_number--;
 				}
                 
