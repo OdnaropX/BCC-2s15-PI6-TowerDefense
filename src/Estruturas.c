@@ -25,15 +25,17 @@ node *init_node(char *sprite_filename, double xPos, double yPos){
 }
 
 void free_node(node *node){
-    SDL_FreeSurface(node->sprite);
-    free(node);
+    if(node && node->sprite){
+        SDL_FreeSurface(node->sprite);
+        free(node);
+    }
 }
 
 //Minion
 minion *init_minion(int minionID){
     // USAR MINIONID para diferentes minions dps.
     minion *new_minion = malloc(sizeof(minion));
-    new_minion->node = *init_node("Minion.png", 0, 400);
+    new_minion->node = *init_node("../images/Minion.png", 0, 400);
     new_minion->HP = 5;
     new_minion->speed = 3;
     
@@ -43,14 +45,15 @@ minion *init_minion(int minionID){
 }
 
 void remove_minion(minion *mium){
-    free_node(&mium->node);
-    free(mium);
-}
+    if(mium){
+        free_node(&mium->node);
+        free(mium);
+    }}
 
 //Turret
 turret *init_turret(int turretID, int gridX, int gridY){
     turret *new_turret = malloc(sizeof(turret));
-    new_turret->node = *init_node("Turret.png", gridX * 17, gridY * 13);
+    new_turret->node = *init_node("../images/Turret.png", gridX * 17, gridY * 13);
     new_turret->timeUntilNextAttack = 5.0; // Sempre começa sem atacar.
     new_turret->turretType = turretID;
     new_turret->radius = 200;
@@ -59,14 +62,16 @@ turret *init_turret(int turretID, int gridX, int gridY){
 }
 
 void remove_turret(turret *turret){
-    free_node(&turret->node);
-    free(turret);
+    if(turret){
+        free_node(&turret->node);
+        free(turret);
+    }
 }
 
 //Projectile
 projectile *init_projectile(int projectileID, turret* shooter){
     projectile *new_projectile = malloc(sizeof(projectile));
-    new_projectile->node = *init_node("Projectile.png", shooter->node.xPos, shooter->node.yPos);
+    new_projectile->node = *init_node("../images/Projectile.png", shooter->node.xPos, shooter->node.yPos);
     new_projectile->speed = 4;
     new_projectile->damage = 2;
     
@@ -74,8 +79,10 @@ projectile *init_projectile(int projectileID, turret* shooter){
 }
 
 void remove_projectile(projectile *proj){
-    free_node(&proj->node);
-    free(proj);
+    if(proj){
+        free_node(&proj->node);
+        free(proj);
+    }
 }
 
 //List Projectiles

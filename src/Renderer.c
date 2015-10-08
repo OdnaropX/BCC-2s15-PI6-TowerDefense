@@ -48,7 +48,7 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
     //Draw turrets
     list_turret *t = turrets;
     
-    while (t) {
+    while (t && t->e) {
         turret *target = t->e;
         draw_node(screen, &target->node, true);
         
@@ -58,7 +58,7 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
     //Draw minions
     list_minion *m = minions;
     
-    while (m) {
+    while (m && m->e) {
         minion *target = m->e;
         draw_node(screen, &target->node, false);
         
@@ -68,7 +68,7 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
     //Draw projectiles
     list_projectile *p = projectiles;
     
-    while (p) {
+    while (p && p->e) {
         projectile *target = p->e;
         draw_node(screen, &target->node, false);
         
