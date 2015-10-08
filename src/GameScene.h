@@ -53,6 +53,7 @@ void get_cartesian_from_grid_number(int grid_number, int *array_position, int li
 
 void get_grid_address_matriz(int grid_number, int limit_x, int *matriz);
 
+int is_time(int timer, int second);
 
 
 

@@ -136,10 +136,12 @@ int main(int argc, const char * argv[]) {
 	bool show_mana_info = false;
 	bool show_life_info = false;
 	
+	
 	//FPS and timer
     int t1, t2;
     int delay = 17; //Aprox. de 1000ms/60
 	int show_timer = 0;
+	int timer_count = 0;
 	int frame = 0;
     t1 = SDL_GetTicks();
     
@@ -148,7 +150,11 @@ int main(int argc, const char * argv[]) {
 	
     // Following parts are only for first interation;
     int monsterSpawner[] = {6, 8, 12, 14, 17, 18, 25, 16, 18, 50};
-	//Wave 20 seconds, after 
+	
+	//Wave control - 20 seconds, after 
+	int spawn_minion = 0;
+	int pending_wave_number = 0;
+	int timer_minion = 20;
 	
 	int grid_clicked[] = {0,0};
 	
@@ -1038,11 +1044,75 @@ int main(int argc, const char * argv[]) {
         }
 		
         //Timer handling
+		////////////////////////////////////////////////////////
 		frame++;
 		if (frame == FRAMES_PER_SEC) {
+			frame = 0;
+			
 			//One second timer
 			show_timer++;
-			frame = 0;
+			
+			
+			//Game timer.
+			if(game_started && !game_paused) {
+				//One second timer
+				timer_count++;
+					
+				//Add more gold 1
+				gold++;
+				//Add more mana 1
+				mana++;
+					
+				//Wave spawning.
+				if(pending_wave_number > 0) {
+					//Spawn minion
+					new_minion = init_minion(1);
+					add_minion_to_list(minions, new_minion);
+					pending_wave_number--;
+				}
+				/*
+				//Timer, use this if to run code for each 2 seconds.
+				if (is_timer(timer_count, 2)) {
+					
+				}
+				//Timer, use this if to run code for each  3 seconds.			
+				if (is_timer(timer_count, 3)) {
+					
+				}
+				//Timer, use this if to run code for each 5 seconds.			
+				if (is_timer(timer_count, 5)) {
+			
+				}
+				//Timer, use this if to run code for each  7 seconds.			
+				if (is_timer(timer_count, 7)) {
+				
+				}
+				//Timer, use this if to run code for each 11 seconds.			
+				if (is_timer(timer_count, 11)) {
+					
+				}			
+				//Timer, use this if to run code for each  13 seconds.			
+				if (is_timer(timer_count, 13)) {
+			
+				}			
+				//Timer, use this if to run code for each 17 seconds.			
+				if (is_timer(timer_count, 17)) {
+				
+				}*/		
+					
+				//Timer, use this if to run code for each timer_minion seconds, for minions.			
+				if (is_timer(timer_count, timer_minion)){
+					//New wave
+					pending_wave_number = monsterSpawner[spawn_minion];
+					timer_minion = pending_wave_number + 20;
+					spawn_minion++;
+					
+					if (spawn_minion > 0 && spawn_minion < 10) {
+						spawn_minion = 0;
+						timer_minion = 20;
+					}
+				}
+			}
 		}
 		
 		//Check if display time for menu if over. If it is, dont display info anymore.
@@ -1151,30 +1221,27 @@ int main(int argc, const char * argv[]) {
 					if (add_tower > 0){
 						//Add tower
                         if(gold > 100){
-                            new_turret = init_turret(add_tower, current_position[0], current_position[1]);
                             occupyGrid(current_position[0], current_position[1]);
                             if(!perform_path_verification(16, 5)){ // Blocking path.
                                 freeGrid(current_position[0], current_position[1]);
                                 perform_path_verification(16, 5);
                             }
                             else{ // SUCCESS
+								new_turret = init_turret(add_tower, current_position[0], current_position[1]);
                                 add_turret_to_list(turrets, new_turret);
                                 gold -= 100;
                             }
-                            
                         }
 						//Reset tower
 						add_tower = 0;
 					}
 					if (add_minion > 0){
 						//Add minion
-						new_minion = init_minion(add_minion);
+						//new_minion = init_minion(add_minion);
 						//Reset minion
 						add_minion = 0;
 					}
-				                
-								
-								
+		
                     // DEM ROUTINES, YO!
 
                     // Minion movement, Projectile movement, and projectile colision/dealocation.

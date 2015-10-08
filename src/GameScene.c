@@ -277,3 +277,8 @@ void occupyGrid(int targetX, int targetY){
 void freeGrid(int targetX, int targetY){
     grid[targetX][targetY] = 0;
 }
+
+//Check relapse time in seconds
+int is_time(int timer, int second){
+	return timer / second > 0 && timer % second == 0;
+}
