@@ -1072,37 +1072,38 @@ int main(int argc, const char * argv[]) {
 				}
 				/*
 				//Timer, use this if to run code for each 2 seconds.
-				if (is_timer(timer_count, 2)) {
+				if (is_time(timer_count, 2)) {
 					
 				}
 				//Timer, use this if to run code for each  3 seconds.			
-				if (is_timer(timer_count, 3)) {
+				if (is_time(timer_count, 3)) {
 					
 				}
 				//Timer, use this if to run code for each 5 seconds.			
-				if (is_timer(timer_count, 5)) {
+				if (is_time(timer_count, 5)) {
 			
 				}
 				//Timer, use this if to run code for each  7 seconds.			
-				if (is_timer(timer_count, 7)) {
+				if (is_time(timer_count, 7)) {
 				
 				}
 				//Timer, use this if to run code for each 11 seconds.			
-				if (is_timer(timer_count, 11)) {
+				if (is_time(timer_count, 11)) {
 					
 				}			
 				//Timer, use this if to run code for each  13 seconds.			
-				if (is_timer(timer_count, 13)) {
+				if (is_time(timer_count, 13)) {
 			
 				}			
 				//Timer, use this if to run code for each 17 seconds.			
-				if (is_timer(timer_count, 17)) {
+				if (is_time(timer_count, 17)) {
 				
 				}*/		
 					
-				//Timer, use this if to run code for each timer_minion seconds, for minions.			
-				if (is_timer(timer_count, timer_minion)){
+				//Timer, use this if to run code for each timer_minion seconds, for minions.
+				if (is_time(timer_count, timer_minion)){
 					//New wave
+                    printf("New wave\n");
 					pending_wave_number = monsterSpawner[spawn_minion];
 					timer_minion = pending_wave_number + 20;
 					spawn_minion++;
