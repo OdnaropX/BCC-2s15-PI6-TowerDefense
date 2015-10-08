@@ -10,8 +10,16 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+
+//Load lib for windows or mac.
+#ifdef _WIN32 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#else
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
+#endif
+
 #include "Path.h"
 
 #define TOP_LAYER_SPACING 83
@@ -116,9 +124,7 @@ void remove_turret_from_list(list_turret *list, turret *turret);
 int get_tower_avaliable();
 int get_minion_avaliable();
 
-typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE} screen;
-
-typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA} tab;
+/* Game options */
 
 typedef struct _configuration {
 	bool audio_sfx;
@@ -126,7 +132,13 @@ typedef struct _configuration {
 	char *language;
 } CONFIGURATION;
 
-/* Options */
+/* End Game options */
+
+/* Screen options */
+
+typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE} screen;
+
+typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA} TAB;
 
 typedef enum _main_options {OPT_PLAY, OPT_CONFIG, OPT_SCORE, OPT_EXIT, OPT_CREDIT, OPT_NONE} main_options;
 
@@ -134,30 +146,26 @@ typedef enum _pause_options {OPT_P_RESUME, OPT_P_CONFIG, OPT_P_SCORE, OPT_P_EXIT
 
 typedef enum _config_options{AUDIO_SFX, AUDIO_MUSIC, LANGUAGE, BACK, NONE} config_options;
 
-typedef enum _running_top_option {OPT_R_T_PAUSE, OPT_R_T_RESUME, OPT_R_T_NONE} running_top_options;
-typedef enum _running_left_option {OPT_R_L_GOLD, OPT_R_L_MANA, OPT_R_L_LIFE, OPT_R_L_NONE} running_left_options;
-
-typedef enum _running_area_right_option {OPT_R_A_R_MINION_1, OPT_R_A_R_MINION_2, OPT_R_A_R_MINION_3, OPT_R_A_R_NONE} running_area_right_options;
-typedef enum _running_area_left_option {OPT_R_A_L_TOWER_1, OPT_R_A_L_TOWER_2, OPT_R_A_L_TOWER_3, OPT_R_A_L_NONE} running_area_left_options;
+typedef enum _running_top_option {OPT_R_T_PAUSE, OPT_R_T_RESUME, OPT_R_T_NONE} RUNNING_TOP_OPTIONS;
+typedef enum _running_left_option {OPT_R_L_GOLD, OPT_R_L_MANA, OPT_R_L_LIFE, OPT_R_L_NONE} RUNNING_LEFT_OPTIONS;
+typedef enum _running_area_right_option {OPT_R_A_R_MINION_1, OPT_R_A_R_MINION_2, OPT_R_A_R_MINION_3, OPT_R_A_R_NONE} RUNNING_AREA_RIGHT_OPTIONS;
+typedef enum _running_area_left_option {OPT_R_A_L_TOWER_1, OPT_R_A_L_TOWER_2, OPT_R_A_L_TOWER_3, OPT_R_A_L_NONE} RUNNING_AREA_LEFT_OPTIONS;
 
 typedef struct _select_game_running_inner {
-	running_area_left_options left;
-	running_area_right_options right;
+	RUNNING_AREA_LEFT_OPTIONS left;
+	RUNNING_AREA_RIGHT_OPTIONS right;
 } GAME_AREA_OPTIONS;
 
 typedef struct _select_game_running {
-	tab current_tab;
-	running_top_options top ;
-	running_left_options left;
+	TAB current_tab;
+	RUNNING_TOP_OPTIONS top;
+	RUNNING_LEFT_OPTIONS left;
 	GAME_AREA_OPTIONS game_area;
 } GAME_RUNNING_OPTIONS;
 
-
-
-/* End options */
+/* End screen options */
 
 // É importante notar que não temos como nos assegurar de que o monstro existira para o tiro. Eventualmente teremos de, ou fazer o tiro mudar de alvo se o monstro morrer, ou fazer o monstro esperar até não ter tiros mirando nele.
-// Favor importar as libs de SDL. Não tenho os arquivos da aula e não sei o que será necessário importar.
 
 
 #endif /* defined(__Tower_Defense__Estruturas__) */

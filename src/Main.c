@@ -13,8 +13,14 @@
 #include <math.h>
 
 #include <SDL2/SDL.h>
+
+#ifdef _WIN32 
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+#else
 #include <SDL2_image/SDL_image.h>
 #include <SDL2_ttf/SDL_ttf.h>
+#endif
 
 #include "Estruturas.h"
 #include "Renderer.h"
@@ -88,6 +94,7 @@ int main(int argc, const char * argv[]) {
     if(!main_init()){
         quit = true;
     }
+	
 	
 	//Screen control
 	screen current_screen = MAIN;

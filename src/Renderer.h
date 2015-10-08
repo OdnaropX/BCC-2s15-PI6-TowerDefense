@@ -8,8 +8,11 @@
 #ifndef __Tower_Defense__Renderer__
 #define __Tower_Defense__Renderer__
 
-
+#ifdef _WIN32 
+#include <SDL2/SDL_ttf.h>
+#else
 #include <SDL2_ttf/SDL_ttf.h>
+#endif
 
 #include "Estruturas.h"
 
