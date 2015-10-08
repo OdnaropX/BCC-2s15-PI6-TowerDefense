@@ -1051,67 +1051,70 @@ int main(int argc, const char * argv[]) {
 			
 			//One second timer
 			show_timer++;
-			timer_count++;
 			
-				//Game timer.
-				if(game_started && !game_paused) {
-					//Add more gold 1
-					gold++;
-					//Add more mana 1
-					mana++;
+			
+			//Game timer.
+			if(game_started && !game_paused) {
+				timer_count++;
 					
-					//Wave spawning.
-					if(spawn_minion > 0 && spawn_minion < 10) {
-						if (pending_wave_number == 0) {
-							pending_wave_number = monsterSpawner[spawn_minion];
-							timer_minion = pending_wave_number + 20;
-						}
-						//Spawn minion
-						new_minion = init_minion(1);
-						add_minion_to_list(minions, new_minion);
-						
-						pending_wave_number--;
+				//Add more gold 1
+				gold++;
+				//Add more mana 1
+				mana++;
+					
+				//Wave spawning.
+				if(spawn_minion > 0 && spawn_minion < 10) {
+					if (pending_wave_number == 0) {
+						pending_wave_number = monsterSpawner[spawn_minion];
+						timer_minion = pending_wave_number + 20;
 					}
-					else {
-						spawn_minion = 0;
-						timer_minion = 20;
-					}
+					//Spawn minion
+					new_minion = init_minion(1);
+					add_minion_to_list(minions, new_minion);
+					
+					pending_wave_number--;
 				}
+				else {
+					spawn_minion = 0;
+					timer_minion = 20;
+				}
+			
+			
+				//Timer, use this if to run code from 2 to 2 seconds.
+				if (is_timer(timer_count, 2)) {
+					
+				}
+				//Timer, use this if to run code from 3 to 3 seconds.			
+				if (is_timer(timer_count, 3)) {
+					
+				}
+				//Timer, use this if to run code from 5 to 5 seconds.			
+				if (is_timer(timer_count, 5)) {
+			
+				}
+				//Timer, use this if to run code from 7 to 7 seconds.			
+				if (is_timer(timer_count, 7)) {
 				
-			//Timer, use this if to run code from 2 to 2 seconds.
-			if (is_timer(timer_count, 2)) {
+				}
+				//Timer, use this if to run code from 11 to 11 seconds.			
+				if (is_timer(timer_count, 11)) {
+					
+				}			
+				//Timer, use this if to run code from 13 to 13 seconds.			
+				if (is_timer(timer_count, 13)) {
+			
+				}			
+				//Timer, use this if to run code from 17 to 17 seconds.			
+				if (is_timer(timer_count, 17)) {
 				
-			}
-			//Timer, use this if to run code from 3 to 3 seconds.			
-			if (is_timer(timer_count, 3)) {
-				
-			}
-			//Timer, use this if to run code from 5 to 5 seconds.			
-			if (is_timer(timer_count, 5)) {
-			
-			}
-			//Timer, use this if to run code from 7 to 7 seconds.			
-			if (is_timer(timer_count, 7)) {
-			
-			}
-			//Timer, use this if to run code from 11 to 11 seconds.			
-			if (is_timer(timer_count, 11)) {
-			
-			}			
-			//Timer, use this if to run code from 13 to 13 seconds.			
-			if (is_timer(timer_count, 13)) {
-			
-			}			
-			//Timer, use this if to run code from 17 to 17 seconds.			
-			if (is_timer(timer_count, 17)) {
-			
-			}		
-			
-			//Timer, use this if to run code from 20 to 20 seconds on minions.			
-			if (is_timer(timer_count, timer_minion)){
-				//New wave
-				if (game_started && !game_paused && !spawn_minion) {
-					spawn_minion++;
+				}		
+					
+				//Timer, use this if to run code from 20 to 20 seconds on minions.			
+				if (is_timer(timer_count, timer_minion)){
+					//New wave
+					if (!spawn_minion) {
+						spawn_minion++;
+					}
 				}
 			}
 		}
