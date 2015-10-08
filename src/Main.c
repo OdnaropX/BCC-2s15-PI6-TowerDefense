@@ -1053,28 +1053,30 @@ int main(int argc, const char * argv[]) {
 			show_timer++;
 			timer_count++;
 			
-				//Add more gold 1
-				gold++;
-				//Add more mana 1
-				mana++;
-				
-				//Wave spawning.
-				if(spawn_minion > 0 && spawn_minion < 10) {
-					if (pending_wave_number == 0) {
-						pending_wave_number = monsterSpawner[spawn_minion];
-						timer_minion = pending_wave_number + 20;
-					}
-					//Spawn minion
-					new_minion = init_minion(1);
-					add_minion_to_list(minions, new_minion);
+				//Game timer.
+				if(game_started && !game_paused) {
+					//Add more gold 1
+					gold++;
+					//Add more mana 1
+					mana++;
 					
-					pending_wave_number--;
+					//Wave spawning.
+					if(spawn_minion > 0 && spawn_minion < 10) {
+						if (pending_wave_number == 0) {
+							pending_wave_number = monsterSpawner[spawn_minion];
+							timer_minion = pending_wave_number + 20;
+						}
+						//Spawn minion
+						new_minion = init_minion(1);
+						add_minion_to_list(minions, new_minion);
+						
+						pending_wave_number--;
+					}
+					else {
+						spawn_minion = 0;
+						timer_minion = 20;
+					}
 				}
-				else {
-					spawn_minion = 0;
-					timer_minion = 20;
-				}
-				
 				
 			//Timer, use this if to run code from 2 to 2 seconds.
 			if (is_timer(timer_count, 2)) {
@@ -1108,7 +1110,7 @@ int main(int argc, const char * argv[]) {
 			//Timer, use this if to run code from 20 to 20 seconds on minions.			
 			if (is_timer(timer_count, timer_minion)){
 				//New wave
-				if (!game_paused && !spawn_minion) {
+				if (game_started && !game_paused && !spawn_minion) {
 					spawn_minion++;
 				}
 			}
