@@ -1044,6 +1044,7 @@ int main(int argc, const char * argv[]) {
         }
 		
         //Timer handling
+		////////////////////////////////////////////////////////
 		frame++;
 		if (frame == FRAMES_PER_SEC) {
 			frame = 0;
