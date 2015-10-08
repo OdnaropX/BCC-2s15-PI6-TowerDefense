@@ -8,20 +8,6 @@
 
 //Main Menu (Loads SDL and main menu assets)
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <math.h>
-
-#include <SDL2/SDL.h>
-
-#ifdef _WIN32 
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
-#else
-#include <SDL2_image/SDL_image.h>
-#include <SDL2_ttf/SDL_ttf.h>
-#endif
-
 #include "Estruturas.h"
 #include "Renderer.h"
 #include "GameScene.h"
@@ -135,7 +121,6 @@ int main(int argc, const char * argv[]) {
     bool selected_left = false;//Right click equals to tower and left to minions.
 	int add_tower = 0;
 	int add_minion = 0;
-    int game_is_active = 1;
     int health = 5;
     int gold = 0;
     int mana = 0;
@@ -513,6 +498,9 @@ int main(int argc, const char * argv[]) {
 													current_screen = GAME_RUNNING;
 													game_paused = false;
 													break;
+												case OPT_R_T_NONE:
+													//Do nothing. Need this to not show warning on Windows.
+													break;
 											}
 											break;
 										case LEFT_MENU:
@@ -529,7 +517,13 @@ int main(int argc, const char * argv[]) {
 													show_life_info = true;
 													show_timer = 0;
 													break;
+												case OPT_R_L_NONE:
+													//Do nothing. Need this to not show warning on Windows.
+													break;
 											}
+											break;
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
 											break;
 										case GAME_AREA:
 											//Enter only work on active_clicked.
@@ -562,6 +556,10 @@ int main(int argc, const char * argv[]) {
 													current_screen = GAME_RUNNING;
 													game_paused = false;
 													break;
+												case OPT_R_T_NONE:
+													//Do nothing. Need this to not show warning on Windows.
+													break;
+													
 											}
 											break;
 										case LEFT_MENU:
@@ -578,7 +576,14 @@ int main(int argc, const char * argv[]) {
 													show_life_info = true;
 													show_timer = 0;
 													break;
+												case OPT_R_L_NONE:
+													//Do nothing. Need this to not show warning on Windows.
+													break;
 											}
+											break;
+											
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
 											break;
 										case GAME_AREA:
 											if (active_clicked){
@@ -621,6 +626,10 @@ int main(int argc, const char * argv[]) {
 											else {
 												select_running_option.left--;
 											}
+											break;
+											
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
 											break;
 										
 										case GAME_AREA:
@@ -679,6 +688,10 @@ int main(int argc, const char * argv[]) {
 											}
 											break;
 										
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
+											break;
+											
 										case GAME_AREA:
 											//Move left mouse cursor from GAME_AREA
 											if(active_clicked) {//Equals to mouse clicked previously
@@ -724,7 +737,11 @@ int main(int argc, const char * argv[]) {
 											//Move right left menu
 											select_running_option.left = (select_running_option.left + 1) % 3;
 											break;
-
+										
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
+											break;
+											
 										case GAME_AREA:
 											//Move right mouse cursor from GAME_AREA
 											if(active_clicked){
@@ -755,7 +772,10 @@ int main(int argc, const char * argv[]) {
 											//Move down left menu
 											select_running_option.left = (select_running_option.left + 1) % 3;
 											break;
-										
+											
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
+											break;
 										case GAME_AREA:
 											//Move down mouse cursor from GAME_AREA
 											if(active_clicked){
@@ -1259,8 +1279,8 @@ int main(int argc, const char * argv[]) {
 					}
 					if (add_minion > 0){
 						//Add minion
-                        minion *m = init_minion(0);     //minion_id not used
-                        add_minion_to_list(minions, m);
+                        new_minion = init_minion(add_minion);     //minion_id not used
+                        add_minion_to_list(minions, new_minion);
                         
 						//Reset minion
 						add_minion = 0;

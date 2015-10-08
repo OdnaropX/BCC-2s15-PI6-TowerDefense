@@ -10,14 +10,18 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
 
 //Load lib for windows or mac.
+#include <SDL2/SDL.h>
 #ifdef _WIN32 
-#include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #else
-#include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
+#include <SDL2_ttf/SDL_ttf.h>
 #endif
 
 #include "Path.h"
