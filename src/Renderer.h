@@ -25,6 +25,9 @@
 //Function used to get the center of a object on a position, given a space and object.
 int get_center(int space_size, int object_size);
 
+/* Function to get width and height of turret menu.
+	Need a 2 size array, size[0] and size[1].
+*/
 void get_menu_size_tower(int size[]);
 
 void get_menu_size_minion(int size[]);
