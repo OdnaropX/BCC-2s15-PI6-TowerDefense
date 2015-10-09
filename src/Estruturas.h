@@ -52,7 +52,7 @@ void free_node(node *node);
 typedef struct _minion {
     int HP; // Não é necessário um maxHP, considerando a inexistencia de cura.
     float speed; // Movimento por ciclo.
-    node node;
+    node *node;
 	int minionType;
 	//Linked list of Shoot
 	list_projectile *targetted_projectils;
@@ -66,7 +66,7 @@ typedef struct _turret{
     float timeUntilNextAttack; // Tempo de espera até atirar novamente.
     float turretType; // isto define o tipo de tiro. Alguma função usará este valor para escolher qual tiro é gerado.
     float radius; // alcance da torre.
-    node node;
+    node *node;
 } turret;
 
 turret *init_turret(int turretID, int gridX, int gridY);
@@ -76,7 +76,7 @@ void remove_turret(turret *turret);
 typedef struct _projectile {
 	int speed;
     int damage;
-    node node;
+    node *node;
 } projectile;
 
 projectile *init_projectile(int projectileID, turret* shooter);

@@ -262,7 +262,7 @@ int main(int argc, char * argv[]) {
 							if (event.motion.x >= 980 && event.motion.x <= 980 + BUTTON_MENU_WIDTH) {//Near main config
 								temp_option = (event.motion.y - 480) / BUTTON_MENU_HEIGHT;
 								if (temp_option < OPT_CREDIT && temp_option >= 0) {
-									main_option = temp_option;
+									select_option = temp_option;
 								}
 							}
 							else if (event.motion.x >= 30 && event.motion.x <= 30 + BUTTON_MENU_WIDTH) {
@@ -1259,8 +1259,8 @@ int main(int argc, char * argv[]) {
 
                         new_minion = init_minion(add_minion);     //minion_id not used
                         add_minion_to_list(minions, new_minion);
-                        new_minion->node.xPos = 150;
-                        new_minion->node.yPos = 600;
+                        new_minion->node->xPos = 150;
+                        new_minion->node->yPos = 600;
                         
                         
 						//Reset minion
@@ -1308,7 +1308,7 @@ int main(int argc, char * argv[]) {
                             while(target == NULL && enemy && enemy->e){
                                 minion *temp = enemy->e;
 
-                                if((temp->node.xPos - turret->e->node.xPos) * (temp->node.xPos - turret->e->node.xPos) + (temp->node.yPos - turret->e->node.yPos) * (temp->node.yPos - turret->e->node.yPos) < 22500) // If within range 150px
+                                if((temp->node->xPos - turret->e->node->xPos) * (temp->node->xPos - turret->e->node->xPos) + (temp->node->yPos - turret->e->node->yPos) * (temp->node->yPos - turret->e->node->yPos) < 22500) // If within range 150px
                                     if(enemy->e->HP > 0) // If enemy not dead
                                         target = enemy->e;
                                 

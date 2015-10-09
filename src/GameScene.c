@@ -52,8 +52,8 @@ SDL_Surface *init_map(){
 int move_bullet(minion *target, projectile *shoot){
     
     // 1 - Get required properties.
-    int diff_x = target->node.xPos - shoot->node.xPos;
-    int diff_y = target->node.yPos - shoot->node.yPos;
+    int diff_x = target->node->xPos - shoot->node->xPos;
+    int diff_y = target->node->yPos - shoot->node->yPos;
     diff_x = abs(diff_x);
     diff_y = abs(diff_y);
     int moveX = shoot->speed;
@@ -65,19 +65,19 @@ int move_bullet(minion *target, projectile *shoot){
         moveY = diff_y;
     
     // 2 - Sees position, then sums value
-    if(target->node.xPos < shoot->node.xPos){ // Tiro à direita, inverte sinal
+    if(target->node->xPos < shoot->node->xPos){ // Tiro à direita, inverte sinal
         moveX = -moveX;
     }
-    if(target->node.yPos < shoot->node.yPos){ // Tiro abaixo, inverte sinal
+    if(target->node->yPos < shoot->node->yPos){ // Tiro abaixo, inverte sinal
         moveY = -moveY;
     }
     
-    shoot->node.xPos += moveX;
-    shoot->node.yPos += moveY;
+    shoot->node->xPos += moveX;
+    shoot->node->yPos += moveY;
 
     // 3 - Finishing touches, verifies collision.
-    diff_x = target->node.xPos - shoot->node.xPos;
-    diff_y = target->node.yPos - shoot->node.yPos;
+    diff_x = target->node->xPos - shoot->node->xPos;
+    diff_y = target->node->yPos - shoot->node->yPos;
     diff_x = abs(diff_x);
     diff_y = abs(diff_y);
     
@@ -91,7 +91,7 @@ void move_minion(minion *enemy){
     
     // 1 - Find target center to move.
     int square[2];
-    get_touched_grid_address(enemy->node.xPos, enemy->node.yPos, square);
+    get_touched_grid_address(enemy->node->xPos, enemy->node->yPos, square);
     int currentX = square[0];
     int currentY = square[1];
     int currentValue = grid[currentX][currentY];
@@ -131,8 +131,8 @@ void move_minion(minion *enemy){
     int newX = moveSquare[0];
     int newY = moveSquare[1];
     
-    int diff_x = enemy->node.xPos - newX;
-    int diff_y = enemy->node.yPos - newY;
+    int diff_x = enemy->node->xPos - newX;
+    int diff_y = enemy->node->yPos - newY;
     diff_x = abs(diff_x);
     diff_y = abs(diff_y);
     int moveX = enemy->speed;
@@ -143,15 +143,15 @@ void move_minion(minion *enemy){
     if(diff_y - moveY < 0)
         moveY = diff_y;
     
-    if(enemy->node.xPos > newX){
+    if(enemy->node->xPos > newX){
         moveX = -moveX;
     }
-    if(enemy->node.yPos > newY){
+    if(enemy->node->yPos > newY){
         moveY = -moveY;
     }
     
-    enemy->node.xPos += moveX;
-    enemy->node.yPos += moveY;
+    enemy->node->xPos += moveX;
+    enemy->node->yPos += moveY;
 }
 
 /**

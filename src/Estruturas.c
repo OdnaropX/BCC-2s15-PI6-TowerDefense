@@ -25,10 +25,10 @@ node *init_node(char *sprite_filename, double xPos, double yPos){
 }
 
 void free_node(node *node){
-    if(node->sprite){
-        SDL_FreeSurface(node->sprite);
-        if(node)
-            free(node);
+    if(node){
+        if(node->sprite)
+            SDL_FreeSurface(node->sprite);
+        free(node);
     }
 }
 
@@ -36,7 +36,7 @@ void free_node(node *node){
 minion *init_minion(int minionID){
     // USAR MINIONID para diferentes minions dps.
     minion *new_minion = malloc(sizeof(minion));
-    new_minion->node = *init_node("../images/Minion.png", 0, 400);
+    new_minion->node = init_node("../images/Minion.png", 0, 400);
     new_minion->HP = 5;
     new_minion->speed = 3;
     
@@ -47,14 +47,14 @@ minion *init_minion(int minionID){
 
 void remove_minion(minion *mium){
     if(mium){
-        free_node(&mium->node);
+        free_node(mium->node);
         free(mium);
     }}
 
 //Turret
 turret *init_turret(int turretID, int gridX, int gridY){
     turret *new_turret = malloc(sizeof(turret));
-    new_turret->node = *init_node("../images/Turret.png", gridX * block_width, gridY * block_height);
+    new_turret->node = init_node("../images/Turret.png", gridX * block_width, gridY * block_height);
     new_turret->timeUntilNextAttack = 5.0; // Sempre começa sem atacar.
     new_turret->turretType = turretID;
     new_turret->radius = 200;
@@ -64,7 +64,7 @@ turret *init_turret(int turretID, int gridX, int gridY){
 
 void remove_turret(turret *turret){
     if(turret){
-        free_node(&turret->node);
+        free_node(turret->node);
         free(turret);
     }
 }
@@ -72,7 +72,7 @@ void remove_turret(turret *turret){
 //Projectile
 projectile *init_projectile(int projectileID, turret* shooter){
     projectile *new_projectile = malloc(sizeof(projectile));
-    new_projectile->node = *init_node("../images/Projectile.png", shooter->node.xPos, shooter->node.yPos);
+    new_projectile->node = init_node("../images/Projectile.png", shooter->node->xPos, shooter->node->yPos);
     new_projectile->speed = 4;
     new_projectile->damage = 2;
     
@@ -81,7 +81,7 @@ projectile *init_projectile(int projectileID, turret* shooter){
 
 void remove_projectile(projectile *proj){
     if(proj){
-        free_node(&proj->node);
+        free_node(proj->node);
         free(proj);
     }
 }
