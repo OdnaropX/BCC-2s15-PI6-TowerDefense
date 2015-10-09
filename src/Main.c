@@ -244,24 +244,6 @@ int main(int argc, char * argv[]) {
 									if (temp_option < OPT_CREDIT && temp_option >= 0) {
 										main_option = temp_option;
 									}
-									/* Remove after test:
-									if (event.motion.y >= 480 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT) {//First option PLAY
-										main_option = OPT_PLAY;
-										printf("Play\n");
-									}
-									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 2) {
-										main_option = OPT_CONFIG;
-										printf("Config\n");
-									}
-									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 3) {
-										main_option = OPT_SCORE;
-										printf("Score\n");
-									}
-									else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
-										main_option = OPT_EXIT;
-										quit = true;
-										printf("exit");
-									}*/
 											
 								}
 								else if (event.motion.x >= 30 && event.motion.x <= 30 + BUTTON_MENU_WIDTH) {
@@ -276,17 +258,9 @@ int main(int argc, char * argv[]) {
 						case SDL_MOUSEMOTION:
 							//Change select_option with mouse over data.
 							if (event.motion.x >= 980 && event.motion.x <= 980 + BUTTON_MENU_WIDTH) {//Near main config
-								if (event.motion.y >= 480 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT) {//First option PLAY
-									select_option = OPT_PLAY;
-								}
-								else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 2) {
-									select_option = OPT_CONFIG;
-								}
-								else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 3) {
-									select_option = OPT_SCORE;
-								}
-								else if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
-									select_option = OPT_EXIT;
+								temp_option = (event.motion.y - 480) / BUTTON_MENU_HEIGHT;
+								if (temp_option < OPT_CREDIT && temp_option >= 0) {
+									main_option = temp_option;
 								}
 							}
 							else if (event.motion.x >= 30 && event.motion.x <= 30 + BUTTON_MENU_WIDTH) {
@@ -412,34 +386,18 @@ int main(int argc, char * argv[]) {
 							if(event.button.button == SDL_BUTTON_LEFT){							
                                 //Check if location selected is a valid one
 								if (event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH ) {//Near main config
-									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
-										config_option = AUDIO_SFX;
-									}
-									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
-										config_option = AUDIO_MUSIC;
-									}
-									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
-										config_option = LANGUAGE;
-									}
-									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 4) {
-										config_option = BACK;
+									temp_option = (event.motion.y - 150) / BUTTON_MENU_HEIGHT;
+									if (temp_option <= BACK && temp_option >= 0) {
+										config_option = temp_option;
 									}
 								}
 							}
 							break;
 						case SDL_MOUSEMOTION:
 							if (event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH ) {//Near main config
-									if (event.motion.y >= 150 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT) {//First option
-										select_config_option = AUDIO_SFX;
-									}
-									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 2) {
-										select_config_option = AUDIO_MUSIC;
-									}
-									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 3) {
-										select_config_option = LANGUAGE;
-									}
-									else if(event.motion.y >= 150 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 150 + BUTTON_MENU_HEIGHT * 4) {
-										select_config_option = BACK;
+									temp_option = (event.motion.y - 150) / BUTTON_MENU_HEIGHT;
+									if (temp_option <= BACK && temp_option >= 0) {
+										config_option = temp_option;
 									}
 								}
 							break;
