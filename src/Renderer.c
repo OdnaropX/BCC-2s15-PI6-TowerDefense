@@ -32,13 +32,65 @@ void draw_node(SDL_Surface *screen, node *drawn_node, bool tower){
 
 void draw_screen_main(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rectangles, int count, main_options select_option){
     for(int i = 0; i < count; i++){
-        SDL_RenderCopy(renderer, texts[i], NULL, &rectangles[i]);
+        int sel = 0;
+        
+        switch (select_option) {
+            case OPT_PLAY:
+                sel = 2;
+                break;
+                
+            case OPT_CONFIG:
+                sel = 4;
+                break;
+                
+            case OPT_SCORE:
+                sel = 6;
+                break;
+            
+            case OPT_CREDIT:
+                sel = 8;
+                break;
+                
+            case OPT_EXIT:
+                sel = 10;
+                break;
+                
+            default:
+                break;
+        }
+        
+        if(i == 0 || i == sel || i%2 == 1)
+            SDL_RenderCopy(renderer, texts[i], NULL, &rectangles[i]);
     }
 }
 
 void draw_screen_config(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rectangles, int count, config_options select_config_option){
     for(int i = 0; i < count; i++){
-        SDL_RenderCopy(renderer, texts[i], NULL, &rectangles[i]);
+        int sel = 0;
+        
+        switch (select_config_option) {
+            case AUDIO_SFX:
+                sel = 2;
+                break;
+                
+            case AUDIO_MUSIC:
+                sel = 4;
+                break;
+                
+            case LANGUAGE:
+                sel = 6;
+                break;
+                
+            case BACK:
+                sel = 8;
+                break;
+                
+            default:
+                break;
+        }
+        
+        if(i == 0 || i == sel || i%2 == 1)
+            SDL_RenderCopy(renderer, texts[i], NULL, &rectangles[i]);
     }
 }
 
@@ -86,19 +138,57 @@ void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SD
 
 void draw_screen_game_paused(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, pause_options select_pause_option){
     for(int i = 0; i < count; i++){
-        SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+        int sel = 0;
+        
+        switch (select_pause_option) {
+            case OPT_P_RESUME:
+                sel = 2;
+                break;
+                
+            case OPT_P_CONFIG:
+                sel = 4;
+                break;
+                
+            case OPT_P_SCORE:
+                sel = 6;
+                break;
+                
+            case OPT_P_EXIT:
+                sel = 8;
+                break;
+                
+            case OPT_P_MAIN:
+                sel = 10;
+                break;
+                
+            case OPT_P_CREDITS:
+                sel = 12;
+                break;
+                
+            default:
+                break;
+        }
+        
+        if(i == 0 || i == sel || i%2 == 1)
+            SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
     }
 }
 
-void draw_screen_credits(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count){
+void draw_screen_credits(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, bool back){
     for(int i = 0; i < count; i++){
-        SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+        if(i != 6)
+            SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+        else if(i == 6 && back)
+            SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
     }
 }
 
-void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count){
+void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, bool back){
     for(int i = 0; i < count; i++){
-        SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+        if(i != 2)
+            SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+        else if(i == 2 && back)
+            SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
     }
 }
 

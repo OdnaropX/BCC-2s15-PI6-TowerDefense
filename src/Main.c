@@ -12,12 +12,12 @@
 #include "Renderer.h"
 #include "GameScene.h"
 
-#define main_menu_assets_count 6
-#define config_menu_assets_count 5
+#define main_menu_assets_count 11
+#define config_menu_assets_count 9
 #define game_interface_assets_count 2
-#define pause_interface_assets_count 7
-#define credits_menu_assets_count 6
-#define score_menu_assets_count 2
+#define pause_interface_assets_count 13
+#define credits_menu_assets_count 7
+#define score_menu_assets_count 3
 #define FRAMES_PER_SEC 60
 
 //SDL stuff
@@ -36,11 +36,11 @@ SDL_Color green = {0, 255, 0, 255};
 SDL_Color red = {255, 0, 0, 255};
 
 //Static texts
-//Main menu order: title, play, config, score, credits, exit
+//Main menu order: title, play(+sel), config(+sel), score(+sel), credits(+sel), exit(+sel)
 SDL_Texture *main_menu_assets[main_menu_assets_count];
 SDL_Rect main_menu_rects[main_menu_assets_count];
 
-//Config order: Config, sfx, music, language, back
+//Config order: Config, sfx(+sel), music(+sel), language(+sel), back(+sel)
 SDL_Texture *config_menu_assets[config_menu_assets_count];
 SDL_Rect config_menu_rects[config_menu_assets_count];
 
@@ -48,15 +48,15 @@ SDL_Rect config_menu_rects[config_menu_assets_count];
 SDL_Texture *game_interface_assets[game_interface_assets_count];
 SDL_Rect game_interface_rects[game_interface_assets_count];
 
-//Pause game interface order: overlay, resume, config, score, exit, main, credits
+//Pause game interface order: overlay, resume(+sel), config(+sel), score(+sel), exit(+sel), main(+sel), credits(+sel)
 SDL_Texture *pause_interface_assets[pause_interface_assets_count];
 SDL_Rect pause_interface_rects[pause_interface_assets_count];
 
-//Credits screen order: title, text(4 lines), back
+//Credits screen order: title, text(4 lines), back(+sel)
 SDL_Texture *credits_menu_assets[credits_menu_assets_count];
 SDL_Rect credits_menu_rects[credits_menu_assets_count];
 
-//Score screen order: title, back
+//Score screen order: title, back(+sel)
 SDL_Texture *score_menu_assets[score_menu_assets_count];
 SDL_Rect score_menu_rects[score_menu_assets_count];
 
@@ -115,14 +115,16 @@ int main(int argc, char * argv[]) {
 	bool game_started = false;
 	bool game_paused = false;
 	bool active_clicked = false;
+    
     bool return_to_previous_screen = false;     //For scores and credits menus
+    bool select_return_to_previous_screen = false;     //For scores and credits menus
 	
 	//Game area control
     bool selected_left = false;//Right click equals to tower and left to minions.
 	int add_tower = 0;
 	int add_minion = 0;
     int health = 5;
-    int gold = 1000;
+    int gold = 100;
     int mana = 0;
 	
 	int current_position[] = {0,0};
@@ -1001,10 +1003,18 @@ int main(int argc, char * argv[]) {
                             
                         case SDL_MOUSEBUTTONUP:
                             if(event.button.button == SDL_BUTTON_LEFT){
-                                if(event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH && event.motion.y >= 650 && event.motion.y <= 650 + BUTTON_MENU_HEIGHT)
+                                if(event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH && event.motion.y >= 650 && event.motion.y <= 650 + BUTTON_MENU_HEIGHT){
                                     return_to_previous_screen = true;
+                                    select_return_to_previous_screen = true;
+                                }
                             }
                             break;
+                            
+                        case SDL_MOUSEMOTION:
+                            if(event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH && event.motion.y >= 650 && event.motion.y <= 650 + BUTTON_MENU_HEIGHT)
+                                select_return_to_previous_screen = true;
+                            else
+                                select_return_to_previous_screen = false;
                             
                         default:
                             break;
@@ -1027,13 +1037,21 @@ int main(int argc, char * argv[]) {
                             
                         case SDL_MOUSEBUTTONUP:
                             if(event.button.button == SDL_BUTTON_LEFT){
-                                if(event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH && event.motion.y >= 650 && event.motion.y <= 650 + BUTTON_MENU_HEIGHT)
+                                if(event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH && event.motion.y >= 650 && event.motion.y <= 650 + BUTTON_MENU_HEIGHT){
                                     return_to_previous_screen = true;
+                                    select_return_to_previous_screen = true;
+                                }
 								
 								
 								//Add handle of buttons.
                             }
                             break;
+                            
+                        case SDL_MOUSEMOTION:
+                            if(event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH && event.motion.y >= 650 && event.motion.y <= 650 + BUTTON_MENU_HEIGHT)
+                                select_return_to_previous_screen = true;
+                            else
+                                select_return_to_previous_screen = false;
                             
                         default:
                             break;
@@ -1324,9 +1342,11 @@ int main(int argc, char * argv[]) {
 						current_screen = MAIN;
 						game_started = false;
 						game_paused = false;
+                        break;
 					case OPT_P_CONFIG:
 						current_screen = CONFIG;
 						previous_screen = GAME_PAUSED;
+                        break;
 					case OPT_P_SCORE:
 						previous_screen = GAME_PAUSED;
 						current_screen = SCORE;
@@ -1373,7 +1393,7 @@ int main(int argc, char * argv[]) {
             case CREDITS:
 				//get control of select. < TODO.
 
-                draw_screen_credits(renderer, credits_menu_assets, credits_menu_rects, credits_menu_assets_count);
+                draw_screen_credits(renderer, credits_menu_assets, credits_menu_rects, credits_menu_assets_count, select_return_to_previous_screen);
                 break;
                 
             case GAME_PAUSED:
@@ -1409,7 +1429,7 @@ int main(int argc, char * argv[]) {
 				//get control of select. < TODO.
 				
 				
-                draw_screen_score(renderer, score_menu_assets, score_menu_rects, score_menu_assets_count);
+                draw_screen_score(renderer, score_menu_assets, score_menu_rects, score_menu_assets_count, select_return_to_previous_screen);
                 break;
                 
             default:
@@ -1507,27 +1527,27 @@ bool main_init(){
                 rect = (SDL_Rect){265, 0, 750, 150};
                 break;
                 
-            case 1:
+            case 1: case 2:
                 text = "Play";
                 rect = (SDL_Rect){980, 480, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 2:
+            case 3: case 4:
                 text = "Config";
                 rect = (SDL_Rect){980, 480 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 3:
+            case 5: case 6:
                 text = "Score";
                 rect = (SDL_Rect){980, 480 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 4:
+            case 7: case 8:
                 text = "Credits";
                 rect = (SDL_Rect){30, 480 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 5:
+            case 9: case 10:
                 text = "Exit";
                 rect = (SDL_Rect){980, 480 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
@@ -1538,17 +1558,22 @@ bool main_init(){
         
         main_menu_rects[i] = rect;
         
-        SDL_Surface *surface = TTF_RenderText_Solid(font, text, black);
+        SDL_Surface *surface;
+        
+        if(i%2 == 0 && i > 0)
+            surface = TTF_RenderText_Solid(font, text, red);
+        else
+            surface = TTF_RenderText_Solid(font, text, black);
         
         if(!surface){
-            printf("Text not rendered! %s\n", TTF_GetError());
+            printf("(Main)Text not rendered! %s\n", TTF_GetError());
             return false;
         }
         
         main_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
         
         if(!main_menu_assets[i]){
-            printf("Text texture not rendered! %s\n", SDL_GetError());
+            printf("(Main)Text texture not rendered! %s\n", SDL_GetError());
             return false;
         }
         
@@ -1568,32 +1593,32 @@ bool main_init(){
                 rect = (SDL_Rect){0, 0, 1280, 720};
                 break;
                 
-            case 1:
+            case 1: case 2:
                 text = "Resume";
                 rect = (SDL_Rect){515, 270, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 2:
+            case 3: case 4:
                 text = "Config";
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 3:
+            case 5: case 6:
                 text = "Score";
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 4:
+            case 7: case 8:
                 text = "Exit";
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 5:
+            case 9: case 10:
                 text = "Main Menu";
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 6:
+            case 11: case 12:
                 text = "Credits";
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
@@ -1608,15 +1633,19 @@ bool main_init(){
         if(i == 0){
             surface = IMG_Load("../images/Pause Menu.png");
             if(!surface){
-                printf("Erro ao carregar pause menu! %s\n", IMG_GetError());
+                printf("(Game running)Erro ao carregar pause menu! %s\n", IMG_GetError());
                 return false;
             }
         }
         
         else{
-            surface = TTF_RenderText_Solid(font, text, white);
+            if(i%2 == 0 && i > 0)
+                surface = TTF_RenderText_Solid(font, text, red);
+            else
+                surface = TTF_RenderText_Solid(font, text, white);
+            
             if(!surface){
-                printf("Text not rendered! %s\n", TTF_GetError());
+                printf("(Game running)Text not rendered! %s\n", TTF_GetError());
                 return false;
             }
         }
@@ -1624,7 +1653,7 @@ bool main_init(){
         pause_interface_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
         
         if(!pause_interface_assets[i]){
-            printf("Erro ao criar textura! %s\n", SDL_GetError());
+            printf("(Game running)Erro ao criar textura! %s\n", SDL_GetError());
             return false;
         }
         
@@ -1662,7 +1691,7 @@ bool main_init(){
                 rect = (SDL_Rect){640 - BUTTON_MENU_WIDTH, 360 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH * 2, BUTTON_MENU_HEIGHT * 2};
                 break;
                 
-            case 5:
+            case 5: case 6:
                 text = "Back";
                 rect = (SDL_Rect){595, 650, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
@@ -1673,15 +1702,20 @@ bool main_init(){
         
         credits_menu_rects[i] = rect;
         
-        SDL_Surface *surface = TTF_RenderText_Solid(font, text, black);
+        SDL_Surface *surface;
+        if(i == 6)
+            surface = TTF_RenderText_Solid(font, text, red);
+        else
+            surface = TTF_RenderText_Solid(font, text, black);
+        
         if(!surface){
-            printf("Text not rendered! %s\n", TTF_GetError());
+            printf("(Credits)Text not rendered! %s\n", TTF_GetError());
             return false;
         }
         
         credits_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
         if(!credits_menu_assets[i]){
-            printf("Erro ao criar textura! %s\n", SDL_GetError());
+            printf("(Credits)Erro ao criar textura! %s\n", SDL_GetError());
             return false;
         }
         
@@ -1699,7 +1733,7 @@ bool main_init(){
                 rect = (SDL_Rect){265, 0, 750, 150};
                 break;
                 
-            case 1:
+            case 1: case 2:
                 text = "Back";
                 rect = (SDL_Rect){595, 650, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
@@ -1710,15 +1744,20 @@ bool main_init(){
         
         score_menu_rects[i] = rect;
         
-        SDL_Surface *surface = TTF_RenderText_Solid(font, text, black);
+        SDL_Surface *surface;
+        if(i == 2)
+            surface = TTF_RenderText_Solid(font, text, red);
+        else
+            surface = TTF_RenderText_Solid(font, text, black);
+        
         if(!surface){
-            printf("Text not rendered! %s\n", TTF_GetError());
+            printf("(Score)Text not rendered! %s\n", TTF_GetError());
             return false;
         }
         
         score_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
         if(!score_menu_assets[i]){
-            printf("Erro ao criar textura! %s\n", SDL_GetError());
+            printf("(Score)Erro ao criar textura! %s\n", SDL_GetError());
             return false;
         }
         
@@ -1867,7 +1906,7 @@ void get_config(){
                 rect = (SDL_Rect){265, 0, 750, 150};
                 break;
                 
-            case 1:
+            case 1: case 2:
                 if(config->audio_sfx)
                     text = "Sound Effects:  ON";
                 else
@@ -1876,7 +1915,7 @@ void get_config(){
                 rect = (SDL_Rect){595, 150, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 2:
+            case 3: case 4:
                 if(config->audio_music)
                     text = "Music:  ON";
                 else
@@ -1885,13 +1924,13 @@ void get_config(){
                 rect = (SDL_Rect){595, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 3:
+            case 5: case 6:
                 text = "Language";
                 
                 rect = (SDL_Rect){595, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 4:
+            case 7: case 8:
                 text = "Back";
                 
                 rect = (SDL_Rect){595, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
@@ -1903,17 +1942,21 @@ void get_config(){
         
         config_menu_rects[i] = rect;
         
-        SDL_Surface *surface = TTF_RenderText_Solid(font, text, black);
+        SDL_Surface *surface;
+        if(i%2 == 0 && i > 0)
+            surface = TTF_RenderText_Solid(font, text, red);
+        else
+            surface = TTF_RenderText_Solid(font, text, black);
         
         if(!surface){
-            printf("Text not rendered! %s\n", TTF_GetError());
+            printf("(Config)Text not rendered! %s\n", TTF_GetError());
             return;
         }
         
         config_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
         
         if(!config_menu_assets[i]){
-            printf("Text texture not rendered! %s\n", SDL_GetError());
+            printf("(Config)Text texture not rendered! %s\n", SDL_GetError());
             return;
         }
         

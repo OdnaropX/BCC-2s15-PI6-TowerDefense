@@ -156,7 +156,6 @@ typedef enum _running_area_right_option {OPT_R_A_R_MINION_1, OPT_R_A_R_MINION_2,
 typedef enum _running_area_left_option {OPT_R_A_L_TOWER_1, OPT_R_A_L_TOWER_2, OPT_R_A_L_TOWER_3, OPT_R_A_L_NONE} RUNNING_AREA_LEFT_OPTIONS;
 
 typedef struct _select_game_running_inner {
-
 	RUNNING_AREA_LEFT_OPTIONS left;
 	RUNNING_AREA_RIGHT_OPTIONS right;
 } GAME_AREA_OPTIONS;

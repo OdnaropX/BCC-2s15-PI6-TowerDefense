@@ -25,11 +25,11 @@ node *init_node(char *sprite_filename, double xPos, double yPos){
 }
 
 void free_node(node *node){
-//    if(node->sprite){
-//        SDL_FreeSurface(node->sprite);
-//        if(node)
-//            free(node);
-//    }
+    if(node->sprite){
+        SDL_FreeSurface(node->sprite);
+        if(node)
+            free(node);
+    }
 }
 
 //Minion
