@@ -8,15 +8,13 @@
 #ifndef __Tower_Defense__Renderer__
 #define __Tower_Defense__Renderer__
 
-
-#include <SDL2_ttf/SDL_ttf.h>
-
 #include "Estruturas.h"
 
 #define window_width 1280
 #define window_height 720
 
 #define BUTTON_MENU_HEIGHT 30
+#define MENU_ICON 30
 #define BUTTON_MENU_WIDTH 250
 
 //Renderer options, like text display, middle width calculation, etc...
@@ -24,6 +22,9 @@
 //Function used to get the center of a object on a position, given a space and object.
 int get_center(int space_size, int object_size);
 
+/* Function to get width and height of turret menu.
+	Need a 2 size array, size[0] and size[1].
+*/
 void get_menu_size_tower(int size[]);
 
 void get_menu_size_minion(int size[]);

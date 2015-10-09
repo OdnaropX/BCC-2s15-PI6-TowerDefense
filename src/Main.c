@@ -8,14 +8,6 @@
 
 //Main Menu (Loads SDL and main menu assets)
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <math.h>
-
-#include <SDL2/SDL.h>
-#include <SDL2_image/SDL_image.h>
-#include <SDL2_ttf/SDL_ttf.h>
-
 #include "Estruturas.h"
 #include "Renderer.h"
 #include "GameScene.h"
@@ -79,6 +71,8 @@ void main_quit();
 
 void get_config();
 
+
+
 int main(int argc, const char * argv[]) {
     bool quit = false;
     
@@ -86,6 +80,7 @@ int main(int argc, const char * argv[]) {
     if(!main_init()){
         quit = true;
     }
+	
 	
 	//Screen control
 	screen current_screen = MAIN;
@@ -97,12 +92,23 @@ int main(int argc, const char * argv[]) {
 	pause_options pause_option = OPT_P_NONE;
 	GAME_RUNNING_OPTIONS running_option; 
 	
+	running_option.current_tab = TOP_MENU;
+	running_option.top = OPT_R_T_NONE;
+	running_option.left = OPT_R_L_NONE;
+	running_option.game_area.left = OPT_R_A_L_NONE;
+	running_option.game_area.right = OPT_R_A_R_NONE;
 	
 	//Keyboard options control
 	main_options select_option = OPT_PLAY;
 	config_options select_config_option = AUDIO_SFX;
 	pause_options select_pause_option = OPT_P_NONE;
 	GAME_RUNNING_OPTIONS select_running_option; 
+	
+	select_running_option.current_tab = TOP_MENU;
+	select_running_option.top = OPT_R_T_NONE;
+	select_running_option.left = OPT_R_L_NONE;
+	select_running_option.game_area.left = OPT_R_A_L_NONE;
+	select_running_option.game_area.right = OPT_R_A_R_NONE;
 	
 	SDL_Event event;
     
@@ -115,7 +121,6 @@ int main(int argc, const char * argv[]) {
     bool selected_left = false;//Right click equals to tower and left to minions.
 	int add_tower = 0;
 	int add_minion = 0;
-    int game_is_active = 1;
     int health = 5;
     int gold = 1000;
     int mana = 0;
@@ -493,6 +498,9 @@ int main(int argc, const char * argv[]) {
 													current_screen = GAME_RUNNING;
 													game_paused = false;
 													break;
+												case OPT_R_T_NONE:
+													//Do nothing. Need this to not show warning on Windows.
+													break;
 											}
 											break;
 										case LEFT_MENU:
@@ -509,7 +517,13 @@ int main(int argc, const char * argv[]) {
 													show_life_info = true;
 													show_timer = 0;
 													break;
+												case OPT_R_L_NONE:
+													//Do nothing. Need this to not show warning on Windows.
+													break;
 											}
+											break;
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
 											break;
 										case GAME_AREA:
 											//Enter only work on active_clicked.
@@ -542,6 +556,10 @@ int main(int argc, const char * argv[]) {
 													current_screen = GAME_RUNNING;
 													game_paused = false;
 													break;
+												case OPT_R_T_NONE:
+													//Do nothing. Need this to not show warning on Windows.
+													break;
+													
 											}
 											break;
 										case LEFT_MENU:
@@ -558,7 +576,14 @@ int main(int argc, const char * argv[]) {
 													show_life_info = true;
 													show_timer = 0;
 													break;
+												case OPT_R_L_NONE:
+													//Do nothing. Need this to not show warning on Windows.
+													break;
 											}
+											break;
+											
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
 											break;
 										case GAME_AREA:
 											if (active_clicked){
@@ -601,6 +626,10 @@ int main(int argc, const char * argv[]) {
 											else {
 												select_running_option.left--;
 											}
+											break;
+											
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
 											break;
 										
 										case GAME_AREA:
@@ -659,6 +688,10 @@ int main(int argc, const char * argv[]) {
 											}
 											break;
 										
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
+											break;
+											
 										case GAME_AREA:
 											//Move left mouse cursor from GAME_AREA
 											if(active_clicked) {//Equals to mouse clicked previously
@@ -704,7 +737,11 @@ int main(int argc, const char * argv[]) {
 											//Move right left menu
 											select_running_option.left = (select_running_option.left + 1) % 3;
 											break;
-
+										
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
+											break;
+											
 										case GAME_AREA:
 											//Move right mouse cursor from GAME_AREA
 											if(active_clicked){
@@ -735,7 +772,10 @@ int main(int argc, const char * argv[]) {
 											//Move down left menu
 											select_running_option.left = (select_running_option.left + 1) % 3;
 											break;
-										
+											
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
+											break;
 										case GAME_AREA:
 											//Move down mouse cursor from GAME_AREA
 											if(active_clicked){
@@ -1067,7 +1107,7 @@ int main(int argc, const char * argv[]) {
 					
 				//Wave spawning.
 				if(pending_wave_number > 0) {
-                    add_minion++;
+					add_minion = (add_minion + 1) % get_minion_avaliable();
 					pending_wave_number--;
 				}
                 
@@ -1101,8 +1141,8 @@ int main(int argc, const char * argv[]) {
 				
 				}*/		
 					
-//Timer, use this if to run code for each timer_minion seconds, for minions.
-                
+
+				//Timer, use this if to run code for each timer_minion seconds, for minions.
 				if (is_time(timer_count, timer_minion)){
 					//New wave
 					pending_wave_number = monsterSpawner[spawn_minion];
@@ -1240,10 +1280,12 @@ int main(int argc, const char * argv[]) {
 					}
 					if (add_minion > 0){
 						//Add minion
-                        minion *m = init_minion(0);     //minion_id not used
-                        add_minion_to_list(minions, m);
-                        m->node.xPos = 150;
-                        m->node.yPos = 600;
+
+                        new_minion = init_minion(add_minion);     //minion_id not used
+                        add_minion_to_list(minions, new_minion);
+                        new_minion->node.xPos = 150;
+                        new_minion->node.yPos = 600;
+                        
                         
 						//Reset minion
 						add_minion = 0;
@@ -1304,9 +1346,7 @@ int main(int argc, const char * argv[]) {
                         }
                         turret = turret->next;
                     }
-                
                 }
-
             }
                 
             break;
@@ -1394,7 +1434,7 @@ int main(int argc, const char * argv[]) {
                 screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
                 SDL_RenderCopy(renderer, screen_surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
                 
-                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, active_clicked,selected_left,select_grid, select_running_option);
+                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, active_clicked, selected_left, select_grid, select_running_option);
                 
                 display_health(renderer, health, font);
                 display_mana(renderer, mana, font);

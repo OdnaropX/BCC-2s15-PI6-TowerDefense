@@ -268,3 +268,18 @@ void remove_turret_from_list(list_turret *list, turret *turret){
     else
         printf("Your princess is in another castle!\n");
 }
+
+int get_tower_avaliable() {
+	//Get from tower files. < TODO
+	
+	
+	
+	return 3;
+}
+int get_minion_avaliable() {
+	//Get from minion files. < TODO
+	
+	
+	
+	return 3;
+}
