@@ -139,14 +139,14 @@ typedef enum _running_area_right_option {OPT_R_A_R_MINION_1, OPT_R_A_R_MINION_2,
 typedef enum _running_area_left_option {OPT_R_A_L_TOWER_1, OPT_R_A_L_TOWER_2, OPT_R_A_L_TOWER_3, OPT_R_A_L_NONE} running_area_left_options;
 
 typedef struct _select_game_running_inner {
-	running_area_left_options left = OPT_R_A_L_NONE;
-	running_area_right_options right = OPT_R_A_R_NONE;
+	running_area_left_options left;
+	running_area_right_options right;
 } GAME_AREA_OPTIONS;
 
 typedef struct _select_game_running {
-	tab current_tab = TOP_MENU;
-	running_top_options top = OPT_R_T_NONE;
-	running_left_options left = OPT_R_L_NONE;
+	tab current_tab;
+	running_top_options top;
+	running_left_options left;
 	GAME_AREA_OPTIONS game_area;
 } GAME_RUNNING_OPTIONS;
 

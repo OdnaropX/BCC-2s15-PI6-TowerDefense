@@ -41,7 +41,7 @@ SDL_Surface *init_map(){
         }
         fscanf(mapGrid, "\n");
     }
-    
+    setShortestPaths(grid, 17, 13, 16, 5);
     return map_Image;
 }
 
@@ -143,10 +143,10 @@ void move_minion(minion *enemy){
     if(diff_y - moveY < 0)
         moveY = diff_y;
     
-    if(enemy->node.xPos < newX){
+    if(enemy->node.xPos > newX){
         moveX = -moveX;
     }
-    if(enemy->node.yPos < newY){
+    if(enemy->node.yPos > newY){
         moveY = -moveY;
     }
     

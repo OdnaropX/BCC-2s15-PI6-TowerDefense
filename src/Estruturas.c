@@ -25,10 +25,11 @@ node *init_node(char *sprite_filename, double xPos, double yPos){
 }
 
 void free_node(node *node){
-    if(node && node->sprite){
-        SDL_FreeSurface(node->sprite);
-        free(node);
-    }
+//    if(node->sprite){
+//        SDL_FreeSurface(node->sprite);
+//        if(node)
+//            free(node);
+//    }
 }
 
 //Minion
@@ -53,7 +54,7 @@ void remove_minion(minion *mium){
 //Turret
 turret *init_turret(int turretID, int gridX, int gridY){
     turret *new_turret = malloc(sizeof(turret));
-    new_turret->node = *init_node("../images/Turret.png", gridX * 17, gridY * 13);
+    new_turret->node = *init_node("../images/Turret.png", gridX * block_width, gridY * block_height);
     new_turret->timeUntilNextAttack = 5.0; // Sempre começa sem atacar.
     new_turret->turretType = turretID;
     new_turret->radius = 200;
@@ -125,7 +126,7 @@ void add_projectile_to_list(list_projectile *list, projectile *projectile){
 void remove_projectile_from_list(list_projectile *list, projectile *projectile){
     list_projectile *remove = NULL;
     
-    while(list){
+    while(list->e && list != remove){
         if(list->e == projectile){
             remove = list;
             
