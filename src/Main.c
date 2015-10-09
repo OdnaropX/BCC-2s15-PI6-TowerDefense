@@ -73,7 +73,7 @@ void get_config();
 
 
 
-int main(int argc, const char * argv[]) {
+int main(int argc, char * argv[]) {
     bool quit = false;
     
     //Main init
