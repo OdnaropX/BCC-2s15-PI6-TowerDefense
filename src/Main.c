@@ -1275,23 +1275,19 @@ int main(int argc, char * argv[]) {
                         move_minion(enemy->e);
                         list_projectile *shoot = enemy->e->targetted_projectils;
                         while (shoot && shoot->e) {
+                            if(!shoot->e)
+                            
                             if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
                                 enemy->e->HP -= shoot->e->damage;
-                                list_projectile *temp = shoot;
                                 remove_projectile_from_list(enemy->e->targetted_projectils, shoot->e);
                                 shoot = shoot->next;
-                                remove_projectile(temp->e);
-                                free_list_projectile(temp);
                             }
                             else
                                 shoot = shoot->next;
                         }
                         if(enemy->e->HP <= 0){ // Death of minions
-                            list_minion *temp = enemy;
                             remove_minion_from_list(minions, enemy->e);
                             enemy = enemy -> next;
-                            remove_minion(temp->e);
-                            free_list_minion(temp);
                         }
                         else
                             enemy = enemy->next;
@@ -1315,9 +1311,9 @@ int main(int argc, char * argv[]) {
                                 enemy = enemy->next;
                             }
                             if(target){
-//                                projectile* newShoot = init_projectile(0, turret->e);
-//                                add_projectile_to_list(target->targetted_projectils, newShoot);
-//                                turret->e->timeUntilNextAttack = 1.0;
+                                projectile* newShoot = init_projectile(0, turret->e);
+                                add_projectile_to_list(target->targetted_projectils, newShoot);
+                                turret->e->timeUntilNextAttack = 1.0;
                             }
                         }
                         turret = turret->next;

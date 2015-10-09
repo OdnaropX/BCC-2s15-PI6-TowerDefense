@@ -48,6 +48,7 @@ minion *init_minion(int minionID){
 void remove_minion(minion *mium){
     if(mium){
         free_node(mium->node);
+        free_list_projectile(mium->targetted_projectils);
         free(mium);
     }}
 
@@ -140,7 +141,8 @@ void remove_projectile_from_list(list_projectile *list, projectile *projectile){
     
     if(remove){
         remove_projectile(remove->e);
-        free(remove);
+        if(remove != list)
+            free(remove);
     }
     
     else
@@ -201,7 +203,8 @@ void remove_minion_from_list(list_minion *list, minion *minion){
     
     if(remove){
         remove_minion(remove->e);
-        free(remove);
+        if(remove != list)
+            free(remove);
     }
     
     else
@@ -262,7 +265,8 @@ void remove_turret_from_list(list_turret *list, turret *turret){
     
     if(remove){
         remove_turret(remove->e);
-        free(remove);
+        if(remove != list)
+            free(remove);
     }
     
     else
