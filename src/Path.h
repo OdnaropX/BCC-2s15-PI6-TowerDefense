@@ -9,7 +9,7 @@
 #ifndef PI6___TowerDefense_Path_h
 #define PI6___TowerDefense_Path_h
 
-int setShortestPaths(int *array[], int width, int height, int targetX, int targetY);
+int setShortestPaths(int array[13][17], int width, int height, int targetX, int targetY);
 
 
 #endif

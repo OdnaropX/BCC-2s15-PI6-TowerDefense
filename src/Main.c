@@ -122,7 +122,7 @@ int main(int argc, char * argv[]) {
 	int add_tower = 0;
 	int add_minion = 0;
     int health = 5;
-    int gold = 0;
+    int gold = 1000;
     int mana = 0;
 	
 	int current_position[] = {0,0};
@@ -1141,6 +1141,7 @@ int main(int argc, char * argv[]) {
 				
 				}*/		
 					
+
 				//Timer, use this if to run code for each timer_minion seconds, for minions.
 				if (is_time(timer_count, timer_minion)){
 					//New wave
@@ -1279,8 +1280,12 @@ int main(int argc, char * argv[]) {
 					}
 					if (add_minion > 0){
 						//Add minion
+
                         new_minion = init_minion(add_minion);     //minion_id not used
                         add_minion_to_list(minions, new_minion);
+                        new_minion->node.xPos = 150;
+                        new_minion->node.yPos = 600;
+                        
                         
 						//Reset minion
 						add_minion = 0;
@@ -1324,18 +1329,19 @@ int main(int argc, char * argv[]) {
                             enemy = minions;
                             minion *target = NULL;
                             
-                            while(enemy && target == NULL){
-                                
-                                if((target->node.xPos - turret->e->node.xPos) * 2 + (target->node.yPos - turret->e->node.yPos) < 22500) // If within range 150px
+                            while(target == NULL && enemy && enemy->e){
+                                minion *temp = enemy->e;
+
+                                if((temp->node.xPos - turret->e->node.xPos) * (temp->node.xPos - turret->e->node.xPos) + (temp->node.yPos - turret->e->node.yPos) * (temp->node.yPos - turret->e->node.yPos) < 22500) // If within range 150px
                                     if(enemy->e->HP > 0) // If enemy not dead
                                         target = enemy->e;
                                 
                                 enemy = enemy->next;
                             }
                             if(target){
-                                projectile* newShoot = init_projectile(0, turret->e);
-                                add_projectile_to_list(target->targetted_projectils, newShoot);
-                                turret->e->timeUntilNextAttack = 1.0;
+//                                projectile* newShoot = init_projectile(0, turret->e);
+//                                add_projectile_to_list(target->targetted_projectils, newShoot);
+//                                turret->e->timeUntilNextAttack = 1.0;
                             }
                         }
                         turret = turret->next;

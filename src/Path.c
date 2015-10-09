@@ -6,7 +6,7 @@
 
 int queueSize = 0; // Where the queue ends
 
-void dequeueTwo(int *array, int x, int y);
+void dequeueTwo(int *array, int *x, int *y);
 void enqueueTwo(int *array, int x, int y);
 
 /**
@@ -14,10 +14,12 @@ void enqueueTwo(int *array, int x, int y);
  * Width and height are matrix properties.
  * Returns -1 is left row is empty.
 **/
-int setShortestPaths(int **array, int width, int height, int targetX, int targetY){
+int setShortestPaths(int array[17][13], int width, int height, int targetX, int targetY){
 	
 	int queue [300]; // Queue
 	int currentX, currentY, currentValue;
+    currentX = 0;
+    currentY = 0;
 
 
 	int i, j;
@@ -38,26 +40,26 @@ int setShortestPaths(int **array, int width, int height, int targetX, int target
     int reached_left_corner = 0;
 	// 3 - Starts Loop
 	while(queueSize){
-		dequeueTwo(queue, currentX, currentY);
+		dequeueTwo(queue, &currentX, &currentY);
 		currentValue = array[currentX][currentY];
 
-		if(currentX > 0){ // Sees right >
+		if(currentX < width - 1){ // Sees right >
 			int temp = array[currentX + 1][currentY];
-			if(temp < currentValue && temp >= 0){
+			if(temp > currentValue + 1 || temp == 0){
 				array[currentX + 1][currentY] = currentValue + 1;
 				enqueueTwo(queue, currentX + 1, currentY);
 			}
 		}
 		if(currentY > 0){ // Sees up /
-			int temp = array[currentX][currentY + 1];
-			if(temp < currentValue && temp >= 0){
-				array[currentX][currentY + 1] = currentValue + 1;
-				enqueueTwo(queue, currentX, currentY + 1);
+			int temp = array[currentX][currentY - 1];
+			if(temp > currentValue + 1 || temp == 0){
+				array[currentX][currentY - 1] = currentValue + 1;
+				enqueueTwo(queue, currentX, currentY - 1);
 			}
 		}
-		if(currentX < width - 1){ // Sees left <
+		if(currentX > 0){ // Sees left <
 			int temp = array[currentX - 1][currentY];
-			if(temp < currentValue && temp >= 0){
+			if(temp > currentValue + 1 || temp == 0){
 				array[currentX - 1][currentY] = currentValue + 1;
 				enqueueTwo(queue, currentX - 1, currentY);
 			}
@@ -66,10 +68,10 @@ int setShortestPaths(int **array, int width, int height, int targetX, int target
             reached_left_corner = 1;
         }
 		if(currentY < height - 1){ // Sees down /
-			int temp = array[currentX][currentY - 1];
-			if(temp < currentValue && temp >= 0){
-				array[currentX][currentY - 1] = currentValue + 1;
-				enqueueTwo(queue, currentX, currentY - 1);
+			int temp = array[currentX][currentY + 1];
+			if(temp > currentValue + 1 || temp == 0){
+				array[currentX][currentY + 1] = currentValue + 1;
+				enqueueTwo(queue, currentX, currentY + 1);
 			}
 		}
 	}
@@ -83,20 +85,21 @@ int setShortestPaths(int **array, int width, int height, int targetX, int target
 
 }
 
-void dequeueTwo(int *array, int x, int y){
+void dequeueTwo(int *array, int *x, int *y){
 	if(queueSize < 2){
 		printf("Queue has insufficient Size. WTF have you done??\n Size: %d\n", queueSize);
 		return;
 	}
 	int i;
-	x = array[0];
-	y = array[1];
+	*x = array[queueSize - 2];
+	*y = array[queueSize - 1];
 	for(i = 0; i < queueSize - 2; i++)	// Shifts all array to the left. Prevents overflow.
 		array[i] = array[i + 2];
 	queueSize -= 2;
 }
 
 void enqueueTwo(int *array, int x, int y){
+    
 	array[queueSize] = x;
 	array[queueSize + 1] = y;
 	queueSize += 2;

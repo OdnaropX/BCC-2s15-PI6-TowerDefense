@@ -22,7 +22,9 @@ void draw_node(SDL_Surface *screen, node *drawn_node, bool tower){
     rect.y = drawn_node->yPos - (rect.h/2);
     
     if(tower){
-        rect.y = drawn_node->yPos - rect.h + (rect.w/2);
+        rect.y = drawn_node->yPos + (rect.w/2);
+        rect.x = drawn_node->xPos + 2;
+
     }
     
     SDL_BlitSurface(drawn_node->sprite, NULL, screen, &rect);
