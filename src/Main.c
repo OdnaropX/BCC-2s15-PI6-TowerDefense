@@ -124,7 +124,7 @@ int main(int argc, char * argv[]) {
 	int add_tower = 0;
 	int add_minion = 0;
     int health = 5;
-    int gold = 100;
+    int gold = 1000;
     int mana = 0;
 	
 	int current_position[] = {0,0};
@@ -399,7 +399,7 @@ int main(int argc, char * argv[]) {
 							if (event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH ) {//Near main config
 									temp_option = (event.motion.y - 150) / BUTTON_MENU_HEIGHT;
 									if (temp_option <= BACK && temp_option >= 0) {
-										config_option = temp_option;
+										select_config_option = temp_option;
 									}
 								}
 							break;
@@ -1274,24 +1274,28 @@ int main(int argc, char * argv[]) {
                     while(enemy && enemy->e){
                         move_minion(enemy->e);
                         list_projectile *shoot = enemy->e->targetted_projectils;
+                        
                         while (shoot && shoot->e) {
-                            if(!shoot->e)
-                            
                             if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
                                 enemy->e->HP -= shoot->e->damage;
-                                remove_projectile_from_list(enemy->e->targetted_projectils, shoot->e);
+                                list_projectile *temp_lp = shoot;
                                 shoot = shoot->next;
+                                
+                                remove_projectile_from_list(enemy->e->targetted_projectils, temp_lp->e);
                             }
+                            
                             else
                                 shoot = shoot->next;
                         }
+                        
                         if(enemy->e->HP <= 0){ // Death of minions
-                            remove_minion_from_list(minions, enemy->e);
+                            minion *temp_minion = enemy->e;
                             enemy = enemy -> next;
+                            remove_minion_from_list(minions, temp_minion);
                         }
+                        
                         else
                             enemy = enemy->next;
-
                     }
                     
                     list_turret *turret = turrets;

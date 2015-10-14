@@ -28,8 +28,14 @@ void free_node(node *node){
     if(node){
         if(node->sprite)
             SDL_FreeSurface(node->sprite);
+        
+        node->sprite = NULL;
+        
         free(node);
+        node = NULL;
     }
+    
+    node = NULL;
 }
 
 //Minion
@@ -48,9 +54,13 @@ minion *init_minion(int minionID){
 void remove_minion(minion *mium){
     if(mium){
         free_node(mium->node);
+        mium->node = NULL;
         free_list_projectile(mium->targetted_projectils);
+        mium->targetted_projectils = NULL;
         free(mium);
-    }}
+        mium = NULL;
+    }
+}
 
 //Turret
 turret *init_turret(int turretID, int gridX, int gridY){
@@ -66,7 +76,9 @@ turret *init_turret(int turretID, int gridX, int gridY){
 void remove_turret(turret *turret){
     if(turret){
         free_node(turret->node);
+        turret->node = NULL;
         free(turret);
+        turret = NULL;
     }
 }
 
@@ -83,7 +95,9 @@ projectile *init_projectile(int projectileID, turret* shooter){
 void remove_projectile(projectile *proj){
     if(proj){
         free_node(proj->node);
+        proj->node = NULL;
         free(proj);
+        proj = NULL;
     }
 }
 
@@ -101,12 +115,16 @@ void free_list_projectile(list_projectile *list){
     
     while (aux->next){
         remove_projectile(aux->e);
+        aux->e = NULL;
+        
         list_projectile *rmv = aux;
         aux = aux->next;
         free(rmv);
+        rmv = NULL;
     }
     
     free(aux);
+    aux = NULL;
 }
 
 void add_projectile_to_list(list_projectile *list, projectile *projectile){
@@ -125,6 +143,7 @@ void add_projectile_to_list(list_projectile *list, projectile *projectile){
 }
 
 void remove_projectile_from_list(list_projectile *list, projectile *projectile){
+    list_projectile *first_node = list;
     list_projectile *remove = NULL;
     
     while(list->e && list != remove){
@@ -136,17 +155,25 @@ void remove_projectile_from_list(list_projectile *list, projectile *projectile){
                 list->next = list;
                 list = aux;
             }
+            
+            break;
         }
+        
+        list = list->next;
     }
     
     if(remove){
         remove_projectile(remove->e);
-        if(remove != list)
+        remove->e = NULL;
+        
+        if(remove != first_node){
             free(remove);
+            remove = NULL;
+        }
     }
     
     else
-        printf("Your princess is in another castle!\n");
+        printf("Your projectile is in another castle!\n");
 }
 
 //List Minions
@@ -163,12 +190,15 @@ void free_list_minion(list_minion *list){
     
     while (aux->next){
         remove_minion(aux->e);
+        aux->e = NULL;
         list_minion *rmv = aux;
         aux = aux->next;
         free(rmv);
+        rmv = NULL;
     }
     
     free(aux);
+    aux = NULL;
 }
 
 void add_minion_to_list(list_minion *list, minion *minion){
@@ -198,17 +228,25 @@ void remove_minion_from_list(list_minion *list, minion *minion){
                 list->next = list;
                 list = aux;
             }
+            
+            break;
         }
+        
+        list = list->next;
     }
     
     if(remove){
         remove_minion(remove->e);
-        if(remove != list)
+        remove->e = NULL;
+        
+        if(remove != list){
             free(remove);
+            remove = NULL;
+        }
     }
     
     else
-        printf("Your princess is in another castle!\n");
+        printf("Your minion is in another castle!\n");
 }
 
 //List Turrets
@@ -225,12 +263,16 @@ void free_list_turret(list_turret *list){
     
     while (aux->next){
         remove_turret(aux->e);
+        aux->e = NULL;
+        
         list_turret *rmv = aux;
         aux = aux->next;
         free(rmv);
+        rmv = NULL;
     }
     
     free(aux);
+    aux = NULL;
 }
 
 void add_turret_to_list(list_turret *list, turret *turret){
@@ -260,17 +302,25 @@ void remove_turret_from_list(list_turret *list, turret *turret){
                 list->next = list;
                 list = aux;
             }
+            
+            break;
         }
+        
+        list = list->next;
     }
     
     if(remove){
         remove_turret(remove->e);
-        if(remove != list)
+        remove->e = NULL;
+        
+        if(remove != list){
             free(remove);
+            remove = NULL;
+        }
     }
     
     else
-        printf("Your princess is in another castle!\n");
+        printf("Your turret is in another castle!\n");
 }
 
 int get_tower_avaliable() {
