@@ -94,7 +94,7 @@ void draw_screen_config(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *r
     }
 }
 
-void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion *minions, list_projectile *projectiles, list_turret *turrets){
+void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion *minions, list_turret *turrets){
     //Draw map
     SDL_Rect map_Rect = {0, 0, map->w, map->h};
     SDL_BlitSurface(map, NULL, screen, &map_Rect);
@@ -116,17 +116,16 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
         minion *target = m->e;
         draw_node(screen, target->node, false);
         
-        m = m->next;
-    }
-    
-    //Draw projectiles
-    list_projectile *p = projectiles;
-    
-    while (p && p->e) {
-        projectile *target = p->e;
-        draw_node(screen, target->node, false);
+        list_projectile *p = m->e->targetted_projectils;
         
-        p = p->next;
+        //Draw projectiles
+        while (p && p->e){
+            draw_node(screen, p->e->node, false);
+            
+            p = p->next;
+        }
+        
+        m = m->next;
     }
 }
 

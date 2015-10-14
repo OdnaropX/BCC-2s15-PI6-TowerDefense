@@ -63,7 +63,7 @@ SDL_Rect score_menu_rects[score_menu_assets_count];
 CONFIGURATION *config;
 
 list_minion *minions;
-list_projectile *projectiles;
+//list_projectile *projectiles;     Not used by now
 list_turret *turrets;
 
 bool main_init();
@@ -1234,9 +1234,8 @@ int main(int argc, char * argv[]) {
 				break;
 			
             
-            case GAME_RUNNING:{
+            case GAME_RUNNING:
 				if (!game_paused){
-				
 					if (add_tower > 0){
 						//Add tower
                         if(gold > 100){
@@ -1254,6 +1253,7 @@ int main(int argc, char * argv[]) {
 						//Reset tower
 						add_tower = 0;
 					}
+                    
 					if (add_minion > 0){
 						//Add minion
 
@@ -1278,10 +1278,13 @@ int main(int argc, char * argv[]) {
                         while (shoot && shoot->e) {
                             if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
                                 enemy->e->HP -= shoot->e->damage;
+                                printf("HP: %d\n", enemy->e->HP);
                                 list_projectile *temp_lp = shoot;
                                 shoot = shoot->next;
                                 
                                 remove_projectile_from_list(enemy->e->targetted_projectils, temp_lp->e);
+                                temp_lp->e = NULL;
+                                printf("Removed projectile\n");
                             }
                             
                             else
@@ -1289,9 +1292,12 @@ int main(int argc, char * argv[]) {
                         }
                         
                         if(enemy->e->HP <= 0){ // Death of minions
+                            printf("Murió\n");
                             minion *temp_minion = enemy->e;
                             enemy = enemy -> next;
                             remove_minion_from_list(minions, temp_minion);
+                            temp_minion = NULL;
+                            printf("Remuvió\n");
                         }
                         
                         else
@@ -1315,6 +1321,7 @@ int main(int argc, char * argv[]) {
                                 enemy = enemy->next;
                             }
                             if(target){
+                                printf("New projectile\n");
                                 projectile* newShoot = init_projectile(0, turret->e);
                                 add_projectile_to_list(target->targetted_projectils, newShoot);
                                 turret->e->timeUntilNextAttack = 1.0;
@@ -1323,12 +1330,11 @@ int main(int argc, char * argv[]) {
                         turret = turret->next;
                     }
                 }
-            }
                 
-            break;
+                break;
 
 			case GAME_PAUSED:
-				//Set selected option to show on MAIN to OPT_PLAY			
+				//Set selected option to show on MAIN to OPT_PLAY
 				switch(pause_option){
 					case OPT_P_RESUME:
 						current_screen = GAME_RUNNING;
@@ -1407,7 +1413,7 @@ int main(int argc, char * argv[]) {
 				//select_grid
 				//selected_left
 				
-                draw_screen_game_running(main_Surface, map_Surface, minions, projectiles, turrets);
+                draw_screen_game_running(main_Surface, map_Surface, minions, turrets);
                 
                 screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
                 SDL_RenderCopy(renderer, screen_surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
@@ -1784,11 +1790,11 @@ bool main_init(){
         return false;
     }
     
-    projectiles = init_list_projectile();
+    /*projectiles = init_list_projectile();
     if(!projectiles){
         printf("Erro em init_list_projectiles!\n");
         return false;
-    }
+    }*/
     
     //Init interface static assets(Pause button and right bar)
     SDL_Surface *pause_surface = IMG_Load("../images/Pause.png");
@@ -1889,8 +1895,8 @@ void main_quit(){
         free_list_minion(minions);
     if(turrets)
         free_list_turret(turrets);
-    if(projectiles)
-        free_list_projectile(projectiles);
+    /*if(projectiles)
+        free_list_projectile(projectiles);*/
 }
 
 //Carrega textos do menu de configurações

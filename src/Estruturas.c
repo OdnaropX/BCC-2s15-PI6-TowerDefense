@@ -133,7 +133,6 @@ void add_projectile_to_list(list_projectile *list, projectile *projectile){
         list->e = projectile;
         return;
     }
-    
     while(list->next)
         list = list->next;
     
@@ -147,6 +146,7 @@ void remove_projectile_from_list(list_projectile *list, projectile *projectile){
     list_projectile *remove = NULL;
     
     while(list->e && list != remove){
+        
         if(list->e == projectile){
             remove = list;
             
@@ -165,6 +165,7 @@ void remove_projectile_from_list(list_projectile *list, projectile *projectile){
     if(remove){
         remove_projectile(remove->e);
         remove->e = NULL;
+        remove->next = NULL;
         
         if(remove != first_node){
             free(remove);
@@ -238,6 +239,7 @@ void remove_minion_from_list(list_minion *list, minion *minion){
     if(remove){
         remove_minion(remove->e);
         remove->e = NULL;
+        remove->next = NULL;
         
         if(remove != list){
             free(remove);
@@ -312,6 +314,7 @@ void remove_turret_from_list(list_turret *list, turret *turret){
     if(remove){
         remove_turret(remove->e);
         remove->e = NULL;
+        remove->next = NULL;
         
         if(remove != list){
             free(remove);
