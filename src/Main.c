@@ -289,6 +289,16 @@ int main(int argc, char * argv[]) {
 						//Handle keyboard event
 						case SDL_KEYUP:
 							switch(event.key.keysym.sym){
+								//Backspace
+								case SDLK_BACKSPACE:
+									//Go back main screen or paused screem
+									if (previous_screen == MAIN){
+										current_screen = MAIN;
+									}
+									else {
+										current_screen = GAME_PAUSED;
+									}
+									break;
 								//Escape
 								case SDLK_ESCAPE:
 									//Go back main screen or paused screem
@@ -298,7 +308,7 @@ int main(int argc, char * argv[]) {
 									else {
 										current_screen = GAME_PAUSED;
 									}
-									break;	
+									break;
 								//Keypad enter
 								case SDLK_KP_ENTER:
 									//Check current selected option
