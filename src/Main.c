@@ -114,10 +114,14 @@ int main(int argc, char * argv[]) {
     
 	bool game_started = false;
 	bool game_paused = false;
+	
+	//Click control
 	bool active_clicked = false;
-    
+    bool run_action = false;
+	
     bool return_to_previous_screen = false;     //For scores and credits menus
     bool select_return_to_previous_screen = false;     //For scores and credits menus
+	
 	
 	//Game area control
     bool selected_left = false;//Right click equals to tower and left to minions.
@@ -234,10 +238,10 @@ int main(int argc, char * argv[]) {
 								}
 						
 						//Handle mouse event
-						case SDL_MOUSEBUTTONUP:
-							main_option = OPT_NONE;
-												
+						case SDL_MOUSEBUTTONUP:												
 							if(event.button.button == SDL_BUTTON_LEFT){
+								main_option = OPT_NONE;//Maybe dont need this. bug check
+								
 								//Check if location selected is a valid one
 										
 								if (event.motion.x >= 980 && event.motion.x <= 980 + BUTTON_MENU_WIDTH) {//Near main config
@@ -381,11 +385,11 @@ int main(int argc, char * argv[]) {
 									break;
 							}
 						//Handle mouse event
-						case SDL_MOUSEBUTTONUP:
-							active_clicked = false;
-							config_option = NONE;
-										
-							if(event.button.button == SDL_BUTTON_LEFT){							
+						case SDL_MOUSEBUTTONUP:									
+							if(event.button.button == SDL_BUTTON_LEFT){	
+								active_clicked = false;//Maybe this is other bug
+								//Check above config_option = NONE; bug
+							
                                 //Check if location selected is a valid one
 								if (event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH ) {//Near main config
 									temp_option = (event.motion.y - 150) / BUTTON_MENU_HEIGHT;
@@ -922,9 +926,9 @@ int main(int argc, char * argv[]) {
 						
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
-							pause_option = OPT_P_NONE;
-							
 							if(event.button.button == SDL_BUTTON_LEFT){
+								pause_option = OPT_P_NONE;
+								
 								//Check if location selected is a valid one
 								if (event.motion.x >= 515 && event.motion.x <= 765) {
 									//Check buttons
@@ -1150,19 +1154,21 @@ int main(int argc, char * argv[]) {
 		/////////////////////////////////////////////////////
 		switch(current_screen) {
 			case MAIN:
-				
+				printf("main option selected %d\n", main_option); 
 				//if option
 				switch(main_option){
 					case OPT_EXIT:
 						quit = true;
 						break;
 					case OPT_PLAY:
+						printf("Currnt screen OPT_PLAY");
 						game_started = true;
 						//Generate Map and resources to use on Game_Running
 					
 					
 						//Change current screen.
 						current_screen = GAME_RUNNING;
+						
 						break;
 					case OPT_CONFIG:
 						current_screen = CONFIG;
