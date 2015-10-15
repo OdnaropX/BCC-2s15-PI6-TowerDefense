@@ -66,12 +66,16 @@ list_minion *minions;
 //list_projectile *projectiles;     Not used by now
 list_turret *turrets;
 
+int health = 5;
+int gold = 1000;
+int mana = 0;
+
+//Cabeçalhos
 bool main_init();
 void main_quit();
 
 void get_config();
-
-
+void reset_game_data();
 
 int main(int argc, char * argv[]) {
     bool quit = false;
@@ -127,9 +131,6 @@ int main(int argc, char * argv[]) {
     bool selected_left = false;//Right click equals to tower and left to minions.
 	int add_tower = 0;
 	int add_minion = 0;
-    int health = 5;
-    int gold = 1000;
-    int mana = 0;
 	
 	int current_position[] = {0,0};
 	
@@ -1284,7 +1285,6 @@ int main(int argc, char * argv[]) {
                         while (shoot && shoot->e) {
                             if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
                                 enemy->e->HP -= shoot->e->damage;
-                                printf("HP: %d\n", enemy->e->HP);
                                 list_projectile *temp_lp = shoot;
                                 
                                 shoot = shoot->next;
@@ -1353,6 +1353,7 @@ int main(int argc, char * argv[]) {
 						current_screen = MAIN;
 						game_started = false;
 						game_paused = false;
+                        reset_game_data();
                         break;
 					case OPT_P_CONFIG:
 						current_screen = CONFIG;
@@ -1782,24 +1783,8 @@ bool main_init(){
         return false;
     }
     
-    //Init lists
-    minions = init_list_minion();
-    if(!minions){
-        printf("Erro em init_list_minion!\n");
-        return false;
-    }
-    
-    turrets = init_list_turret();
-    if(!turrets){
-        printf("Erro em init_list_turret!\n");
-        return false;
-    }
-    
-    /*projectiles = init_list_projectile();
-    if(!projectiles){
-        printf("Erro em init_list_projectiles!\n");
-        return false;
-    }*/
+    //Init stats
+    reset_game_data();
     
     //Init interface static assets(Pause button and right bar)
     SDL_Surface *pause_surface = IMG_Load("../images/Pause.png");
@@ -1895,13 +1880,7 @@ void main_quit(){
     if(config)
         free(config);
     
-    //Free lists
-    if(minions)
-        free_list_minion(minions);
-    if(turrets)
-        free_list_turret(turrets);
-    /*if(projectiles)
-        free_list_projectile(projectiles);*/
+    reset_game_data();
 }
 
 //Carrega textos do menu de configurações
@@ -1973,4 +1952,36 @@ void get_config(){
         
         SDL_FreeSurface(surface);
     }
+}
+
+//Reseta listas, e dados do jogo
+void reset_game_data(){
+    //Free lists
+    if(minions)
+        free_list_minion(minions);
+    if(turrets)
+        free_list_turret(turrets);
+    /*if(projectiles)
+     free_list_projectile(projectiles);*/
+    
+    //Init lists
+    minions = init_list_minion();
+    if(!minions){
+        printf("Erro em init_list_minion!\n");
+    }
+    
+    turrets = init_list_turret();
+    if(!turrets){
+        printf("Erro em init_list_turret!\n");
+    }
+    
+    /*projectiles = init_list_projectile();
+     if(!projectiles){
+     printf("Erro em init_list_projectiles!\n");
+     return false;
+     }*/
+    
+    health = 5;
+    gold = 1000;
+    mana = 0;
 }
