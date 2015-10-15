@@ -374,7 +374,10 @@ int main(int argc, char * argv[]) {
 								case SDLK_LEFT:
 									//Change current selected option
 									if (select_config_option == LANGUAGE) {
-									
+										
+									}
+									else if (select_config_option == BACK) {
+										
 									}
 									else {
 										config_option = select_config_option;
@@ -383,7 +386,10 @@ int main(int argc, char * argv[]) {
 								case SDLK_RIGHT:
 									//Change current selected option
 									if (select_config_option == LANGUAGE) {
-									
+										
+									}
+									else if (select_config_option == BACK) {
+										
 									}
 									else {
 										config_option = select_config_option;
