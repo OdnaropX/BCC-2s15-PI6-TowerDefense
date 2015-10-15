@@ -31,11 +31,9 @@ void free_node(node *node){
         
         node->sprite = NULL;
         
-        free(node);
         node = NULL;
+        free(node);
     }
-    
-    node = NULL;
 }
 
 //Minion
@@ -53,12 +51,12 @@ minion *init_minion(int minionID){
 
 void remove_minion(minion *mium){
     if(mium){
-        free_node(mium->node);
         mium->node = NULL;
-        free_list_projectile(mium->targetted_projectils);
+        free_node(mium->node);
         mium->targetted_projectils = NULL;
-        free(mium);
+        free_list_projectile(mium->targetted_projectils);
         mium = NULL;
+        free(mium);
     }
 }
 
@@ -113,7 +111,7 @@ list_projectile *init_list_projectile(){
 void free_list_projectile(list_projectile *list){
     list_projectile *aux = list;
     
-    while (aux->next){
+    while (aux && aux->next){
         remove_projectile(aux->e);
         aux->e = NULL;
         
@@ -141,7 +139,7 @@ void add_projectile_to_list(list_projectile *list, projectile *projectile){
     list->next = new_element;
 }
 
-void remove_projectile_from_list(list_projectile *list, projectile *projectile){
+list_projectile *remove_projectile_from_list(list_projectile *list, projectile *projectile){
     list_projectile *first_node = list;
     list_projectile *remove = NULL;
     
@@ -163,18 +161,21 @@ void remove_projectile_from_list(list_projectile *list, projectile *projectile){
     }
     
     if(remove){
-        remove_projectile(remove->e);
         remove->e = NULL;
         remove->next = NULL;
+        remove_projectile(remove->e);
         
         if(remove != first_node){
-            free(remove);
             remove = NULL;
+            free(remove);
         }
     }
     
-    else
+    else{
         printf("Your projectile is in another castle!\n");
+    }
+    
+    return list;
 }
 
 //List Minions
@@ -189,7 +190,7 @@ list_minion *init_list_minion(){
 void free_list_minion(list_minion *list){
     list_minion *aux = list;
     
-    while (aux->next){
+    while (aux && aux->next){
         remove_minion(aux->e);
         aux->e = NULL;
         list_minion *rmv = aux;
@@ -217,7 +218,7 @@ void add_minion_to_list(list_minion *list, minion *minion){
     list->next = new_element;
 }
 
-void remove_minion_from_list(list_minion *list, minion *minion){
+list_minion *remove_minion_from_list(list_minion *list, minion *minion){
     list_minion *remove = NULL;
     
     while(list){
@@ -237,18 +238,21 @@ void remove_minion_from_list(list_minion *list, minion *minion){
     }
     
     if(remove){
-        remove_minion(remove->e);
         remove->e = NULL;
         remove->next = NULL;
+        remove_minion(remove->e);
         
         if(remove != list){
-            free(remove);
             remove = NULL;
+            free(remove);
         }
     }
     
-    else
+    else{
         printf("Your minion is in another castle!\n");
+    }
+    
+    return list;
 }
 
 //List Turrets
@@ -263,7 +267,7 @@ list_turret *init_list_turret(){
 void free_list_turret(list_turret *list){
     list_turret *aux = list;
     
-    while (aux->next){
+    while (aux && aux->next){
         remove_turret(aux->e);
         aux->e = NULL;
         
@@ -292,7 +296,7 @@ void add_turret_to_list(list_turret *list, turret *turret){
     list->next = new_element;
 }
 
-void remove_turret_from_list(list_turret *list, turret *turret){
+list_turret *remove_turret_from_list(list_turret *list, turret *turret){
     list_turret *remove = NULL;
     
     while(list){
@@ -322,8 +326,11 @@ void remove_turret_from_list(list_turret *list, turret *turret){
         }
     }
     
-    else
+    else{
         printf("Your turret is in another castle!\n");
+    }
+    
+    return list;
 }
 
 int get_tower_avaliable() {

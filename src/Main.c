@@ -1280,11 +1280,11 @@ int main(int argc, char * argv[]) {
                                 enemy->e->HP -= shoot->e->damage;
                                 printf("HP: %d\n", enemy->e->HP);
                                 list_projectile *temp_lp = shoot;
+                                
                                 shoot = shoot->next;
                                 
-                                remove_projectile_from_list(enemy->e->targetted_projectils, temp_lp->e);
+                                enemy->e->targetted_projectils = remove_projectile_from_list(enemy->e->targetted_projectils, temp_lp->e);
                                 temp_lp->e = NULL;
-                                printf("Removed projectile\n");
                             }
                             
                             else
@@ -1292,12 +1292,12 @@ int main(int argc, char * argv[]) {
                         }
                         
                         if(enemy->e->HP <= 0){ // Death of minions
-                            printf("Murió\n");
-                            minion *temp_minion = enemy->e;
-                            enemy = enemy -> next;
-                            remove_minion_from_list(minions, temp_minion);
+                            list_minion *temp_minion = enemy;
+                            enemy = enemy->next;
+                            
+                            minions = remove_minion_from_list(minions, temp_minion->e);
+                            temp_minion->e = NULL;
                             temp_minion = NULL;
-                            printf("Remuvió\n");
                         }
                         
                         else
@@ -1321,7 +1321,6 @@ int main(int argc, char * argv[]) {
                                 enemy = enemy->next;
                             }
                             if(target){
-                                printf("New projectile\n");
                                 projectile* newShoot = init_projectile(0, turret->e);
                                 add_projectile_to_list(target->targetted_projectils, newShoot);
                                 turret->e->timeUntilNextAttack = 1.0;

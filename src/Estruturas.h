@@ -99,7 +99,7 @@ struct _list_projectile {
 list_projectile *init_list_projectile();
 void free_list_projectile(list_projectile *list);
 void add_projectile_to_list(list_projectile *list, projectile *projectile);
-void remove_projectile_from_list(list_projectile *list, projectile *projectile);
+list_projectile *remove_projectile_from_list(list_projectile *list, projectile *projectile);
 
 // List minion
 typedef struct _list_minion {
@@ -110,7 +110,7 @@ typedef struct _list_minion {
 list_minion *init_list_minion();
 void free_list_minion(list_minion *list);
 void add_minion_to_list(list_minion *list, minion *minion);
-void remove_minion_from_list(list_minion *list, minion *minion);
+list_minion *remove_minion_from_list(list_minion *list, minion *minion);
 
 // List Tower
 typedef struct _list_turret {
@@ -123,7 +123,7 @@ typedef struct _list_turret {
 list_turret *init_list_turret();
 void free_list_turret(list_turret *list);
 void add_turret_to_list(list_turret *list, turret *turret);
-void remove_turret_from_list(list_turret *list, turret *turret);
+list_turret *remove_turret_from_list(list_turret *list, turret *turret);
 
 int get_tower_avaliable();
 int get_minion_avaliable();
