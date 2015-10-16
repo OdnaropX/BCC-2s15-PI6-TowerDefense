@@ -436,7 +436,11 @@ int main(int argc, char * argv[]) {
 						//Handle keyboard release
 						case SDL_KEYUP:
 							switch(event.key.keysym.sym){
-							
+								//Backspace
+								case SDLK_BACKSPACE:
+									current_screen = MAIN;
+									previous_screen = GAME_RUNNING;
+									break;
 								//Escape
 								case SDLK_ESCAPE:
 									//Show Game Pause screen with options
@@ -444,12 +448,14 @@ int main(int argc, char * argv[]) {
 									select_pause_option = OPT_P_RESUME;
 									break;	
 								case SDLK_q:
+									printf("Key pressed: q\n"); 
 									if (running_option.current_tab == GAME_AREA && !active_clicked){
 										//Active click on current location
 										active_clicked = true;
 										selected_left = true;
 									}
 								case SDLK_e:
+									printf("Key pressed: e\n"); 
 									if (running_option.current_tab == GAME_AREA && !active_clicked){
 										//Active click on current location
 										active_clicked = true;
@@ -850,6 +856,9 @@ int main(int argc, char * argv[]) {
 						//Case Keyboard pressed and release
 						case SDL_KEYUP:
 							switch(event.key.keysym.sym){
+								//Backspace
+								case SDLK_BACKSPACE:
+									//Dont break here and only below.
 								//Escape
 								case SDLK_ESCAPE:
 									//Return to play the game
@@ -923,7 +932,7 @@ int main(int argc, char * argv[]) {
 									break;
 								case SDLK_LEFT:
 									//Move to option left 
-									select_pause_option = (select_pause_option + 1) % 5;
+									select_pause_option = (select_pause_option + 1) % OPT_P_NONE;
 									break;
 								case SDLK_RIGHT:
 									//Move to option right
@@ -937,7 +946,7 @@ int main(int argc, char * argv[]) {
 									
 								case SDLK_DOWN:
 									//Move to option bellow
-									select_pause_option = (select_pause_option + 1) % 5;
+									select_pause_option = (select_pause_option + 1) % OPT_P_NONE;
 									break;
 							}
 						
@@ -948,30 +957,9 @@ int main(int argc, char * argv[]) {
 								
 								//Check if location selected is a valid one
 								if (event.motion.x >= 515 && event.motion.x <= 765) {
-									//Check buttons
-									if(event.motion.y >= 270 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT){
-										pause_option = OPT_P_RESUME;
-										printf("Play\n");
-									}
-									else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 2) {
-										pause_option = OPT_P_CONFIG;
-										printf("Config\n");
-									}
-									else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 3) {
-										pause_option = OPT_P_SCORE;
-										printf("Score\n");
-									}
-									else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 4) {
-										pause_option = OPT_P_EXIT;
-										printf("Exit\n");
-									}
-									else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 4 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 5) {
-										pause_option = OPT_P_MAIN;
-										printf("Main\n");
-									}
-									else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 5 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 6) {
-										pause_option = OPT_P_CREDITS;
-										printf("Main\n");
+									temp_option = (event.motion.y - 270) / BUTTON_MENU_HEIGHT;
+									if (temp_option <= OPT_P_CREDITS && temp_option >= 0) {
+										pause_option = temp_option;
 									}
 								}
 							}
@@ -979,29 +967,9 @@ int main(int argc, char * argv[]) {
 						//Handle mouse moved event.
                         case SDL_MOUSEMOTION:
 							if (event.motion.x >= 515 && event.motion.x <= 765) {
-								//Check buttons
-								if(event.motion.y >= 270 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT){
-									select_pause_option = OPT_P_RESUME;
-									}
-								else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 2) {
-									select_pause_option = OPT_P_CONFIG;
-									printf("Config\n");
-								}
-								else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 2 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 3) {
-									select_pause_option = OPT_P_SCORE;
-									printf("Score\n");
-								}
-								else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 4) {
-									select_pause_option = OPT_P_EXIT;
-										printf("Exit\n");
-								}
-								else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 4 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 5) {
-									select_pause_option = OPT_P_MAIN;
-									printf("Main\n");
-								}
-								else if (event.motion.y >= 270 + BUTTON_MENU_HEIGHT * 5 && event.motion.y <= 270 + BUTTON_MENU_HEIGHT * 6) {
-									select_pause_option = OPT_P_CREDITS;
-									printf("Main\n");
+								temp_option = (event.motion.y - 270)/ BUTTON_MENU_HEIGHT;
+								if (temp_option <= OPT_P_CREDITS && temp_option >= 0){
+									select_pause_option = temp_option;
 								}
 							}
 							break;
@@ -1178,10 +1146,10 @@ int main(int argc, char * argv[]) {
 						quit = true;
 						break;
 					case OPT_PLAY:
-						printf("Currnt screen OPT_PLAY");
+						printf("Current screen OPT_PLAY");
 						game_started = true;
 						//Generate Map and resources to use on Game_Running
-					
+						
 					
 						//Change current screen.
 						current_screen = GAME_RUNNING;
@@ -1258,6 +1226,11 @@ int main(int argc, char * argv[]) {
 			
             
             case GAME_RUNNING:
+				printf("Game Running\n");
+				printf("Game paused %d\n", game_paused);
+				printf("Active clicked %d\n", active_clicked);
+				printf("Selected left clicked %d\n", active_clicked);
+				
 				if (!game_paused){
 					if (add_tower > 0){
 						//Add tower
