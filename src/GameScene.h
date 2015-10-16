@@ -41,8 +41,9 @@ int get_grid_address_linear(int grid_x, int grid_y, int limit_x);
 
 /**
  Moves target minion a frame. He will go towards the center of the next grid to be moved into.
+ Returns position value.
  **/
-void move_minion(minion *enemy);
+int move_minion(minion *enemy);
 
 /**
  Moves target bullet. It returns 1 if it hit the target, and 0 if it still not got there.

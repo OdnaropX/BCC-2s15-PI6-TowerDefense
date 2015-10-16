@@ -1295,8 +1295,12 @@ int main(int argc, char * argv[]) {
                     // Minion movement, Projectile movement, and projectile colision/dealocation.
                     list_minion* enemy = minions;
                     while(enemy && enemy->e){
-                        move_minion(enemy->e);
+                        int minion_pos_value = move_minion(enemy->e);
                         list_projectile *shoot = enemy->e->targetted_projectils;
+                        if(minion_pos_value == 1){
+                            enemy->e->HP = 0;
+                            health --;
+                        }
                         
                         while (shoot && shoot->e) {
                             if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
@@ -1316,6 +1320,8 @@ int main(int argc, char * argv[]) {
                         if(enemy->e->HP <= 0){ // Death of minions
                             list_minion *temp_minion = enemy;
                             enemy = enemy->next;
+                            
+                            gold += 12;
                             
                             minions = remove_minion_from_list(minions, temp_minion->e);
                             temp_minion->e = NULL;
@@ -1349,6 +1355,10 @@ int main(int argc, char * argv[]) {
                             }
                         }
                         turret = turret->next;
+                    }
+                    
+                    if(health <= 0){
+                        quit = true;
                     }
                 }
                 

@@ -41,8 +41,9 @@ minion *init_minion(int minionID){
     // USAR MINIONID para diferentes minions dps.
     minion *new_minion = malloc(sizeof(minion));
     new_minion->node = init_node("../images/Minion.png", 0, 400);
-    new_minion->HP = 5;
-    new_minion->speed = 3;
+    new_minion->HP = 7;
+    new_minion->speed = 4;
+    new_minion->minionType = minionID;
     
     new_minion->targetted_projectils = init_list_projectile();
     
