@@ -193,7 +193,7 @@ int get_touched_grid_address(int x_touch, int y_touch, int array[]){
  **/
 void get_center_position_to_grid(int x, int y, int array[]){
     array[0] = x * block_width + block_width /2;
-    array[1] = TOP_LAYER_SPACING + y*block_height + block_height/2;
+    array[1] = TOP_LAYER_SPACING + y* block_height + block_height/2;
 }
 
 /***
@@ -219,7 +219,7 @@ void get_grid_address_matriz(int grid_number, int limit_x, int *matriz) {
 	matriz[1] = grid_y;
 }
 
-int get_touched_menu_address(int x_touch, int y_touch, int center_position[], int tower){
+int get_touched_menu_address(int x_touch, int y_touch, int center_position[], int *selected_option, int tower){
 	int number;
 	int row, width, height, columns, correction;
 	
@@ -247,10 +247,14 @@ int get_touched_menu_address(int x_touch, int y_touch, int center_position[], in
 	width = columns * MENU_ICON;
 	height = row * MENU_ICON;
 	
+	printf("Touch x = %d y = %d", x_touch, y_touch);
+	
 	if (x_touch < center_position[0] - width / 2 && x_touch > center_position[0] + width / 2) {
+		printf("Here\n");
 		return 0;
 	}
 	if (y_touch < center_position[1] - height / 2 && x_touch > center_position[1] + height / 2) {
+		printf("2222Here\n");
 		return 0;
 	}
 	
@@ -260,8 +264,7 @@ int get_touched_menu_address(int x_touch, int y_touch, int center_position[], in
 	int xAdd = x_touch/MENU_ICON;
 	int yAdd = y_touch/MENU_ICON;
 	
-	center_position[0] = xAdd;
-	center_position[1] = yAdd;
+	selected_option = get_grid_address_linear(xAdd, yAdd, columns) + 1;
 	
 	return 1;
 }
