@@ -31,8 +31,8 @@ void free_node(node *node){
         
         node->sprite = NULL;
         
-        node = NULL;
         free(node);
+        node = NULL;
     }
 }
 
@@ -51,12 +51,12 @@ minion *init_minion(int minionID){
 
 void remove_minion(minion *mium){
     if(mium){
-        mium->node = NULL;
         free_node(mium->node);
-        mium->targetted_projectils = NULL;
+        mium->node = NULL;
         free_list_projectile(mium->targetted_projectils);
-        mium = NULL;
+        mium->targetted_projectils = NULL;
         free(mium);
+        mium = NULL;
     }
 }
 
@@ -161,13 +161,14 @@ list_projectile *remove_projectile_from_list(list_projectile *list, projectile *
     }
     
     if(remove){
+        remove_projectile(remove->e);
+		remove_projectile(remove->next);//Need to check this for bug
         remove->e = NULL;
         remove->next = NULL;
-        remove_projectile(remove->e);
         
         if(remove != first_node){
-            remove = NULL;
             free(remove);
+            remove = NULL;
         }
     }
     
@@ -238,13 +239,14 @@ list_minion *remove_minion_from_list(list_minion *list, minion *minion){
     }
     
     if(remove){
+        remove_minion(remove->e);
+        remove_minion(remove->next);
         remove->e = NULL;
         remove->next = NULL;
-        remove_minion(remove->e);
         
         if(remove != list){
-            remove = NULL;
             free(remove);
+            remove = NULL;
         }
     }
     
@@ -317,6 +319,7 @@ list_turret *remove_turret_from_list(list_turret *list, turret *turret){
     
     if(remove){
         remove_turret(remove->e);
+        remove_turret(remove->next);
         remove->e = NULL;
         remove->next = NULL;
         
