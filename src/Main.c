@@ -164,6 +164,8 @@ int main(int argc, char * argv[]) {
 	
 	int grid_clicked[] = {0,0};
 	
+	int select_grid_option = 0;
+	
 	int temp_option;
 	
     //Main loop
@@ -404,10 +406,7 @@ int main(int argc, char * argv[]) {
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:									
 							if(event.button.button == SDL_BUTTON_LEFT){	
-								active_clicked = false;//Maybe this is other bug
-								//Check above config_option = NONE; bug
-							
-                                //Check if location selected is a valid one
+								//Check if location selected is a valid one
 								if (event.motion.x >= 595 && event.motion.x <= 595 + BUTTON_MENU_WIDTH ) {//Near main config
 									temp_option = (event.motion.y - 150) / BUTTON_MENU_HEIGHT;
 									if (temp_option <= BACK && temp_option >= 0) {
@@ -794,14 +793,26 @@ int main(int argc, char * argv[]) {
 										select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);
 										active_clicked = true;
 										selected_left = true;
+										printf("Grid selected: %d\n", select_grid);
 									}
 									else {
+										//convert select grid
+										get_grid_address_matriz(select_grid, 17, grid_clicked);
+										//Get center of clicked block on grid.
+										get_center_position_to_grid(grid_clicked[0], grid_clicked[1], grid_clicked);
 										//Check where was clicked.
-										if (selected_left) {
-											add_tower = get_touched_menu_address(grid_clicked[0], grid_clicked[1], grid_clicked, 1);
+										if(get_touched_menu_address(event.motion.x, event.motion.y, grid_clicked, &select_grid_option, selected_left)) {
+											printf("touch %d\n", select_grid_option);
+											if (selected_left) {
+												add_tower = select_grid_option;
+											}
+											else {
+												add_minion = select_grid_option;
+											}
 										}
 										else {
-											add_minion = get_touched_menu_address(grid_clicked[0], grid_clicked[1], grid_clicked, 0);
+											active_clicked = false;
+											printf("Not clicked");
 										}
 									}
 								}
@@ -813,8 +824,8 @@ int main(int argc, char * argv[]) {
 										//Not sure if must use current_screen to show the pause screen or just change status to make network request.
 										current_screen = GAME_PAUSED;
 									}
-
 								}
+								//Left menu
 								else if(event.motion.x >= window_width - 10 - BUTTON_MENU_HEIGHT && event.motion.y <= window_width - 10) {
 									if (event.motion.y >= TOP_LAYER_SPACING && event.motion.y <= TOP_LAYER_SPACING + BUTTON_MENU_HEIGHT) {
 										//Set selected gold
@@ -831,7 +842,6 @@ int main(int argc, char * argv[]) {
 										show_life_info = true;
 										show_timer = 0;
 									}
-
 								}
 							}
 							//Left click only work on grid and when there is no grid already selected 
@@ -840,6 +850,7 @@ int main(int argc, char * argv[]) {
 									select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);
 									active_clicked = true;
 									selected_left = false;
+									printf("Grid right selected: %d\n", select_grid);
 								}
 							}
 							break;
@@ -887,6 +898,10 @@ int main(int argc, char * argv[]) {
 										case OPT_P_MAIN:
 											current_screen = MAIN;
 											break;
+										case OPT_P_CREDITS:
+											current_screen = CREDITS;
+											previous_screen = GAME_PAUSED;
+											break;
 										case OPT_P_NONE:
 											break;
 											//Do nothing
@@ -912,6 +927,10 @@ int main(int argc, char * argv[]) {
 										case OPT_P_EXIT:
 											//End the game
 											quit = true;
+											break;
+										case OPT_P_CREDITS:	
+											current_screen = CREDITS;
+											previous_screen = GAME_PAUSED;
 											break;
 										case OPT_P_MAIN:
 											current_screen = MAIN;
@@ -1050,6 +1069,7 @@ int main(int argc, char * argv[]) {
             }
         }
 		
+		
         //Timer handling
 		////////////////////////////////////////////////////////
 		frame++;
@@ -1139,7 +1159,6 @@ int main(int argc, char * argv[]) {
 		/////////////////////////////////////////////////////
 		switch(current_screen) {
 			case MAIN:
-				printf("main option selected %d\n", main_option); 
 				//if option
 				switch(main_option){
 					case OPT_EXIT:
@@ -1226,11 +1245,12 @@ int main(int argc, char * argv[]) {
 			
             
             case GAME_RUNNING:
+				/*
 				printf("Game Running\n");
 				printf("Game paused %d\n", game_paused);
 				printf("Active clicked %d\n", active_clicked);
 				printf("Selected left clicked %d\n", active_clicked);
-				
+				*/
 				if (!game_paused){
 					if (add_tower > 0){
 						//Add tower
@@ -1383,7 +1403,7 @@ int main(int argc, char * argv[]) {
 		
 		//Scene Renderer 
 		/////////////////////////////////////////////////////
-        SDL_Texture *screen_surfaces;
+        SDL_Texture *screen_surfaces = NULL;
         
         switch (current_screen) {
             case CONFIG:
@@ -1412,7 +1432,7 @@ int main(int argc, char * argv[]) {
                 
                 screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
                 SDL_RenderCopy(renderer, screen_surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
-                
+			
                 draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, active_clicked, selected_left, select_grid, select_running_option);
                 
                 display_health(renderer, health, font);
@@ -1436,9 +1456,15 @@ int main(int argc, char * argv[]) {
             default:
                 break;
         }
-        
+		
         //Update render and surfaces
         SDL_RenderPresent(renderer);
+		
+		//Destroy
+		if (screen_surfaces){
+			SDL_DestroyTexture(screen_surfaces);
+			screen_surfaces = NULL;
+			}
     }
     
     //Quit
