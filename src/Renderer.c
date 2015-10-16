@@ -129,7 +129,7 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
     }
 }
 
-void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, bool active_clicked, bool selected_left, int select_grid, GAME_RUNNING_OPTIONS running_option){
+void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count){
     for(int i = 0; i < count; i++){
         SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
     }
@@ -237,6 +237,38 @@ void get_menu_size_minion(int size[]){
 	size[1] = row * MENU_ICON;
 }
 
+void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], GAME_RUNNING_OPTIONS running_option) {
+	bool display_over = false;
+	
+	printf("Grid clicked %d\n", select_grid);
+	printf("Click active? %d\n", active_clicked);
+	
+	//Display grid_over
+	
+	
+	
+	if(active_clicked){
+		int size[] = {0,0};
+		int center[] = {0,0};
+		
+		if(selected_left){
+			//Get tower menu size
+			get_menu_size_tower(size);
+		}
+		else {
+			//Get Minion menu size
+			get_menu_size_minion(size);
+		}
+		//Add padding
+		size[0] = size[0] + 20;
+		size[1] = size[1] + 20;
+		
+		//Render menu option
+		
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // the rect color (solid red)
+		SDL_RenderFillRect(renderer, &(SDL_Rect){center_clicked[0] - size[0] /2, center_clicked[1] - size[1] / 2, size[0], size[1]});
+	}
+}
 
 void display_health(SDL_Renderer *renderer, int value, TTF_Font *font){
     char str[5];
@@ -248,6 +280,7 @@ void display_health(SDL_Renderer *renderer, int value, TTF_Font *font){
     SDL_FreeSurface(s);
     
     SDL_RenderCopy(renderer, texture, NULL, &(SDL_Rect){1185, 40, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT});
+	SDL_DestroyTexture(texture);
 }
 
 void display_mana(SDL_Renderer *renderer, int value, TTF_Font *font){
@@ -260,6 +293,7 @@ void display_mana(SDL_Renderer *renderer, int value, TTF_Font *font){
     SDL_FreeSurface(s);
     
     SDL_RenderCopy(renderer, texture, NULL, &(SDL_Rect){1185, 130, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT});
+	SDL_DestroyTexture(texture);
 }
 
 void display_gold(SDL_Renderer *renderer, int value, TTF_Font *font){
@@ -272,4 +306,5 @@ void display_gold(SDL_Renderer *renderer, int value, TTF_Font *font){
     SDL_FreeSurface(s);
     
     SDL_RenderCopy(renderer, texture, NULL, &(SDL_Rect){1185, 240, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT});
+	SDL_DestroyTexture(texture);
 }

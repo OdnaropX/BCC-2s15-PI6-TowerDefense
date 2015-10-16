@@ -122,6 +122,7 @@ int main(int argc, char * argv[]) {
 	//Click control
 	bool active_clicked = false;
     bool run_action = false;
+	bool left_click = true;
 	
     bool return_to_previous_screen = false;     //For scores and credits menus
     bool select_return_to_previous_screen = false;     //For scores and credits menus
@@ -152,6 +153,7 @@ int main(int argc, char * argv[]) {
     t1 = SDL_GetTicks();
     
 	int select_grid = 0;
+	int click_grid = 0;
 	int max_grid = 17 * 13;
 	
     // Following parts are only for first interation;
@@ -163,6 +165,7 @@ int main(int argc, char * argv[]) {
 	int timer_minion = 20;
 	
 	int grid_clicked[] = {0,0};
+	int center_clicked[] = {0,0};
 	
 	int select_grid_option = 0;
 	
@@ -783,41 +786,47 @@ int main(int argc, char * argv[]) {
 							}
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
-							if(event.button.button == SDL_BUTTON_LEFT){
+							if(event.button.button == SDL_BUTTON_LEFT || event.button.button == SDL_BUTTON_RIGHT){
+								left_click = event.button.button == SDL_BUTTON_LEFT;
+								
 								//Game area
 								if(get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
 									current_position[0] = grid_clicked[0];
 									current_position[1] = grid_clicked[1];
 								
+									select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);								
+									
+									//convert select grid
+									get_grid_address_matriz(select_grid, 17, grid_clicked);
+									//Get center of clicked block on grid.
+									get_center_position_to_grid(grid_clicked[0], grid_clicked[1], grid_clicked);
+									
 									if (!active_clicked){
-										select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);
+										click_grid = select_grid;
+										center_clicked[0] = grid_clicked[0];
+										center_clicked[1] = grid_clicked[1];
 										active_clicked = true;
-										selected_left = true;
-										printf("Grid selected: %d\n", select_grid);
+										selected_left = left_click;
 									}
-									else {
-										//convert select grid
-										get_grid_address_matriz(select_grid, 17, grid_clicked);
-										//Get center of clicked block on grid.
-										get_center_position_to_grid(grid_clicked[0], grid_clicked[1], grid_clicked);
-										//Check where was clicked.
-										if(get_touched_menu_address(event.motion.x, event.motion.y, grid_clicked, &select_grid_option, selected_left)) {
-											printf("touch %d\n", select_grid_option);
-											if (selected_left) {
-												add_tower = select_grid_option;
-											}
-											else {
-												add_minion = select_grid_option;
-											}
+									//Check where was clicked.
+									else if (get_touched_menu_address(event.motion.x, event.motion.y, grid_clicked, &select_grid_option, selected_left)){
+										printf("touch %d\n", select_grid_option);
+										if (selected_left) {
+											add_tower = select_grid_option;
 										}
 										else {
-											active_clicked = false;
-											printf("Not clicked");
+											add_minion = select_grid_option;
 										}
+										active_clicked = false;
+									}
+									else {
+										active_clicked = false;
+										printf("Not clicked");
 									}
 								}
+
 								//Top menu
-								else if(event.motion.y >= 0 && event.motion.y <= BUTTON_MENU_HEIGHT){
+								else if(left_click && event.motion.y >= 0 && event.motion.y <= BUTTON_MENU_HEIGHT){
 									if (event.motion.x >= BUTTON_MENU_HEIGHT && event.motion.x <= BUTTON_MENU_HEIGHT * 2){
 										//Pause game
 										game_paused = !game_paused;
@@ -826,7 +835,7 @@ int main(int argc, char * argv[]) {
 									}
 								}
 								//Left menu
-								else if(event.motion.x >= window_width - 10 - BUTTON_MENU_HEIGHT && event.motion.y <= window_width - 10) {
+								else if(left_click && event.motion.x >= window_width - 10 - BUTTON_MENU_HEIGHT && event.motion.y <= window_width - 10) {
 									if (event.motion.y >= TOP_LAYER_SPACING && event.motion.y <= TOP_LAYER_SPACING + BUTTON_MENU_HEIGHT) {
 										//Set selected gold
 										show_gold_info = true;
@@ -842,15 +851,6 @@ int main(int argc, char * argv[]) {
 										show_life_info = true;
 										show_timer = 0;
 									}
-								}
-							}
-							//Left click only work on grid and when there is no grid already selected 
-							else if (event.button.button == SDL_BUTTON_RIGHT && !active_clicked){
-								if (get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
-									select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);
-									active_clicked = true;
-									selected_left = false;
-									printf("Grid right selected: %d\n", select_grid);
 								}
 							}
 							break;
@@ -1245,12 +1245,6 @@ int main(int argc, char * argv[]) {
 			
             
             case GAME_RUNNING:
-				/*
-				printf("Game Running\n");
-				printf("Game paused %d\n", game_paused);
-				printf("Active clicked %d\n", active_clicked);
-				printf("Selected left clicked %d\n", active_clicked);
-				*/
 				if (!game_paused){
 					if (add_tower > 0){
 						//Add tower
@@ -1443,8 +1437,10 @@ int main(int argc, char * argv[]) {
                 screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
                 SDL_RenderCopy(renderer, screen_surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
 			
-                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, active_clicked, selected_left, select_grid, select_running_option);
+                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count);
                 
+				display_mouse(renderer, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option);
+				
                 display_health(renderer, health, font);
                 display_mana(renderer, mana, font);
                 display_gold(renderer, gold, font);
