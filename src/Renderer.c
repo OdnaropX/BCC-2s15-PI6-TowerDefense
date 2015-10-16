@@ -262,8 +262,8 @@ void get_menu_size_minion(int size[]){
 void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], GAME_RUNNING_OPTIONS running_option) {
 	bool display_over = false;
 	
-	printf("Grid clicked %d\n", select_grid);
-	printf("Click active? %d\n", active_clicked);
+	//printf("Grid clicked %d\n", select_grid);
+	//printf("Click active? %d\n", active_clicked);
 	
 	//Display grid_over
 	

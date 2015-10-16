@@ -196,15 +196,14 @@ void get_center_position_to_grid(int x, int y, int array[]){
   3, 4, 17 = 67
 **/
 int get_grid_address_linear(int grid_x, int grid_y, int limit_x){
-	return grid_y * (limit_x - 1) + grid_x;
+	return grid_y * (limit_x) + grid_x;
 }
 
 void get_grid_address_matriz(int grid_number, int limit_x, int *matriz) {
-	int grid_x, grid_y, limit;
+	int grid_x, grid_y;
 	
-	limit = limit_x - 1;
-	grid_x = grid_number % limit;
-	grid_y = (grid_number - grid_x) / limit;
+	grid_x = grid_number % limit_x;
+	grid_y = (grid_number - grid_x) / limit_x;
 	
 	matriz[0] = grid_x;
 	matriz[1] = grid_y;

@@ -35,7 +35,7 @@ SDL_Surface *init_map();
 
 /***
   Get linear address from array address.
-  use example: get_grid_address_linear(1, 1, 16) --> 17
+  use example: get_grid_address_linear(1, 1, 17) --> 17
 **/
 int get_grid_address_linear(int grid_x, int grid_y, int limit_x);
 

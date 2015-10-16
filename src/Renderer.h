@@ -14,7 +14,7 @@
 #define window_height 720
 
 #define BUTTON_MENU_HEIGHT 30
-#define MENU_ICON 30
+#define MENU_ICON 50
 #define BUTTON_MENU_WIDTH 250
 
 //Renderer options, like text display, middle width calculation, etc...

@@ -470,15 +470,7 @@ int main(int argc, char * argv[]) {
 										active_clicked = true;
 										selected_left = false;
 									}
-								
-								//Mouse motion
-								case SDL_MOUSEMOTION:
-									//Move mouse selector over game area
-									if (!active_clicked && get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
-										select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);
-									}
-									break;
-								
+
 								//Keypad enter
 								case SDLK_KP_ENTER:
 									//Check current action selected from menu and initiated it.
@@ -791,6 +783,16 @@ int main(int argc, char * argv[]) {
 									}
 									break;
 							}
+						
+						//Mouse motion
+						case SDL_MOUSEMOTION:
+							//Move mouse selector over game area
+							if (!active_clicked && get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
+								select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);
+								printf("grid selected x%d y%d\n", grid_clicked[0], grid_clicked[1]);
+								printf("linear %d\n", select_grid);
+							}
+							break;
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
 							if(event.button.button == SDL_BUTTON_LEFT || event.button.button == SDL_BUTTON_RIGHT){
