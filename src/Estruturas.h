@@ -140,7 +140,7 @@ typedef struct _configuration {
 
 /* Screen options */
 
-typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE} screen;
+typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE, GAME_OVER} screen;
 
 typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA} TAB;
 
@@ -149,6 +149,8 @@ typedef enum _main_options {OPT_PLAY, OPT_CONFIG, OPT_SCORE, OPT_EXIT, OPT_CREDI
 typedef enum _pause_options {OPT_P_RESUME, OPT_P_CONFIG, OPT_P_SCORE, OPT_P_EXIT, OPT_P_MAIN, OPT_P_CREDITS, OPT_P_NONE} pause_options;
 
 typedef enum _config_options{AUDIO_SFX, AUDIO_MUSIC, LANGUAGE, BACK, NONE} config_options;
+
+typedef enum _game_over_options{GO_RETRY, GO_MAIN, GO_QUIT, GO_NONE} game_over_options;
 
 typedef enum _running_top_option {OPT_R_T_PAUSE, OPT_R_T_RESUME, OPT_R_T_NONE} RUNNING_TOP_OPTIONS;
 typedef enum _running_left_option {OPT_R_L_GOLD, OPT_R_L_MANA, OPT_R_L_LIFE, OPT_R_L_NONE} RUNNING_LEFT_OPTIONS;

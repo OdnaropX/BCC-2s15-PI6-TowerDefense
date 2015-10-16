@@ -191,6 +191,28 @@ void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *r
     }
 }
 
+void draw_screen_game_over(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, game_over_options select_game_over_option){
+    for(int i = 0; i < count; i++){
+        int sel = 0;
+        switch(select_game_over_option){
+            case GO_RETRY:
+                sel = 2;
+                break;
+            case GO_MAIN:
+                sel = 4;
+                break;
+            case GO_QUIT:
+                sel = 6;
+                break;
+            default:
+                break;
+        }
+        
+        if(i == 0 || i == sel || i%2 == 1)
+            SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+    }
+}
+
 void get_menu_size_tower(int size[]){
 	int correction, number, row, columns;
 	

@@ -60,7 +60,7 @@ int is_time(int timer, int second);
 
 int perform_path_verification(int targetX, int targetY);
 
-void occupyGrid(int targetX, int targetY);
+bool occupyGrid(int targetX, int targetY);
 
 void freeGrid(int targetX, int targetY);
 

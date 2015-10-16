@@ -18,6 +18,7 @@
 #define pause_interface_assets_count 13
 #define credits_menu_assets_count 7
 #define score_menu_assets_count 3
+#define game_over_interface_assets_count 7
 #define FRAMES_PER_SEC 60
 
 //SDL stuff
@@ -60,6 +61,10 @@ SDL_Rect credits_menu_rects[credits_menu_assets_count];
 SDL_Texture *score_menu_assets[score_menu_assets_count];
 SDL_Rect score_menu_rects[score_menu_assets_count];
 
+//Game over order: overlay, retry(+sel), main menu(+sel), exit(+sel)
+SDL_Texture *game_over_interface_assets[game_over_interface_assets_count];
+SDL_Rect game_over_interface_rects[game_over_interface_assets_count];
+
 CONFIGURATION *config;
 
 list_minion *minions;
@@ -94,7 +99,8 @@ int main(int argc, char * argv[]) {
 	main_options main_option = OPT_NONE;
     config_options config_option = NONE;
 	pause_options pause_option = OPT_P_NONE;
-	GAME_RUNNING_OPTIONS running_option; 
+	GAME_RUNNING_OPTIONS running_option;
+    game_over_options game_over_option = GO_NONE;
 	
 	running_option.current_tab = TOP_MENU;
 	running_option.top = OPT_R_T_NONE;
@@ -106,7 +112,8 @@ int main(int argc, char * argv[]) {
 	main_options select_option = OPT_PLAY;
 	config_options select_config_option = AUDIO_SFX;
 	pause_options select_pause_option = OPT_P_NONE;
-	GAME_RUNNING_OPTIONS select_running_option; 
+	GAME_RUNNING_OPTIONS select_running_option;
+    game_over_options select_game_over_option = GO_NONE;
 	
 	select_running_option.current_tab = TOP_MENU;
 	select_running_option.top = OPT_R_T_NONE;
@@ -1066,6 +1073,89 @@ int main(int argc, char * argv[]) {
                     }
 
                     break;
+                    
+                case GAME_OVER:
+                    switch (event.type) {
+                        case SDL_QUIT:
+                            quit = true;
+                            break;
+                            
+                        case SDL_KEYUP:
+                            switch (event.key.keysym.sym) {
+                                case SDLK_ESCAPE:
+                                    quit = true;
+                                    break;
+                                    
+                                case SDLK_KP_ENTER:
+                                    if(select_game_over_option != GO_NONE)
+                                        game_over_option = select_game_over_option;
+                                    break;
+                                    
+                                case SDLK_RETURN:
+                                    if(select_game_over_option != GO_NONE)
+                                        game_over_option = select_game_over_option;
+                                    break;
+                                    
+                                case SDLK_UP:
+                                    if(select_game_over_option == GO_RETRY)
+                                        select_game_over_option = GO_QUIT;
+                                    else
+                                        select_game_over_option++;
+                                    break;
+                                    
+                                case SDLK_DOWN:
+                                    if(select_game_over_option == GO_QUIT)
+                                        select_game_over_option = GO_RETRY;
+                                    else
+                                        select_game_over_option--;
+                                    break;
+                                    
+                                case SDLK_RIGHT:
+                                    if(select_game_over_option == GO_RETRY)
+                                        select_game_over_option = GO_QUIT;
+                                    else
+                                        select_game_over_option++;
+                                    break;
+                                    
+                                case SDLK_LEFT:
+                                    if(select_game_over_option == GO_QUIT)
+                                        select_game_over_option = GO_RETRY;
+                                    else
+                                        select_game_over_option--;
+                                    break;
+                                    
+                                default:
+                                    break;
+                            }
+                            break;
+                            
+                        case SDL_MOUSEBUTTONUP:
+                            if(event.button.button == SDL_BUTTON_LEFT){
+                                game_over_option = GO_NONE;
+                                
+                                if (event.motion.x >= 515 && event.motion.x <= 765) {
+                                    temp_option = (event.motion.y - 360) / BUTTON_MENU_HEIGHT;
+                                    if (temp_option <= GO_QUIT && temp_option >= 0) {
+                                        game_over_option = temp_option;
+                                    }
+                                }
+                            }
+                            break;
+                            
+                        case SDL_MOUSEMOTION:
+                            if (event.motion.x >= 515 && event.motion.x <= 765) {
+                                temp_option = (event.motion.y - 360) / BUTTON_MENU_HEIGHT;
+                                if (temp_option <= GO_QUIT && temp_option >= 0) {
+                                    select_game_over_option = temp_option;
+                                }
+                            }
+                            break;
+                            
+                        default:
+                            break;
+                    }
+                    
+                    break;
             }
         }
 		
@@ -1249,15 +1339,18 @@ int main(int argc, char * argv[]) {
 					if (add_tower > 0){
 						//Add tower
                         if(gold > 100){
-                            occupyGrid(current_position[0], current_position[1]);
-                            if(!perform_path_verification(16, 5)){ // Blocking path.
-                                freeGrid(current_position[0], current_position[1]);
-                                perform_path_verification(16, 5);
-                            }
-                            else{ // SUCCESS
-								new_turret = init_turret(add_tower, current_position[0], current_position[1]);
-                                add_turret_to_list(turrets, new_turret);
-                                gold -= 100;
+                            //Check if position already has tower
+                            if(occupyGrid(current_position[0], current_position[1])){
+                                //Check if turret == Snorlax
+                                if(!perform_path_verification(16, 5)){ // Blocking path.
+                                    freeGrid(current_position[0], current_position[1]);
+                                    perform_path_verification(16, 5);
+                                }
+                                else{ // SUCCESS
+                                    new_turret = init_turret(add_tower, current_position[0], current_position[1]);
+                                    add_turret_to_list(turrets, new_turret);
+                                    gold -= 100;
+                                }
                             }
                         }
 						//Reset tower
@@ -1345,7 +1438,8 @@ int main(int argc, char * argv[]) {
                     }
                     
                     if(health <= 0){
-                        quit = true;
+                        current_screen = GAME_OVER;
+                        game_started = false;
                     }
                 }
                 
@@ -1398,6 +1492,32 @@ int main(int argc, char * argv[]) {
                 if(return_to_previous_screen)
                     current_screen = previous_screen;
                 return_to_previous_screen = false;
+                break;
+                
+            case GAME_OVER:
+                switch (game_over_option) {
+                    case GO_RETRY:
+                        reset_game_data();
+                        show_timer = 0;
+                        current_screen = GAME_RUNNING;
+                        game_started = true;
+                        break;
+                        
+                    case GO_MAIN:
+                        reset_game_data();
+                        current_screen = MAIN;
+                        game_started = false;
+                        break;
+                        
+                    case GO_QUIT:
+                        quit = true;
+                        break;
+                        
+                    default:
+                        break;
+                }
+                
+                game_over_option = GO_NONE;
                 break;
             
 		}
@@ -1459,6 +1579,10 @@ int main(int argc, char * argv[]) {
                 draw_screen_score(renderer, score_menu_assets, score_menu_rects, score_menu_assets_count, select_return_to_previous_screen);
                 break;
                 
+            case GAME_OVER:
+                draw_screen_game_over(renderer, game_over_interface_assets, game_over_interface_rects, game_over_interface_assets_count, select_game_over_option);
+                break;
+                
             default:
                 break;
         }
@@ -1470,7 +1594,7 @@ int main(int argc, char * argv[]) {
 		if (screen_surfaces){
 			SDL_DestroyTexture(screen_surfaces);
 			screen_surfaces = NULL;
-			}
+        }
     }
     
     //Quit
@@ -1666,7 +1790,7 @@ bool main_init(){
         if(i == 0){
             surface = IMG_Load("../images/Pause Menu.png");
             if(!surface){
-                printf("(Game running)Erro ao carregar pause menu! %s\n", IMG_GetError());
+                printf("(Game pause)Erro ao carregar pause menu! %s\n", IMG_GetError());
                 return false;
             }
         }
@@ -1678,7 +1802,7 @@ bool main_init(){
                 surface = TTF_RenderText_Solid(font, text, white);
             
             if(!surface){
-                printf("(Game running)Text not rendered! %s\n", TTF_GetError());
+                printf("(Game pause)Text not rendered! %s\n", TTF_GetError());
                 return false;
             }
         }
@@ -1686,7 +1810,7 @@ bool main_init(){
         pause_interface_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
         
         if(!pause_interface_assets[i]){
-            printf("(Game running)Erro ao criar textura! %s\n", SDL_GetError());
+            printf("(Game pause)Erro ao criar textura! %s\n", SDL_GetError());
             return false;
         }
         
@@ -1796,6 +1920,67 @@ bool main_init(){
         
         SDL_FreeSurface(surface);
     }
+    
+    //Init game over screen texts
+    for(int i = 0; i < game_over_interface_assets_count; i++){
+        char *text = NULL;
+        SDL_Rect rect;
+        
+        switch (i) {
+            case 0:
+                rect = (SDL_Rect){0, 0, 1280, 720};
+                break;
+                
+            case 1: case 2:
+                text = "Retry";
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 3: case 4:
+                text = "Main Menu";
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+            
+            case 5: case 6:
+                text = "Quit";
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            default:
+                break;
+        }
+        
+        game_over_interface_rects[i] = rect;
+        
+        SDL_Surface *surface;
+        if(i == 0){
+            surface = IMG_Load("../images/Game Over.png");
+            if(!surface){
+                printf("(Game over)Erro ao carregar game over menu! %s\n", IMG_GetError());
+                return false;
+            }
+        }
+        
+        else{
+            if(i%2 == 0 && i > 0)
+                surface = TTF_RenderText_Solid(font, text, red);
+            else
+                surface = TTF_RenderText_Solid(font, text, white);
+            
+            if(!surface){
+                printf("(Game over)Text not rendered! %s\n", TTF_GetError());
+                return false;
+            }
+        }
+        
+        game_over_interface_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        if(!game_over_interface_assets[i]){
+            printf("(Game over)Erro ao criar textura! %s\n", SDL_GetError());
+            return false;
+        }
+        
+        SDL_FreeSurface(surface);
+    }
 	
 	//Init map
     map_Surface = init_map();
@@ -1878,6 +2063,11 @@ void main_quit(){
     for(int i = 0; i < score_menu_assets_count; i++){
         if(score_menu_assets[i])
             SDL_DestroyTexture(score_menu_assets[i]);
+    }
+    
+    for(int i = 0; i < game_over_interface_assets_count; i++){
+        if(game_over_interface_assets[i])
+            SDL_DestroyTexture(game_over_interface_assets[i]);
     }
     
     //Free surfaces

@@ -47,6 +47,8 @@ void draw_screen_credits(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect 
 
 void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, bool back);
 
+void draw_screen_game_over(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, game_over_options select_game_over_option);
+
 void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], GAME_RUNNING_OPTIONS running_option);
 
 void display_health(SDL_Renderer *renderer, int value, TTF_Font *font);

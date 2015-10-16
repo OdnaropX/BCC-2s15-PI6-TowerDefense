@@ -50,16 +50,6 @@ SDL_Surface *init_map(){
  Retorna 0 em sucesso e 1 em caso de colisão.
  */
 int move_bullet(minion *target, projectile *shoot){
-    if(!target){
-        printf("NULL target\n");
-        return -1;
-    }
-    
-    if(!shoot){
-        printf("NULL shoot\n");
-        return -1;
-    }
-    
     // 1 - Get required properties.
     int diff_x = target->node->xPos - shoot->node->xPos;
     int diff_y = target->node->yPos - shoot->node->yPos;
@@ -282,8 +272,12 @@ int perform_path_verification(int targetX, int targetY){
     return setShortestPaths(grid, 17, 13, targetX, targetY);
 }
 
-void occupyGrid(int targetX, int targetY){
-    grid[targetX][targetY] = -1;
+bool occupyGrid(int targetX, int targetY){
+    if(grid[targetX][targetY] == -2)
+        return false;
+    
+    grid[targetX][targetY] = -2;
+    return true;
 }
 
 void freeGrid(int targetX, int targetY){
