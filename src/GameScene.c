@@ -96,7 +96,7 @@ int move_bullet(minion *target, projectile *shoot){
         return 0;
 }
 
-void move_minion(minion *enemy){
+int move_minion(minion *enemy){
     // 1 - Find target center to move.
     int square[2];
     get_touched_grid_address(enemy->node->xPos, enemy->node->yPos, square);
@@ -160,6 +160,7 @@ void move_minion(minion *enemy){
     
     enemy->node->xPos += moveX;
     enemy->node->yPos += moveY;
+    return currentValue;
 }
 
 /**
