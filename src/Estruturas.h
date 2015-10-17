@@ -140,7 +140,7 @@ typedef struct _configuration {
 
 /* Screen options */
 
-typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE, GAME_OVER} screen;
+typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE, GAME_OVER, GAME_MULTIPLAY_SERVER, MINIONS_INFO} screen;
 
 typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA} TAB;
 

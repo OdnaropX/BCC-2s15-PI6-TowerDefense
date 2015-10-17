@@ -199,27 +199,8 @@ int main(int argc, char * argv[]) {
 						case SDL_QUIT:
 							quit = true;
 							break;
-						//Handle keyboard key release event.
-						case SDL_KEYUP:
+						case SDL_KEYDOWN:
 							switch(event.key.keysym.sym){
-								//Escape key
-								case SDLK_ESCAPE:
-									quit = true;
-									break;
-								//Keypad enter
-								case SDLK_KP_ENTER:
-									//Check current selected option
-									if (select_option != OPT_NONE){
-										main_option = select_option;
-									}
-									break;
-								//Keyboard enter
-								case SDLK_RETURN:
-									//Check current selected option and initiated it.
-									if (select_option != OPT_NONE){
-										main_option = select_option;
-									}
-									break;
 								case SDLK_UP:
 									//Change current selected option
 									if (select_option == OPT_PLAY) {
@@ -249,7 +230,30 @@ int main(int argc, char * argv[]) {
 									select_option = (select_option + 1) % 5;
 									break;
 								}
-						
+							break;
+						//Handle keyboard key release event.
+						case SDL_KEYUP:
+							switch(event.key.keysym.sym){
+								//Escape key
+								case SDLK_ESCAPE:
+									quit = true;
+									break;
+								//Keypad enter
+								case SDLK_KP_ENTER:
+									//Check current selected option
+									if (select_option != OPT_NONE){
+										main_option = select_option;
+									}
+									break;
+								//Keyboard enter
+								case SDLK_RETURN:
+									//Check current selected option and initiated it.
+									if (select_option != OPT_NONE){
+										main_option = select_option;
+									}
+									break;
+							}
+							break;
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:												
 							if(event.button.button == SDL_BUTTON_LEFT){
@@ -442,6 +446,7 @@ int main(int argc, char * argv[]) {
 						case SDL_QUIT:
 							quit = true;
 							break;
+						
 						//Handle keyboard release
 						case SDL_KEYUP:
 							switch(event.key.keysym.sym){
@@ -463,6 +468,7 @@ int main(int argc, char * argv[]) {
 										active_clicked = true;
 										selected_left = true;
 									}
+									break;
 								case SDLK_e:
 									printf("Key pressed: e\n"); 
 									if (running_option.current_tab == GAME_AREA && !active_clicked){
@@ -470,6 +476,7 @@ int main(int argc, char * argv[]) {
 										active_clicked = true;
 										selected_left = false;
 									}
+									break;
 
 								//Keypad enter
 								case SDLK_KP_ENTER:
