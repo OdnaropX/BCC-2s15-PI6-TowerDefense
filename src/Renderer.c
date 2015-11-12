@@ -213,10 +213,10 @@ void draw_screen_game_over(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rec
     }
 }
 
-void get_menu_size_tower(int size[]){
+void get_menu_size_tower(int size[], list_turret_avaliable *list){
 	int correction, number, row, columns;
 	
-	number = get_tower_avaliable();
+	number = get_tower_avaliable(list);
 	
 	if (number == 3) {
 		row = 1;
@@ -236,10 +236,10 @@ void get_menu_size_tower(int size[]){
 	size[1] = row * MENU_ICON;
 }
 
-void get_menu_size_minion(int size[]){
+void get_menu_size_minion(int size[], list_minion_avaliable *list){
 	int correction, number, row, columns;
 	
-	number = get_minion_avaliable();
+	number = get_minion_avaliable(list);
 	
 	if (number == 3) {
 		row = 1;
@@ -259,7 +259,7 @@ void get_menu_size_minion(int size[]){
 	size[1] = row * MENU_ICON;
 }
 
-void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], GAME_RUNNING_OPTIONS running_option) {
+void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], GAME_RUNNING_OPTIONS running_option, list_minion_avaliable *list_m, list_turret_avaliable *list_t) {
 	bool display_over = false;
 	
 	//printf("Grid clicked %d\n", select_grid);
@@ -275,11 +275,11 @@ void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_le
 		
 		if(selected_left){
 			//Get tower menu size
-			get_menu_size_tower(size);
+			get_menu_size_tower(size, list_t);
 		}
 		else {
 			//Get Minion menu size
-			get_menu_size_minion(size);
+			get_menu_size_minion(size, list_m);
 		}
 		//Add padding
 		size[0] = size[0] + 20;

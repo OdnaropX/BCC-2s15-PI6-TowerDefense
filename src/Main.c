@@ -75,12 +75,19 @@ int health = 5;
 int gold = 1000;
 int mana = 0;
 
+//Avaliables
+list_minion_avaliable *avaliable_minions;
+list_turret_avaliable *avaliable_turrets;
+
 //Cabeçalhos
 bool main_init();
 void main_quit();
 
 void get_config();
 void reset_game_data();
+
+//Socket structure
+
 
 int main(int argc, char * argv[]) {
     bool quit = false;
@@ -302,6 +309,49 @@ int main(int argc, char * argv[]) {
 						case SDL_QUIT:
 							quit = true;
 							break;
+						case SDL_KEYDOWN:	
+							switch(event.key.keysym.sym){
+								case SDLK_UP:
+									//Change current selected option
+									if (select_config_option == AUDIO_SFX) {
+										select_config_option = BACK;
+									}
+									else {
+										select_config_option--;
+									}
+									break;
+								
+								case SDLK_LEFT:
+									//Change current selected option
+									if (select_config_option == LANGUAGE) {
+										
+									}
+									else if (select_config_option == BACK) {
+										
+									}
+									else {
+										config_option = select_config_option;
+									}
+									break;
+								case SDLK_RIGHT:
+									//Change current selected option
+									if (select_config_option == LANGUAGE) {
+										
+									}
+									else if (select_config_option == BACK) {
+										
+									}
+									else {
+										config_option = select_config_option;
+									}
+									break;
+								
+								case SDLK_DOWN:
+									//Change current selected option
+									select_config_option = (select_config_option + 1) % 4;
+									break;
+							}
+							break;
 						//Handle keyboard event
 						case SDL_KEYUP:
 							switch(event.key.keysym.sym){
@@ -377,46 +427,9 @@ int main(int argc, char * argv[]) {
 											break;
 									}
 									break;
-								case SDLK_UP:
-									//Change current selected option
-									if (select_config_option == AUDIO_SFX) {
-										select_config_option = BACK;
-									}
-									else {
-										select_config_option--;
-									}
-									break;
 								
-								case SDLK_LEFT:
-									//Change current selected option
-									if (select_config_option == LANGUAGE) {
-										
-									}
-									else if (select_config_option == BACK) {
-										
-									}
-									else {
-										config_option = select_config_option;
-									}
-									break;
-								case SDLK_RIGHT:
-									//Change current selected option
-									if (select_config_option == LANGUAGE) {
-										
-									}
-									else if (select_config_option == BACK) {
-										
-									}
-									else {
-										config_option = select_config_option;
-									}
-									break;
-								
-								case SDLK_DOWN:
-									//Change current selected option
-									select_config_option = (select_config_option + 1) % 4;
-									break;
 							}
+							break;
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:									
 							if(event.button.button == SDL_BUTTON_LEFT){	
@@ -446,160 +459,8 @@ int main(int argc, char * argv[]) {
 						case SDL_QUIT:
 							quit = true;
 							break;
-						
-						//Handle keyboard release
-						case SDL_KEYUP:
+						case SDL_KEYDOWN:
 							switch(event.key.keysym.sym){
-								//Backspace
-								case SDLK_BACKSPACE:
-									current_screen = MAIN;
-									previous_screen = GAME_RUNNING;
-									break;
-								//Escape
-								case SDLK_ESCAPE:
-									//Show Game Pause screen with options
-									current_screen = GAME_PAUSED;
-									select_pause_option = OPT_P_RESUME;
-									break;	
-								case SDLK_q:
-									printf("Key pressed: q\n"); 
-									if (running_option.current_tab == GAME_AREA && !active_clicked){
-										//Active click on current location
-										active_clicked = true;
-										selected_left = true;
-									}
-									break;
-								case SDLK_e:
-									printf("Key pressed: e\n"); 
-									if (running_option.current_tab == GAME_AREA && !active_clicked){
-										//Active click on current location
-										active_clicked = true;
-										selected_left = false;
-									}
-									break;
-
-								//Keypad enter
-								case SDLK_KP_ENTER:
-									//Check current action selected from menu and initiated it.
-									switch(running_option.current_tab) {
-										case TOP_MENU:
-											switch(select_running_option.top){
-												case OPT_R_T_PAUSE:
-													//Dont do any action after this, only render the scene. 
-													current_screen = GAME_PAUSED;
-													game_paused = true;
-													break;
-												case OPT_R_T_RESUME:
-													current_screen = GAME_RUNNING;
-													game_paused = false;
-													break;
-												case OPT_R_T_NONE:
-													//Do nothing. Need this to not show warning on Windows.
-													break;
-											}
-											break;
-										case LEFT_MENU:
-											switch(select_running_option.left){
-												case OPT_R_L_GOLD:
-													show_gold_info = true;
-													show_timer = 0;
-													break;
-												case OPT_R_L_MANA:
-													show_mana_info = true;
-													show_timer = 0;
-													break;
-												case OPT_R_L_LIFE:
-													show_life_info = true;
-													show_timer = 0;
-													break;
-												case OPT_R_L_NONE:
-													//Do nothing. Need this to not show warning on Windows.
-													break;
-											}
-											break;
-										case BOTTOM_MENU:
-											//Do nothing. Need this to not show warning on Windows.
-											break;
-										case GAME_AREA:
-											//Enter only work on active_clicked.
-											if (active_clicked){
-												if (selected_left) {
-													add_tower = select_running_option.game_area.right + 1;
-                                                    get_cartesian_from_grid_number(select_grid, current_position, 17);
-												}
-												else {
-													add_minion = select_running_option.game_area.left + 1;
-													get_cartesian_from_grid_number(select_grid, current_position, 17);
-												}
-											}
-											break;
-										
-									}
-									break;
-								//Keyboard enter
-								case SDLK_RETURN:
-									//Check current action selected from menu and initiated it.
-									switch(running_option.current_tab) {
-										case TOP_MENU:
-											switch(select_running_option.top){
-												case OPT_R_T_PAUSE:
-													//Dont do any action after this, only render the scene. 
-													current_screen = GAME_PAUSED;
-													game_paused = true;
-													break;
-												case OPT_R_T_RESUME:
-													current_screen = GAME_RUNNING;
-													game_paused = false;
-													break;
-												case OPT_R_T_NONE:
-													//Do nothing. Need this to not show warning on Windows.
-													break;
-													
-											}
-											break;
-										case LEFT_MENU:
-											switch(select_running_option.left){
-												case OPT_R_L_GOLD:
-													show_gold_info = true;
-													show_timer = 0;
-													break;
-												case OPT_R_L_MANA:
-													show_mana_info = true;
-													show_timer = 0;
-													break;
-												case OPT_R_L_LIFE:
-													show_life_info = true;
-													show_timer = 0;
-													break;
-												case OPT_R_L_NONE:
-													//Do nothing. Need this to not show warning on Windows.
-													break;
-											}
-											break;
-											
-										case BOTTOM_MENU:
-											//Do nothing. Need this to not show warning on Windows.
-											break;
-										case GAME_AREA:
-											if (active_clicked){
-												if (selected_left) {
-													add_tower = select_running_option.game_area.right + 1;
-													get_cartesian_from_grid_number(select_grid, current_position, 17);
-												}
-												else {
-													add_minion = select_running_option.game_area.left + 1;
-													get_cartesian_from_grid_number(select_grid, current_position, 17);
-												}
-											}
-											break;
-										
-									}
-									break;
-								case SDLK_TAB:
-									//Move selector location
-									running_option.current_tab = (running_option.current_tab + 1) % 4;
-									
-									break;
 								case SDLK_UP:
 									//Move selected selector. Selector is choose with tab.
 									switch(running_option.current_tab) {
@@ -790,7 +651,162 @@ int main(int argc, char * argv[]) {
 									}
 									break;
 							}
-						
+							break;
+						//Handle keyboard release
+						case SDL_KEYUP:
+							switch(event.key.keysym.sym){
+								//Backspace
+								case SDLK_BACKSPACE:
+									current_screen = MAIN;
+									previous_screen = GAME_RUNNING;
+									break;
+								//Escape
+								case SDLK_ESCAPE:
+									//Show Game Pause screen with options
+									current_screen = GAME_PAUSED;
+									select_pause_option = OPT_P_RESUME;
+									break;	
+								case SDLK_q:
+									printf("Key pressed: q\n"); 
+									if (running_option.current_tab == GAME_AREA && !active_clicked){
+										//Active click on current location
+										active_clicked = true;
+										selected_left = true;
+									}
+									break;
+								case SDLK_e:
+									printf("Key pressed: e\n"); 
+									if (running_option.current_tab == GAME_AREA && !active_clicked){
+										//Active click on current location
+										active_clicked = true;
+										selected_left = false;
+									}
+									break;
+
+								//Keypad enter
+								case SDLK_KP_ENTER:
+									//Check current action selected from menu and initiated it.
+									switch(running_option.current_tab) {
+										case TOP_MENU:
+											switch(select_running_option.top){
+												case OPT_R_T_PAUSE:
+													//Dont do any action after this, only render the scene. 
+													current_screen = GAME_PAUSED;
+													game_paused = true;
+													break;
+												case OPT_R_T_RESUME:
+													current_screen = GAME_RUNNING;
+													game_paused = false;
+													break;
+												case OPT_R_T_NONE:
+													//Do nothing. Need this to not show warning on Windows.
+													break;
+											}
+											break;
+										case LEFT_MENU:
+											switch(select_running_option.left){
+												case OPT_R_L_GOLD:
+													show_gold_info = true;
+													show_timer = 0;
+													break;
+												case OPT_R_L_MANA:
+													show_mana_info = true;
+													show_timer = 0;
+													break;
+												case OPT_R_L_LIFE:
+													show_life_info = true;
+													show_timer = 0;
+													break;
+												case OPT_R_L_NONE:
+													//Do nothing. Need this to not show warning on Windows.
+													break;
+											}
+											break;
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
+											break;
+										case GAME_AREA:
+											//Enter only work on active_clicked.
+											if (active_clicked){
+												if (selected_left) {
+													add_tower = select_running_option.game_area.right + 1;
+                                                    get_cartesian_from_grid_number(select_grid, current_position, 17);
+												}
+												else {
+													add_minion = select_running_option.game_area.left + 1;
+													get_cartesian_from_grid_number(select_grid, current_position, 17);
+												}
+											}
+											break;
+										
+									}
+									break;
+								//Keyboard enter
+								case SDLK_RETURN:
+									//Check current action selected from menu and initiated it.
+									switch(running_option.current_tab) {
+										case TOP_MENU:
+											switch(select_running_option.top){
+												case OPT_R_T_PAUSE:
+													//Dont do any action after this, only render the scene. 
+													current_screen = GAME_PAUSED;
+													game_paused = true;
+													break;
+												case OPT_R_T_RESUME:
+													current_screen = GAME_RUNNING;
+													game_paused = false;
+													break;
+												case OPT_R_T_NONE:
+													//Do nothing. Need this to not show warning on Windows.
+													break;
+													
+											}
+											break;
+										case LEFT_MENU:
+											switch(select_running_option.left){
+												case OPT_R_L_GOLD:
+													show_gold_info = true;
+													show_timer = 0;
+													break;
+												case OPT_R_L_MANA:
+													show_mana_info = true;
+													show_timer = 0;
+													break;
+												case OPT_R_L_LIFE:
+													show_life_info = true;
+													show_timer = 0;
+													break;
+												case OPT_R_L_NONE:
+													//Do nothing. Need this to not show warning on Windows.
+													break;
+											}
+											break;
+											
+										case BOTTOM_MENU:
+											//Do nothing. Need this to not show warning on Windows.
+											break;
+										case GAME_AREA:
+											if (active_clicked){
+												if (selected_left) {
+													add_tower = select_running_option.game_area.right + 1;
+													get_cartesian_from_grid_number(select_grid, current_position, 17);
+												}
+												else {
+													add_minion = select_running_option.game_area.left + 1;
+													get_cartesian_from_grid_number(select_grid, current_position, 17);
+												}
+											}
+											break;
+										
+									}
+									break;
+								case SDLK_TAB:
+									//Move selector location
+									running_option.current_tab = (running_option.current_tab + 1) % 4;
+									
+									break;
+							}
+							break;
 						//Mouse motion
 						case SDL_MOUSEMOTION:
 							//Move mouse selector over game area
@@ -825,7 +841,7 @@ int main(int argc, char * argv[]) {
 										selected_left = left_click;
 									}
 									//Check where was clicked.
-									else if (get_touched_menu_address(event.motion.x, event.motion.y, grid_clicked, &select_grid_option, selected_left)){
+									else if (get_touched_menu_address(event.motion.x, event.motion.y, grid_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
 										printf("touch %d\n", select_grid_option);
 										if (selected_left) {
 											add_tower = select_grid_option;
@@ -880,6 +896,37 @@ int main(int argc, char * argv[]) {
 							quit = true;
 							break;
 							
+						case SDL_KEYDOWN:
+							switch(event.key.keysym.sym){
+								case SDLK_UP:
+									//Move to option above
+									if (select_pause_option == OPT_P_RESUME) {
+										select_pause_option = OPT_P_CREDITS;
+									}
+									else {
+										select_pause_option--;
+									}
+									break;
+								case SDLK_LEFT:
+									//Move to option left 
+									select_pause_option = (select_pause_option + 1) % OPT_P_NONE;
+									break;
+								case SDLK_RIGHT:
+									//Move to option right
+									if (select_pause_option == OPT_P_RESUME) {
+										select_pause_option = OPT_P_CREDITS;
+									}
+									else {
+										select_pause_option--;
+									}
+									break;
+									
+								case SDLK_DOWN:
+									//Move to option bellow
+									select_pause_option = (select_pause_option + 1) % OPT_P_NONE;
+									break;
+							}
+							break;
 						//Case Keyboard pressed and release
 						case SDL_KEYUP:
 							switch(event.key.keysym.sym){
@@ -956,35 +1003,9 @@ int main(int argc, char * argv[]) {
 											break;
 									}
 									break;
-								case SDLK_UP:
-									//Move to option above
-									if (select_pause_option == OPT_P_RESUME) {
-										select_pause_option = OPT_P_CREDITS;
-									}
-									else {
-										select_pause_option--;
-									}
-									break;
-								case SDLK_LEFT:
-									//Move to option left 
-									select_pause_option = (select_pause_option + 1) % OPT_P_NONE;
-									break;
-								case SDLK_RIGHT:
-									//Move to option right
-									if (select_pause_option == OPT_P_RESUME) {
-										select_pause_option = OPT_P_CREDITS;
-									}
-									else {
-										select_pause_option--;
-									}
-									break;
-									
-								case SDLK_DOWN:
-									//Move to option bellow
-									select_pause_option = (select_pause_option + 1) % OPT_P_NONE;
-									break;
+								
 							}
-						
+							break;
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
 							if(event.button.button == SDL_BUTTON_LEFT){
@@ -1008,15 +1029,15 @@ int main(int argc, char * argv[]) {
 								}
 							}
 							break;
-						
 					}
-                    
+					break;
                 case CREDITS:
                     switch (event.type) {
                         case SDL_QUIT:
                             quit = true;
                             break;
                             
+						
                         case SDL_KEYUP:
                             if(event.key.keysym.sym == SDLK_ESCAPE || event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_KP_ENTER)
                                 return_to_previous_screen = true;
@@ -1191,7 +1212,7 @@ int main(int argc, char * argv[]) {
 					
 				//Wave spawning.
 				if(pending_wave_number > 0) {
-					add_minion = (add_minion + 1) % get_minion_avaliable();
+					add_minion = (add_minion + 1) % get_minion_avaliable(avaliable_minions);
 					pending_wave_number--;
 				}
                 
@@ -1568,7 +1589,7 @@ int main(int argc, char * argv[]) {
 			
                 draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count);
                 
-				display_mouse(renderer, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option);
+				display_mouse(renderer, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option, avaliable_minions, avaliable_turrets);
 				
                 display_health(renderer, health, font);
                 display_mana(renderer, mana, font);
@@ -2034,6 +2055,26 @@ bool main_init(){
     
     game_interface_rects[1] = (SDL_Rect){1095, 0, 185, 720};
     
+	//Init minions avaliable
+	if (windows)
+		avaliable_minions = load_minions("MinionListWin.txt");
+	else
+		avaliable_minions = load_minions("MinionListMac.txt");
+	
+	if(avaliable_minions == NULL) {
+		printf("Falha ao carregar Minions");
+		return false;
+	}
+	//Init turrets avaliable
+	if (windows)
+		avaliable_turrets = load_turrets("TurretsListWin.txt");
+	else
+		avaliable_turrets = load_turrets("TurretsListMac.txt");
+	
+	if(avaliable_minions == NULL) {
+		printf("Falha ao carregar Turrets");
+		return false;
+	}
     return true;
 }
 
@@ -2100,6 +2141,12 @@ void main_quit(){
     if(config)
         free(config);
     
+	if(avaliable_minions) 
+		free_avaliable_list_minion(avaliable_minions);
+		
+	//if(avaliable_turrets) 
+	//	free_avaliable_list_turret(avaliable_turrets);
+	
     reset_game_data();
 }
 

@@ -17,9 +17,11 @@
 //Load lib for windows or mac.
 #include <SDL2/SDL.h>
 #ifdef _WIN32 
+#define windows 1
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #else
+#define windows 0
 #include <SDL2_image/SDL_image.h>
 #include <SDL2_ttf/SDL_ttf.h>
 #endif
@@ -60,6 +62,19 @@ typedef struct _minion {
 
 minion *init_minion(int minionID);
 void remove_minion(minion *mium);
+
+typedef struct _minions {
+	node *thumbnail;
+	int HP;
+	float speed;
+	int gold_per_second_bonus;
+	int cost;
+	int gold_drop;
+} minion_avaliable;
+
+
+minion_avaliable *init_avaliable_minion(char *image_file, int hp, float speed, int cost, int gold_p_s, int gold_drop);
+void remove_avaliable_minion(minion_avaliable *mium);
 
 //Turret
 typedef struct _turret{
@@ -112,11 +127,30 @@ void free_list_minion(list_minion *list);
 void add_minion_to_list(list_minion *list, minion *minion);
 list_minion *remove_minion_from_list(list_minion *list, minion *minion);
 
+
+typedef struct _list_minion_avaliable {
+	int type;
+	minion_avaliable *e;
+	struct _list_minion_avaliable *next;
+} list_minion_avaliable;
+
+list_minion_avaliable *init_avaliable_list_minion();
+void free_avaliable_list_minion(list_minion_avaliable *list);
+void add_minion_to_avaliable_list(list_minion_avaliable *list, minion_avaliable *minion, int type);
+
+
 // List Tower
 typedef struct _list_turret {
 	turret *e;
 	struct _list_turret *next;
 } list_turret;
+
+//List turret avaliable
+typedef struct _list_turret_avaliable {
+	turret *e;
+	int type;
+	struct _list_turret *next;
+} list_turret_avaliable;
 
 #define MAIN_SCREEN
 
@@ -125,8 +159,10 @@ void free_list_turret(list_turret *list);
 void add_turret_to_list(list_turret *list, turret *turret);
 list_turret *remove_turret_from_list(list_turret *list, turret *turret);
 
-int get_tower_avaliable();
-int get_minion_avaliable();
+list_minion_avaliable *load_minions(char const *file_name);
+
+int get_tower_avaliable(list_turret_avaliable *list);
+int get_minion_avaliable(list_minion_avaliable *list);
 
 /* Game options */
 
@@ -151,6 +187,8 @@ typedef enum _pause_options {OPT_P_RESUME, OPT_P_CONFIG, OPT_P_SCORE, OPT_P_EXIT
 typedef enum _config_options{AUDIO_SFX, AUDIO_MUSIC, LANGUAGE, BACK, NONE} config_options;
 
 typedef enum _game_over_options{GO_RETRY, GO_MAIN, GO_QUIT, GO_NONE} game_over_options;
+
+typedef enum _multiplay_options{OPT_MP_NONE} multiplay_options;
 
 typedef enum _running_top_option {OPT_R_T_PAUSE, OPT_R_T_RESUME, OPT_R_T_NONE} RUNNING_TOP_OPTIONS;
 typedef enum _running_left_option {OPT_R_L_GOLD, OPT_R_L_MANA, OPT_R_L_LIFE, OPT_R_L_NONE} RUNNING_LEFT_OPTIONS;

@@ -1,0 +1,11 @@
+//In order: img hp speed GoldPerSecondBonus cost GoldDrop
+Renato.png 5 3 0.1 24 12    
+Jacober.png 6 4 0.2 50 25
+Pedro.png 10 3 0.3 90 45
+Daniel.png 14 4 0.5 160 80
+Danielle.png 19 4 0.9 300 150
+Denis.png 33 2 1.2 550 275
+Takeo.png 30 4 1.8 1000 500
+Heredia.png 60 3 2.3 1800 900
+Hashimoto.png 40 8 5 3200 1600
+Marengoni.png 200 1 10 5500 2750

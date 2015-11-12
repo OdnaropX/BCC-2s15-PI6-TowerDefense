@@ -209,15 +209,15 @@ void get_grid_address_matriz(int grid_number, int limit_x, int *matriz) {
 	matriz[1] = grid_y;
 }
 
-int get_touched_menu_address(int x_touch, int y_touch, int center_position[], int *selected_option, int tower){
+int get_touched_menu_address(int x_touch, int y_touch, int center_position[], int *selected_option, int tower, list_minion_avaliable *list_m, list_turret_avaliable *list_t){
 	int number;
 	int row, width, height, columns, correction;
 	
 	if (tower) {
-		number = get_tower_avaliable(); //Get from file or some other means.
+		number = get_tower_avaliable(list_t); //Get from file or some other means.
 	}
 	else {
-		number = get_minion_avaliable(); //Get from file or some other means.
+		number = get_minion_avaliable(list_m); //Get from file or some other means.
 	}
 	
 	if (number == 3) {

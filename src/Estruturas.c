@@ -61,6 +61,37 @@ void remove_minion(minion *mium){
     }
 }
 
+//Avaliable minion
+minion_avaliable *init_avaliable_minion(char *image_file, int hp, float speed, int cost, int gold_p_s, int gold_drop){
+    // USAR MINIONID para diferentes minions dps.
+    minion_avaliable *new_minion = malloc(sizeof(minion_avaliable));
+    new_minion->thumbnail = init_node(image_file, 0, 400);
+	
+	if(new_minion->thumbnail == NULL) {
+		free(new_minion);
+		new_minion = NULL;
+		return NULL;
+	}
+	
+    new_minion->HP = hp;
+    new_minion->speed = speed;
+    new_minion->gold_per_second_bonus = gold_p_s;
+    new_minion->cost = cost;
+    new_minion->gold_drop = gold_drop;
+    
+    return new_minion;
+}
+
+void remove_avaliable_minion(minion_avaliable *mium){
+    if(mium){
+        free_node(mium->thumbnail);
+        mium->thumbnail = NULL;
+        free(mium);
+        mium = NULL;
+    }
+}
+
+
 //Turret
 turret *init_turret(int turretID, int gridX, int gridY){
     turret *new_turret = malloc(sizeof(turret));
@@ -258,6 +289,49 @@ list_minion *remove_minion_from_list(list_minion *list, minion *minion){
     return list;
 }
 
+//List Avaliable minions
+list_minion_avaliable *init_avaliable_list_minion(){
+    list_minion_avaliable *new_list = malloc(sizeof(list_minion_avaliable));
+    new_list->e = NULL;
+    new_list->type = 0;
+    new_list->next = NULL;
+
+    return new_list;
+}
+
+void free_avaliable_list_minion(list_minion_avaliable *list){
+    list_minion_avaliable *aux = list;
+    
+    while (aux && aux->next){
+        remove_avaliable_minion(aux->e);
+        aux->e = NULL;
+        list_minion_avaliable *rmv = aux;
+        aux = aux->next;
+        free(rmv);
+        rmv = NULL;
+    }
+    
+    free(aux);
+    aux = NULL;
+}
+
+void add_minion_to_avaliable_list(list_minion_avaliable *list, minion_avaliable *minion, int type){
+    //Caso a lista esteja vazia ainda
+    if(!list->e){
+		list->type = type;
+        list->e = minion;
+        return;
+    }
+    
+    while(list->next)
+        list = list->next;
+    
+    list_minion_avaliable *new_element = init_avaliable_list_minion();
+    new_element->e = minion;
+    new_element->type = type;
+    list->next = new_element;
+}
+
 //List Turrets
 list_turret *init_list_turret(){
     list_turret *new_list = malloc(sizeof(list_turret));
@@ -337,17 +411,111 @@ list_turret *remove_turret_from_list(list_turret *list, turret *turret){
     return list;
 }
 
-int get_tower_avaliable() {
-	//Get from tower files. < TODO
-	
-	
-	
-	return 3;
+char* load_file(char const *file_name){
+	SDL_RWops *rw = SDL_RWFromFile(file_name, "rb");
+    if (rw == NULL) return NULL;
+
+    Sint64 res_size = SDL_RWsize(rw);
+    char* res = (char*) malloc(res_size + 1);
+
+    Sint64 nb_read_total = 0, nb_read = 1;
+    char* buf = res;
+    while (nb_read_total < res_size && nb_read != 0) {
+		nb_read = SDL_RWread(rw, buf, 1, (res_size - nb_read_total));
+        nb_read_total += nb_read;
+        buf += nb_read;
+	}
+    SDL_RWclose(rw);
+    if (nb_read_total != res_size) {
+		free(res);
+		return NULL;
+    }
+
+    res[nb_read_total] = '\0';
+    return res;
 }
-int get_minion_avaliable() {
+
+list_minion_avaliable *load_minions(char const *file_name){
+	char *file = load_file(file_name);
+	if(file == NULL) {
+		return false;
+	}
+	
+	int readed = 6;
+	char name[40];
+	int hp, gold_per_second, cost, gold_drop;
+	float speed;
+	int type = 0;
+	bool first = true;
+	
+	//Jump first line
+	sscanf(file, "%*s\n", name);
+	
+	
+	//Init avaliable minion list
+	list_minion_avaliable *avaliables = init_avaliable_list_minion();
+	while(1) {
+		for(int i=0; i < 40; i++) {
+			name[i] = '\0'; 
+		}
+		readed = sscanf(file, "%s %d %f %d %d %d", name, &hp, &speed, &gold_per_second, &cost, &gold_drop);
+		if (readed != 6){
+			break;
+		}
+		if (first) {
+			first = false;
+		}
+		
+		//Create minion and alloc.
+		minion_avaliable *minion = init_avaliable_minion(name, hp, speed, cost, gold_per_second, gold_drop);
+		if (minion != NULL){
+			//Add to list	
+			add_minion_to_avaliable_list(avaliables, minion, type);
+			type++;
+		}
+	}
+	
+	if(first){
+		//Unalloc list.
+		free_avaliable_list_minion(avaliables);
+		return NULL;
+	}
+	return avaliables;
+}
+
+minion_avaliable *get_minion_from_avaliable_list(list_minion_avaliable *list, int type){
+	list_minion_avaliable *temp_list;
+	
+	temp_list = list;
+	while(temp_list->type != type && temp_list->next) {
+		temp_list = temp_list->next;
+	}
+	
+	return temp_list;
+}
+
+int get_tower_avaliable(list_turret_avaliable *list) {
 	//Get from minion files. < TODO
+	list_turret_avaliable *temp = list;
+	int avaliable = 0;
 	
+	while(temp){
+		temp = temp->next;
+		avaliable++;
+	}
 	
+	return avaliable;
+}
+
+int get_minion_avaliable(list_minion_avaliable *list) {
+	//Get from tower files. < TODO
+	list_minion_avaliable *temp = list;
+	int avaliable = 0;
 	
-	return 3;
+	while(temp){
+		temp = temp->next;
+		avaliable++;
+	}
+	
+	return avaliable;
 }

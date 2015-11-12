@@ -25,9 +25,9 @@ int get_center(int space_size, int object_size);
 /* Function to get width and height of turret menu.
 	Need a 2 size array, size[0] and size[1].
 */
-void get_menu_size_tower(int size[]);
+void get_menu_size_tower(int size[], list_turret_avaliable *list);
 
-void get_menu_size_minion(int size[]);
+void get_menu_size_minion(int size[], list_minion_avaliable *list);
 
 void draw_phrase();
 
@@ -49,7 +49,7 @@ void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *r
 
 void draw_screen_game_over(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, game_over_options select_game_over_option);
 
-void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], GAME_RUNNING_OPTIONS running_option);
+void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], GAME_RUNNING_OPTIONS running_option, list_minion_avaliable *list_m, list_turret_avaliable *list_t);
 
 void display_health(SDL_Renderer *renderer, int value, TTF_Font *font);
 

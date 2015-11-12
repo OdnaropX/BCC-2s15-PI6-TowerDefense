@@ -23,7 +23,7 @@
  **/
 int get_touched_grid_address(int x_touch, int y_touch, int array[]);
 
-int get_touched_menu_address(int x_touch, int y_touch, int center_position[], int selected_option[], int tower);
+int get_touched_menu_address(int x_touch, int y_touch, int center_position[], int selected_option[], int tower, list_minion_avaliable *list_m, list_turret_avaliable *list_t);
 
 /**
  Fills sent array[2] with x and y positions for screen, as center of the rect.
