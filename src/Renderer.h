@@ -51,6 +51,9 @@ void draw_screen_game_over(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rec
 
 void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], GAME_RUNNING_OPTIONS running_option, list_minion_avaliable *list_m, list_turret_avaliable *list_t);
 
+void draw_screen_multiplayer_menu(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, multiplayer_menu_options select_multiplayer_option);
+
+
 void display_health(SDL_Renderer *renderer, int value, TTF_Font *font);
 
 void display_mana(SDL_Renderer *renderer, int value, TTF_Font *font);

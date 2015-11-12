@@ -12,13 +12,15 @@
 #include "Renderer.h"
 #include "GameScene.h"
 
-#define main_menu_assets_count 11
+#define main_menu_assets_count 13
 #define config_menu_assets_count 9
 #define game_interface_assets_count 2
 #define pause_interface_assets_count 13
 #define credits_menu_assets_count 7
 #define score_menu_assets_count 3
 #define game_over_interface_assets_count 7
+#define multiplayer_menu_assets_count 10
+
 #define FRAMES_PER_SEC 60
 
 //SDL stuff
@@ -37,7 +39,7 @@ SDL_Color green = {0, 255, 0, 255};
 SDL_Color red = {255, 0, 0, 255};
 
 //Static texts
-//Main menu order: title, play(+sel), config(+sel), score(+sel), credits(+sel), exit(+sel)
+//Main menu order: title, play(+sel), multiplayer(+sel), config(+sel), score(+sel), credits(+sel), exit(+sel)
 SDL_Texture *main_menu_assets[main_menu_assets_count];
 SDL_Rect main_menu_rects[main_menu_assets_count];
 
@@ -65,6 +67,10 @@ SDL_Rect score_menu_rects[score_menu_assets_count];
 SDL_Texture *game_over_interface_assets[game_over_interface_assets_count];
 SDL_Rect game_over_interface_rects[game_over_interface_assets_count];
 
+//Multiplayer screen order: title, create game(+sel), search game(+sel), cancel(+sel), back(+sel), status
+SDL_Texture *multiplayer_menu_assets[multiplayer_menu_assets_count];
+SDL_Rect multiplayer_menu_rects[multiplayer_menu_assets_count];
+
 CONFIGURATION *config;
 
 list_minion *minions;
@@ -84,6 +90,7 @@ bool main_init();
 void main_quit();
 
 void get_config();
+void get_multiplayer_status(multiplayer_menu_options selected_option, multiplayer_status current_status);
 void reset_game_data();
 
 //Socket structure
@@ -108,6 +115,8 @@ int main(int argc, char * argv[]) {
 	pause_options pause_option = OPT_P_NONE;
 	GAME_RUNNING_OPTIONS running_option;
     game_over_options game_over_option = GO_NONE;
+    multiplayer_menu_options multiplayer_option = MP_NONE;
+    multiplayer_status multiplayer_status = MPS_NONE;
 	
 	running_option.current_tab = TOP_MENU;
 	running_option.top = OPT_R_T_NONE;
@@ -121,6 +130,7 @@ int main(int argc, char * argv[]) {
 	pause_options select_pause_option = OPT_P_NONE;
 	GAME_RUNNING_OPTIONS select_running_option;
     game_over_options select_game_over_option = GO_NONE;
+    multiplayer_menu_options select_multiplayer_option = MP_NONE;
 	
 	select_running_option.current_tab = TOP_MENU;
 	select_running_option.top = OPT_R_T_NONE;
@@ -220,7 +230,7 @@ int main(int argc, char * argv[]) {
 								
 								case SDLK_LEFT:
 									//Change current selected option
-									select_option = (select_option + 1) % 5;
+									select_option = (select_option + 1) % 6;
 									break;
 								case SDLK_RIGHT:
 									//Change current selected option
@@ -234,7 +244,7 @@ int main(int argc, char * argv[]) {
 								
 								case SDLK_DOWN:
 									//Change current selected option
-									select_option = (select_option + 1) % 5;
+									select_option = (select_option + 1) % 6;
 									break;
 								}
 							break;
@@ -246,15 +256,8 @@ int main(int argc, char * argv[]) {
 									quit = true;
 									break;
 								//Keypad enter
-								case SDLK_KP_ENTER:
+								case SDLK_KP_ENTER: case SDLK_RETURN:
 									//Check current selected option
-									if (select_option != OPT_NONE){
-										main_option = select_option;
-									}
-									break;
-								//Keyboard enter
-								case SDLK_RETURN:
-									//Check current selected option and initiated it.
 									if (select_option != OPT_NONE){
 										main_option = select_option;
 									}
@@ -270,7 +273,7 @@ int main(int argc, char * argv[]) {
 										
 								if (event.motion.x >= 980 && event.motion.x <= 980 + BUTTON_MENU_WIDTH) {//Near main config
 									//This is the same as the code commented below, because I have yet to test I didnt remove the comment. If someone can test tell me if is working as aspect.
-									temp_option = (event.motion.y - 480) / BUTTON_MENU_HEIGHT;
+									temp_option = (event.motion.y - 450) / BUTTON_MENU_HEIGHT;
 									if (temp_option < OPT_CREDIT && temp_option >= 0) {
 										main_option = temp_option;
 									}
@@ -278,7 +281,7 @@ int main(int argc, char * argv[]) {
 								}
 								else if (event.motion.x >= 30 && event.motion.x <= 30 + BUTTON_MENU_WIDTH) {
 									//Near credits 
-									if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
+									if(event.motion.y >= 450 + BUTTON_MENU_HEIGHT * 4 && event.motion.y <= 450 + BUTTON_MENU_HEIGHT * 5) {
 										main_option = OPT_CREDIT;
 									}
 								}
@@ -288,20 +291,92 @@ int main(int argc, char * argv[]) {
 						case SDL_MOUSEMOTION:
 							//Change select_option with mouse over data.
 							if (event.motion.x >= 980 && event.motion.x <= 980 + BUTTON_MENU_WIDTH) {//Near main config
-								temp_option = (event.motion.y - 480) / BUTTON_MENU_HEIGHT;
+								temp_option = (event.motion.y - 450) / BUTTON_MENU_HEIGHT;
 								if (temp_option < OPT_CREDIT && temp_option >= 0) {
 									select_option = temp_option;
 								}
 							}
 							else if (event.motion.x >= 30 && event.motion.x <= 30 + BUTTON_MENU_WIDTH) {
 							//Near credits 
-								if(event.motion.y >= 480 + BUTTON_MENU_HEIGHT * 3 && event.motion.y <= 480 + BUTTON_MENU_HEIGHT * 4) {
+								if(event.motion.y >= 450 + BUTTON_MENU_HEIGHT * 4 && event.motion.y <= 450 + BUTTON_MENU_HEIGHT * 5) {
 									select_option = OPT_CREDIT;
 								}
 							}			
 							break;
 					}
 					break;
+                    
+                case GAME_MULTIPLAY_SERVER:
+                    switch (event.type) {
+                        case SDL_QUIT:
+                            quit = true;
+                            break;
+                            
+                        case SDL_KEYDOWN:
+                            switch (event.key.keysym.sym) {
+                                case SDLK_UP: case SDLK_LEFT:
+                                    if(select_multiplayer_option == MP_CREATE_GAME)
+                                        select_multiplayer_option = MP_BACK;
+                                    else
+                                        select_multiplayer_option --;
+                                    
+                                    break;
+                                    
+                                case SDLK_DOWN: case SDLK_RIGHT:
+                                    if(select_multiplayer_option == MP_BACK)
+                                        select_multiplayer_option = MP_CREATE_GAME;
+                                    else
+                                        select_multiplayer_option ++;
+                                    
+                                    break;
+                                    
+                                default:
+                                    break;
+                            }
+                            break;
+                            
+                        case SDL_KEYUP:
+                            switch (event.key.keysym.sym) {
+                                case SDLK_ESCAPE:
+                                    quit = true;
+                                    break;
+                                    
+                                case SDLK_KP_ENTER: case SDLK_RETURN:
+                                    if(select_multiplayer_option != MP_NONE)
+                                        multiplayer_option = select_multiplayer_option;
+                                    break;
+                                    
+                                default:
+                                    break;
+                            }
+                            break;
+                            
+                        case SDL_MOUSEBUTTONUP:
+                            if(event.button.button == SDL_BUTTON_LEFT){
+                                multiplayer_option = MP_NONE;
+                                
+                                if(event.motion.x >= 515 && event.motion.x <= 515 + BUTTON_MENU_WIDTH){
+                                    temp_option = (event.motion.y - 150) / BUTTON_MENU_HEIGHT;
+                                    if(temp_option < MP_NONE && temp_option >= 0)
+                                        multiplayer_option = temp_option;
+                                }
+                            }
+                            
+                            break;
+                            
+                        case SDL_MOUSEMOTION:
+                            if(event.motion.x >= 515 && event.motion.x <= 515 + BUTTON_MENU_WIDTH){
+                                temp_option = (event.motion.y - 150) / BUTTON_MENU_HEIGHT;
+                                if(temp_option < MP_NONE && temp_option >= 0)
+                                    select_multiplayer_option = temp_option;
+                            }
+                            
+                            break;
+                            
+                        default:
+                            break;
+                    }
+                    break;
                     
 				case CONFIG:
 					switch (event.type) {
@@ -355,8 +430,8 @@ int main(int argc, char * argv[]) {
 						//Handle keyboard event
 						case SDL_KEYUP:
 							switch(event.key.keysym.sym){
-								//Backspace
-								case SDLK_BACKSPACE:
+								//Backspace, Escape
+                                case SDLK_BACKSPACE: case SDLK_ESCAPE:
 									//Go back main screen or paused screem
 									if (previous_screen == MAIN){
 										current_screen = MAIN;
@@ -364,19 +439,9 @@ int main(int argc, char * argv[]) {
 									else {
 										current_screen = GAME_PAUSED;
 									}
-									break;
-								//Escape
-								case SDLK_ESCAPE:
-									//Go back main screen or paused screem
-									if (previous_screen == MAIN){
-										current_screen = MAIN;
-									}
-									else {
-										current_screen = GAME_PAUSED;
-									}
-									break;
+
 								//Keypad enter
-								case SDLK_KP_ENTER:
+								case SDLK_KP_ENTER: case SDLK_RETURN:
 									//Check current selected option
 									switch(select_config_option){
 										case BACK:
@@ -401,33 +466,6 @@ int main(int argc, char * argv[]) {
 											break;
 									}
 									break;
-								//Keyboard enter
-								case SDLK_RETURN:
-									//Check current selected option and initiated it.
-									switch(select_config_option){
-										case BACK:
-											if (previous_screen == MAIN){
-												current_screen = MAIN;
-											}
-											else {
-												current_screen = GAME_PAUSED;
-											}
-											break;
-										case AUDIO_SFX:
-											config_option = AUDIO_SFX;
-											break;
-										case AUDIO_MUSIC:
-											config_option = AUDIO_MUSIC;
-											break;
-										case LANGUAGE:
-											config_option = LANGUAGE;
-											break;
-										case NONE:
-											//do nothing
-											break;
-									}
-									break;
-								
 							}
 							break;
 						//Handle mouse event
@@ -812,8 +850,6 @@ int main(int argc, char * argv[]) {
 							//Move mouse selector over game area
 							if (!active_clicked && get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
 								select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);
-								printf("grid selected x%d y%d\n", grid_clicked[0], grid_clicked[1]);
-								printf("linear %d\n", select_grid);
 							}
 							break;
 						//Handle mouse event
@@ -841,8 +877,12 @@ int main(int argc, char * argv[]) {
 										selected_left = left_click;
 									}
 									//Check where was clicked.
+<<<<<<< HEAD
 									else if (get_touched_menu_address(event.motion.x, event.motion.y, grid_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
 										printf("touch %d\n", select_grid_option);
+=======
+									else if (get_touched_menu_address(event.motion.x, event.motion.y, grid_clicked, &select_grid_option, selected_left)){
+>>>>>>> 04a7f1409bfdcbe9848b7c142ae680d57d0e71bf
 										if (selected_left) {
 											add_tower = select_grid_option;
 										}
@@ -939,7 +979,7 @@ int main(int argc, char * argv[]) {
 									current_screen = GAME_RUNNING;
 									break;
 								//Keypad enter
-								case SDLK_KP_ENTER:
+								case SDLK_KP_ENTER: case SDLK_RETURN:
 									//Check current action selected from menu paused and initiated it.
 									switch(select_pause_option){
 										case OPT_P_RESUME:
@@ -971,6 +1011,7 @@ int main(int argc, char * argv[]) {
 									}
 									
 									break;
+<<<<<<< HEAD
 								//Keyboard enter
 								case SDLK_RETURN:
 									//Check current action selected from menu paused and initiated it.
@@ -1004,6 +1045,23 @@ int main(int argc, char * argv[]) {
 									}
 									break;
 								
+=======
+                                    
+								case SDLK_UP: case SDLK_RIGHT:
+									//Move to option above
+									if (select_pause_option == OPT_P_RESUME) {
+										select_pause_option = OPT_P_CREDITS;
+									}
+									else {
+										select_pause_option--;
+									}
+									break;
+									
+								case SDLK_DOWN: case SDLK_LEFT:
+									//Move to option bellow
+									select_pause_option = (select_pause_option + 1) % OPT_P_NONE;
+									break;
+>>>>>>> 04a7f1409bfdcbe9848b7c142ae680d57d0e71bf
 							}
 							break;
 						//Handle mouse event
@@ -1116,38 +1174,19 @@ int main(int argc, char * argv[]) {
                                     quit = true;
                                     break;
                                     
-                                case SDLK_KP_ENTER:
+                                case SDLK_KP_ENTER: case SDLK_RETURN:
                                     if(select_game_over_option != GO_NONE)
                                         game_over_option = select_game_over_option;
                                     break;
                                     
-                                case SDLK_RETURN:
-                                    if(select_game_over_option != GO_NONE)
-                                        game_over_option = select_game_over_option;
-                                    break;
-                                    
-                                case SDLK_UP:
+                                case SDLK_UP: case SDLK_RIGHT:
                                     if(select_game_over_option == GO_RETRY)
                                         select_game_over_option = GO_QUIT;
                                     else
                                         select_game_over_option++;
                                     break;
                                     
-                                case SDLK_DOWN:
-                                    if(select_game_over_option == GO_QUIT)
-                                        select_game_over_option = GO_RETRY;
-                                    else
-                                        select_game_over_option--;
-                                    break;
-                                    
-                                case SDLK_RIGHT:
-                                    if(select_game_over_option == GO_RETRY)
-                                        select_game_over_option = GO_QUIT;
-                                    else
-                                        select_game_over_option++;
-                                    break;
-                                    
-                                case SDLK_LEFT:
+                                case SDLK_DOWN: case SDLK_LEFT:
                                     if(select_game_over_option == GO_QUIT)
                                         select_game_over_option = GO_RETRY;
                                     else
@@ -1285,7 +1324,6 @@ int main(int argc, char * argv[]) {
 						quit = true;
 						break;
 					case OPT_PLAY:
-						printf("Current screen OPT_PLAY");
 						game_started = true;
 						//Generate Map and resources to use on Game_Running
 						
@@ -1310,12 +1348,52 @@ int main(int argc, char * argv[]) {
 
 						current_screen = CREDITS;
 						previous_screen = MAIN;
+                        break;
+                        
+                    case OPT_MULTIPLAYER:
+                        current_screen = GAME_MULTIPLAY_SERVER;
+                        previous_screen = MAIN;
+                        break;
+                        
 					case OPT_NONE:
 						//Do nothing.
 						break;
 				}
                 main_option = OPT_NONE;
 				break;
+                
+            case GAME_MULTIPLAY_SERVER:
+                switch (multiplayer_option) {
+                    case MP_CREATE_GAME:
+                        //Create server
+                        multiplayer_status = MPS_SEARCHING_PLAYER;
+                        break;
+                        
+                    case MP_SEARCH_GAME:
+                        //Create client
+                        multiplayer_status = MPS_SEARCHING_GAME;
+                        break;
+                        
+                    case MP_CANCEL:
+                        //Filter whether client or server and finnish
+                        multiplayer_status = MPS_NONE;
+                        break;
+                        
+                    case MP_BACK:
+                        //Same as cancel option
+                        current_screen = MAIN;
+                        previous_screen = GAME_MULTIPLAY_SERVER;
+                        break;
+                        
+                    case MP_NONE:
+                        break;
+                        
+                    default:
+                        break;
+                }
+                
+                multiplayer_option = MP_NONE;
+                break;
                 
 			case CONFIG:
 				//Set selected option to show on MAIN to OPT_PLAY
@@ -1602,6 +1680,10 @@ int main(int argc, char * argv[]) {
                 draw_screen_main(renderer, main_menu_assets, main_menu_rects, main_menu_assets_count, select_option);
                 break;
                 
+            case GAME_MULTIPLAY_SERVER:
+                draw_screen_multiplayer_menu(renderer, multiplayer_menu_assets, multiplayer_menu_rects, multiplayer_menu_assets_count, select_multiplayer_option);
+                break;
+                
             case SCORE:
 				//get control of select. < TODO.
 				
@@ -1702,12 +1784,11 @@ bool main_init(){
         return false;
     }
     
-    //Init main menu texts
+    //Init main menu assets
     for(int i = 0; i < main_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
         
-        //Set texts and rects
         switch (i) {
             case 0:
                 text = "PI-6 Tower Defense";
@@ -1716,27 +1797,32 @@ bool main_init(){
                 
             case 1: case 2:
                 text = "Play";
-                rect = (SDL_Rect){980, 480, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                rect = (SDL_Rect){980, 450, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 3: case 4:
-                text = "Config";
-                rect = (SDL_Rect){980, 480 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                text = "Multiplayer";
+                rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 5: case 6:
-                text = "Score";
-                rect = (SDL_Rect){980, 480 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                text = "Config";
+                rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 7: case 8:
-                text = "Credits";
-                rect = (SDL_Rect){30, 480 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                text = "Score";
+                rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 9: case 10:
+                text = "Credits";
+                rect = (SDL_Rect){30, 450 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 11: case 12:
                 text = "Exit";
-                rect = (SDL_Rect){980, 480 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             default:
@@ -1767,10 +1853,10 @@ bool main_init(){
         SDL_FreeSurface(surface);
     }
 	
-	//Init game running screen texts
+	//Init game running screen assets
     get_config();
 	
-	//Init game paused screen texts
+	//Init game paused screen assets
     for(int i = 0; i < pause_interface_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
@@ -1847,7 +1933,7 @@ bool main_init(){
         SDL_FreeSurface(surface);
     }
 	
-	//Init game credits screen texts
+	//Init game credits screen assets
     for(int i = 0; i < credits_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
@@ -1909,7 +1995,7 @@ bool main_init(){
         SDL_FreeSurface(surface);
     }
 	
-	//Init game score screen texts
+	//Init game score screen assets
     for(int i = 0; i < score_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
@@ -1951,7 +2037,7 @@ bool main_init(){
         SDL_FreeSurface(surface);
     }
     
-    //Init game over screen texts
+    //Init game over screen assets
     for(int i = 0; i < game_over_interface_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
@@ -2011,6 +2097,9 @@ bool main_init(){
         
         SDL_FreeSurface(surface);
     }
+    
+    //Init multiplayer menu assets
+    get_multiplayer_status(MP_NONE, MPS_NONE);
 	
 	//Init map
     map_Surface = init_map();
@@ -2120,6 +2209,11 @@ void main_quit(){
             SDL_DestroyTexture(game_over_interface_assets[i]);
     }
     
+    for(int i = 0; i < multiplayer_menu_assets_count; i++){
+        if(multiplayer_menu_assets[i])
+            SDL_DestroyTexture(multiplayer_menu_assets[i]);
+    }
+    
     //Free surfaces
     if(map_Surface)
         SDL_FreeSurface(map_Surface);
@@ -2169,7 +2263,7 @@ void get_config(){
                 else
                     text = "Sound Effects:  OFF";
                 
-                rect = (SDL_Rect){595, 150, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                rect = (SDL_Rect){515, 150, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 3: case 4:
@@ -2178,19 +2272,19 @@ void get_config(){
                 else
                     text = "Music:  OFF";
                 
-                rect = (SDL_Rect){595, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 5: case 6:
                 text = "Language";
                 
-                rect = (SDL_Rect){595, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 7: case 8:
                 text = "Back";
                 
-                rect = (SDL_Rect){595, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             default:
@@ -2213,6 +2307,99 @@ void get_config(){
         config_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
         
         if(!config_menu_assets[i]){
+            printf("(Config)Text texture not rendered! %s\n", SDL_GetError());
+            return;
+        }
+        
+        SDL_FreeSurface(surface);
+    }
+}
+
+//Carrega textos do menu de multiplayer
+void get_multiplayer_status(multiplayer_menu_options selected_option, multiplayer_status current_status){
+    for(int i = 0; i < multiplayer_menu_assets_count; i++){
+        char *text = NULL;
+        SDL_Rect rect;
+        
+        switch(i){
+            case 0:
+                text = "MULTIPLAYER";
+                rect = (SDL_Rect){265, 0, 750, 150};
+                break;
+                
+            case 1: case 2:
+                text = "Create Game";
+                rect = (SDL_Rect){515, 150, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 3: case 4:
+                text = "Find Game";
+                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 5: case 6:
+                text = "Cancel Search";
+                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 7: case 8:
+                text = "Back to Main";
+                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 9:
+                switch (current_status) {
+                    case MPS_SEARCHING_PLAYER:
+                        text = "Status: Searching for Player...";
+                        break;
+                        
+                    case MPS_SEARCHING_GAME:
+                        text = "Status: Searching for Game...";
+                        break;
+                        
+                    case MPS_PLAYER_FOUND:
+                        text = "Status: Player Found. Starting game.";
+                        break;
+                        
+                    case MPS_GAME_FOUND:
+                        text = "Status: Game Found. Starting Game.";
+                        break;
+                        
+                    case MPS_NONE:
+                        text = "Status: ";
+                        break;
+                        
+                    default:
+                        break;
+                }
+                
+                if(current_status == MPS_NONE)
+                    rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 8, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                else
+                    rect = (SDL_Rect){390, 150 + BUTTON_MENU_HEIGHT * 8, BUTTON_MENU_WIDTH * 2, BUTTON_MENU_HEIGHT};
+                
+                break;
+            
+            default:
+                break;
+        }
+        
+        multiplayer_menu_rects[i] = rect;
+        
+        SDL_Surface *surface;
+        if(i%2 == 0 && i > 0)
+            surface = TTF_RenderText_Solid(font, text, red);
+        else
+            surface = TTF_RenderText_Solid(font, text, black);
+        
+        if(!surface){
+            printf("(Config)Text not rendered! %s\n", TTF_GetError());
+            return;
+        }
+        
+        multiplayer_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        
+        if(!multiplayer_menu_assets[i]){
             printf("(Config)Text texture not rendered! %s\n", SDL_GetError());
             return;
         }
