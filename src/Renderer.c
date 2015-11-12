@@ -39,20 +39,24 @@ void draw_screen_main(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rec
                 sel = 2;
                 break;
                 
-            case OPT_CONFIG:
+            case OPT_MULTIPLAYER:
                 sel = 4;
                 break;
                 
-            case OPT_SCORE:
+            case OPT_CONFIG:
                 sel = 6;
+                break;
+                
+            case OPT_SCORE:
+                sel = 8;
                 break;
             
             case OPT_CREDIT:
-                sel = 8;
+                sel = 10;
                 break;
                 
             case OPT_EXIT:
-                sel = 10;
+                sel = 12;
                 break;
                 
             default:
@@ -213,6 +217,36 @@ void draw_screen_game_over(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rec
     }
 }
 
+void draw_screen_multiplayer_menu(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, multiplayer_menu_options select_multiplayer_option){
+    for(int i = 0; i < count; i++){
+        int sel = 0;
+        switch (select_multiplayer_option) {
+            case MP_CREATE_GAME:
+                sel = 2;
+                break;
+                
+            case MP_SEARCH_GAME:
+                sel = 4;
+                break;
+                
+            case MP_CANCEL:
+                sel = 6;
+                break;
+                
+            case MP_BACK:
+                sel = 8;
+                break;
+                
+            default:
+                break;
+        }
+        
+        if(i == 0 || i == sel || i % 2 == 1 || i == 10)
+            SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+    }
+    
+}
+
 void get_menu_size_tower(int size[]){
 	int correction, number, row, columns;
 	
@@ -261,10 +295,7 @@ void get_menu_size_minion(int size[]){
 
 void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], GAME_RUNNING_OPTIONS running_option) {
 	bool display_over = false;
-	
-	//printf("Grid clicked %d\n", select_grid);
-	//printf("Click active? %d\n", active_clicked);
-	
+    
 	//Display grid_over
 	
 	
@@ -287,8 +318,9 @@ void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_le
 		
 		//Render menu option
 		
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // the rect color (solid red)
-		SDL_RenderFillRect(renderer, &(SDL_Rect){center_clicked[0] - size[0] /2, center_clicked[1] - size[1] / 2, size[0], size[1]});
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);  //Enable transparency
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 128); // the rect color (solid red)
+		SDL_RenderFillRect(renderer, &(SDL_Rect){center_clicked[0] - block_width /2, center_clicked[1] - block_height / 2, block_width, block_height});
 	}
 }
 
