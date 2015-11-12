@@ -877,12 +877,8 @@ int main(int argc, char * argv[]) {
 										selected_left = left_click;
 									}
 									//Check where was clicked.
-<<<<<<< HEAD
 									else if (get_touched_menu_address(event.motion.x, event.motion.y, grid_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
 										printf("touch %d\n", select_grid_option);
-=======
-									else if (get_touched_menu_address(event.motion.x, event.motion.y, grid_clicked, &select_grid_option, selected_left)){
->>>>>>> 04a7f1409bfdcbe9848b7c142ae680d57d0e71bf
 										if (selected_left) {
 											add_tower = select_grid_option;
 										}
@@ -1011,57 +1007,6 @@ int main(int argc, char * argv[]) {
 									}
 									
 									break;
-<<<<<<< HEAD
-								//Keyboard enter
-								case SDLK_RETURN:
-									//Check current action selected from menu paused and initiated it.
-									switch(select_pause_option){
-										case OPT_P_RESUME:
-											//Resume game
-											current_screen = GAME_RUNNING;
-											break;
-										case OPT_P_CONFIG:
-											current_screen = CONFIG;
-											previous_screen = GAME_PAUSED;
-											break;
-										case OPT_P_SCORE:	
-											current_screen = SCORE;
-											previous_screen = GAME_PAUSED;
-											break;
-										case OPT_P_EXIT:
-											//End the game
-											quit = true;
-											break;
-										case OPT_P_CREDITS:	
-											current_screen = CREDITS;
-											previous_screen = GAME_PAUSED;
-											break;
-										case OPT_P_MAIN:
-											current_screen = MAIN;
-											break;
-										case OPT_P_NONE:
-											//Do nothing
-											break;
-									}
-									break;
-								
-=======
-                                    
-								case SDLK_UP: case SDLK_RIGHT:
-									//Move to option above
-									if (select_pause_option == OPT_P_RESUME) {
-										select_pause_option = OPT_P_CREDITS;
-									}
-									else {
-										select_pause_option--;
-									}
-									break;
-									
-								case SDLK_DOWN: case SDLK_LEFT:
-									//Move to option bellow
-									select_pause_option = (select_pause_option + 1) % OPT_P_NONE;
-									break;
->>>>>>> 04a7f1409bfdcbe9848b7c142ae680d57d0e71bf
 							}
 							break;
 						//Handle mouse event

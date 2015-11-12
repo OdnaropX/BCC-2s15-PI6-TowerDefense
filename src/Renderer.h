@@ -53,7 +53,6 @@ void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_le
 
 void draw_screen_multiplayer_menu(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, multiplayer_menu_options select_multiplayer_option);
 
-
 void display_health(SDL_Renderer *renderer, int value, TTF_Font *font);
 
 void display_mana(SDL_Renderer *renderer, int value, TTF_Font *font);
