@@ -3,8 +3,10 @@
 
 	//Includes
 	///////////////////////////////////////////////////////////////////////
-	//#include "Misc.h" //Projectile already includes Misc.h
-	#include "Projectile.h"
+	#include "Misc.h"
+	
+	//Structs
+	///////////////////////////////////////////////////////////////////////
 	
 	typedef struct _turret turret;
 	typedef struct _list_turret list_turret;

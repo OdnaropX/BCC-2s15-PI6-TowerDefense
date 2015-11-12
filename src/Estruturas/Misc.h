@@ -4,7 +4,12 @@
 	//Includes
 	///////////////////////////////////////////////////////////////////////
 	#include <SDL2/SDL.h>
-
+	#include <stdio.h>
+	#include <stdbool.h>
+	#include <stdlib.h>
+	#include <math.h>
+	#include <string.h>
+	
 	#ifdef _WIN32 //Load lib for windows or mac.
 		#define windows 1
 		#include <SDL2/SDL_image.h>
@@ -14,6 +19,8 @@
 		#include <SDL2_image/SDL_image.h>
 		#include <SDL2_ttf/SDL_ttf.h>
 	#endif
+	
+	#include "Path.h"
 	
 	//Constants
 	///////////////////////////////////////////////////////////////////////
@@ -26,7 +33,6 @@
 	//Structs
 	///////////////////////////////////////////////////////////////////////
 
-	/* Game options */
 	typedef struct _configuration CONFIGURATION;
 	typedef struct _node node;
 	
