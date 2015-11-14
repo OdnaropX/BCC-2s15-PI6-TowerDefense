@@ -39,10 +39,25 @@ void free_node(node *node){
 //Minion
 minion *init_minion(int minionID){
     // USAR MINIONID para diferentes minions dps.
+    
     minion *new_minion = malloc(sizeof(minion));
-    new_minion->node = init_node("../images/Minion.png", 0, 400);
-    new_minion->HP = 7;
-    new_minion->speed = 4;
+    //In order: img hp speed GoldPerSecondBonus cost GoldDrop
+
+    char liner[100];
+    FILE *file = fopen("MinionList.txt", "r");
+    int i;
+    for(i = 0; i <= minionID; i++)
+        fgets(liner, 100, file);
+    
+    char imagename[20];
+    int GpS;
+    int drop;
+    int cost;
+    sscanf(liner, "%s %d %f %d %d %d", imagename, &new_minion->HP, &new_minion->speed, &GpS, &cost, &drop);
+    char imageDir[30];
+    sprintf(imageDir, "../images/%s", imagename);
+    new_minion->node = init_node(imageDir, 0, 400);
+
     new_minion->minionType = minionID;
     
     new_minion->targetted_projectils = init_list_projectile();
@@ -95,10 +110,22 @@ void remove_avaliable_minion(minion_avaliable *mium){
 //Turret
 turret *init_turret(int turretID, int gridX, int gridY){
     turret *new_turret = malloc(sizeof(turret));
-    new_turret->node = init_node("../images/Turret.png", gridX * block_width, gridY * block_height);
-    new_turret->timeUntilNextAttack = 5.0; // Sempre começa sem atacar.
+    //In order: img atkspeed radius cost
+
+    char liner[100];
+    FILE *file = fopen("TurretList.txt", "r");
+    int i;
+    for(i = 0; i <= turretID; i++)
+        fgets(liner, 100, file);
+    
+    char imagename[20];
+    int cost;
+    sscanf(liner, "%s %f %f %d", imagename, &new_turret->timeUntilNextAttack, &new_turret->radius, &cost);
+    char imageDir[30];
+    sprintf(imageDir, "../images/%s", imagename);
+    
+    new_turret->node = init_node(imageDir, gridX * block_width, gridY * block_height);
     new_turret->turretType = turretID;
-    new_turret->radius = 200;
     
     return new_turret;
 }
@@ -115,6 +142,19 @@ void remove_turret(turret *turret){
 //Projectile
 projectile *init_projectile(int projectileID, turret* shooter){
     projectile *new_projectile = malloc(sizeof(projectile));
+    //In order: img movespeed dmg
+
+    char liner[100];
+    FILE *file = fopen("TurretList.txt", "r");
+    int i;
+    for(i = 0; i <= projectileID; i++)
+        fgets(liner, 100, file);
+    
+    char imagename[20];
+    sscanf(liner, "%s %d %d", imagename, &new_projectile->speed, &new_projectile->damage);
+    char imageDir[30];
+    sprintf(imageDir, "../images/%s", imagename);
+    
     new_projectile->node = init_node("../images/Projectile.png", shooter->node->xPos, shooter->node->yPos);
     new_projectile->speed = 4;
     new_projectile->damage = 2;
@@ -507,6 +547,7 @@ int get_tower_avaliable(list_turret_avaliable *list) {
 	return avaliable;
 }
 
+
 int get_minion_avaliable(list_minion_avaliable *list) {
 	//Get from tower files. < TODO
 	list_minion_avaliable *temp = list;
@@ -519,3 +560,69 @@ int get_minion_avaliable(list_minion_avaliable *list) {
 	
 	return avaliable;
 }
+
+int getTurretCost(int turretID){
+    char liner[100];
+    FILE *file = fopen("TurretList.txt", "r");
+    int i;
+    for(i = 0; i <= turretID; i++)
+        fgets(liner, 100, file);
+    
+    char filltext[20];
+    int cost;
+    float fill;
+    sscanf(liner, "%s %f %f %d", filltext, &fill, &fill, &cost);
+    
+    return cost;
+}
+
+float getTurretCooldown(int turretID){
+    char liner[100];
+    FILE *file = fopen("TurretList.txt", "r");
+    int i;
+    for(i = 0; i <= turretID; i++)
+        fgets(liner, 100, file);
+    
+    char filltext[20];
+    int fill;
+    float cooldown, ffill;
+    sscanf(liner, "%s %f %f %d", filltext, &cooldown, &ffill, &fill);
+    
+    return cooldown;
+}
+
+int minionGoldDrop(int minionID){
+    
+    char liner[100];
+    FILE *file = fopen("MinionList.txt", "r");
+    int i;
+    for(i = 0; i <= minionID; i++)
+        fgets(liner, 100, file);
+    
+    char imagename[20];
+    int fill;
+    float ffill;
+    int drop;
+    sscanf(liner, "%s %d %f %d %d %d", imagename, &fill, &ffill, &fill, &fill, &drop);
+    return drop;
+}
+
+int minionCost(int minionID){
+    
+    char liner[100];
+    FILE *file = fopen("MinionList.txt", "r");
+    int i;
+    for(i = 0; i <= minionID; i++)
+        fgets(liner, 100, file);
+    
+    char imagename[20];
+    int fill;
+    float ffill;
+    int cost;
+    sscanf(liner, "%s %d %f %d %d %d", imagename, &fill, &ffill, &fill, &cost, &fill);
+    return cost;
+}
+
+
+
+
