@@ -13,9 +13,10 @@ LIBS = -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2
 endif
 
 SOURCEDIR = src
+ESTRUTURA = Estruturas
 
-SOURCES = $(wildcard $(SOURCEDIR)/*.c)
-
+SOURCES = $(wildcard $(SOURCEDIR)/*/*.c $(SOURCEDIR)/*.c)
+SUB_SOURCES = 
 BUILDDIR = bin
 
 ifeq ($(OS),Windows_NT)
