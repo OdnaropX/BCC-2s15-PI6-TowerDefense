@@ -256,5 +256,8 @@ minion_avaliable *get_minion_from_avaliable_list(list_minion_avaliable *list, in
 		temp_list = temp_list->next;
 	}
 	
-	return temp_list;
+	if (temp_list != NULL) {
+		return temp_list->e;
+	}
+	return NULL;
 }

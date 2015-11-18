@@ -20,7 +20,7 @@
 		#include <SDL2_ttf/SDL_ttf.h>
 	#endif
 	
-	#include "Path.h"
+	#include "../Path.h"
 	
 	//Constants
 	///////////////////////////////////////////////////////////////////////

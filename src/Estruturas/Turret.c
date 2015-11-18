@@ -13,10 +13,36 @@ turret *init_turret(int turretID, int gridX, int gridY){
     return new_turret;
 }
 
+turret_avaliable *init_avaliable_turret(char *image_file, float atack_speed, float atack_radius, int cost){
+    turret_avaliable *new_turret = malloc(sizeof(turret_avaliable));
+    new_turret->thumbnail = init_node(image_file, 0, 400);
+	
+	if(new_turret->thumbnail == NULL) {
+		free(new_turret);
+		new_turret = NULL;
+		return NULL;
+	}
+	
+    new_turret->atack_speed = atack_speed;
+    new_turret->atack_radius = atack_radius;
+    new_turret->cost = cost;
+    
+    return new_turret;
+}
+
 void remove_turret(turret *turret){
     if(turret){
         free_node(turret->node);
         turret->node = NULL;
+        free(turret);
+        turret = NULL;
+    }
+}
+
+void remove_avaliable_turret(turret_avaliable *turret){
+	if(turret){
+        free_node(turret->thumbnail);
+        turret->thumbnail = NULL;
         free(turret);
         turret = NULL;
     }
@@ -103,11 +129,99 @@ list_turret *remove_turret_from_list(list_turret *list, turret *turret){
     return list;
 }
 
+list_turret_avaliable *init_avaliable_list_turret(){
+    list_turret_avaliable *new_list = malloc(sizeof(list_turret_avaliable));
+    new_list->e = NULL;
+    new_list->type = 0;
+    new_list->next = NULL;
+
+    return new_list;
+}
+
+void free_avaliable_list_turret(list_turret_avaliable *list){
+    list_turret_avaliable *aux = list;
+    
+    while (aux && aux->next){
+        remove_avaliable_turret(aux->e);
+        aux->e = NULL;
+        list_turret_avaliable *rmv = aux;
+        aux = aux->next;
+        free(rmv);
+        rmv = NULL;
+    }
+    
+    free(aux);
+    aux = NULL;
+}
+void add_turret_to_avaliable_list(list_turret_avaliable *list, turret_avaliable *turret, int type){
+    //Caso a lista esteja vazia ainda
+    if(!list->e){
+		list->type = type;
+        list->e = turret;
+        return;
+    }
+    
+    while(list->next)
+        list = list->next;
+    
+    list_turret_avaliable *new_element = init_avaliable_list_turret();
+    new_element->e = turret;
+    new_element->type = type;
+    list->next = new_element;
+}
+
+list_turret_avaliable *load_turrets(char const *file_name){
+	char *file = load_file(file_name);
+	if(file == NULL) {
+		return false;
+	}
+	
+	int readed = 4;
+	char name[40];
+	int cost;
+	float speed, radius;
+	int type = 0;
+	bool first = true;
+	
+	//Jump first line
+	sscanf(file, "%*s\n");
+	
+	
+	//Init avaliable turret list
+	list_turret_avaliable *avaliables = init_avaliable_list_turret();
+	while(1) {
+		for(int i=0; i < 40; i++) {
+			name[i] = '\0'; 
+		}
+		readed = sscanf(file, "%s %f %f %d", name, &speed, &radius, &cost);
+		if (readed != 4){
+			break;
+		}
+		if (first) {
+			first = false;
+		}
+		
+		//Create turret and alloc.
+		turret_avaliable *turret = init_avaliable_turret(name, speed, radius, cost);
+		if (turret != NULL){
+			//Add to list	
+			add_turret_to_avaliable_list(avaliables, turret, type);
+			type++;
+		}
+	}
+	
+	if(first){
+		//Unalloc list.
+		free_avaliable_list_turret(avaliables);
+		return NULL;
+	}
+	return avaliables;
+}
+
 //Get Functions
 ///////////////////////////////////////////////////////////////////////
 
 int get_tower_avaliable(list_turret_avaliable *list) {
-	//Get from minion files. < TODO
 	list_turret_avaliable *temp = list;
 	int avaliable = 0;
 	
@@ -119,4 +233,16 @@ int get_tower_avaliable(list_turret_avaliable *list) {
 	return avaliable;
 }
 
-#endif
+turret_avaliable *get_turret_from_avaliable_list(list_turret_avaliable *list, int type){
+	list_turret_avaliable *temp_list;
+	
+	temp_list = list;
+	while(temp_list->type != type && temp_list->next) {
+		temp_list = temp_list->next;
+	}
+	
+	if (temp_list != NULL) {
+		return temp_list->e;
+	}
+	return NULL;
+}
