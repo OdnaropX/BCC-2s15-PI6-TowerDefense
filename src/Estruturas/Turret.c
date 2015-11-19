@@ -11,7 +11,7 @@ turret *init_turret(list_turret_avaliable *list, int turretID, int gridX, int gr
 	}	
 	
     turret *new_turret = malloc(sizeof(turret));
-	new_turret->node = init_node(avaliable->thumbnail_file, gridX * block_width, gridY * block_height);
+	new_turret->node = init_node(avaliable->thumbnail_file, gridX * block_width + 10, gridY * block_height - block_height/2 + TOP_LAYER_SPACING + 4);
     new_turret->timeUntilNextAttack = avaliable->atack_speed; // Sempre começa sem atacar.
     new_turret->turretType = turretID;
     new_turret->radius = avaliable->atack_radius;
@@ -21,7 +21,7 @@ turret *init_turret(list_turret_avaliable *list, int turretID, int gridX, int gr
 
 turret_avaliable *init_avaliable_turret(char *image_file, float atack_speed, float atack_radius, int cost){
     turret_avaliable *new_turret = malloc(sizeof(turret_avaliable));
-    new_turret->thumbnail = init_node(image_file, 0, 400);
+    new_turret->thumbnail = init_node(image_file, block_width/2, block_height/2);
 	
 	if(new_turret->thumbnail == NULL) {
 		free(new_turret);

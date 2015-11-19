@@ -177,9 +177,11 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
         
         //Draw projectiles
         while (p && p->e){
-            draw_node(screen, p->e->node, false);
+            if(p->e != NULL){
+                draw_node(screen, p->e->node, false);
             
-            p = p->next;
+                p = p->next;
+            }
         }
         
         m = m->next;

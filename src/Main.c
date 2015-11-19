@@ -1446,6 +1446,7 @@ int main(int argc, char * argv[]) {
                                 
                                 enemy->e->targetted_projectils = remove_projectile_from_list(enemy->e->targetted_projectils, temp_lp->e);
                                 temp_lp->e = NULL;
+                                
                             }
                             
                             else

@@ -42,6 +42,12 @@ SDL_Surface *init_map(){
  Retorna 0 em sucesso e 1 em caso de colisão.
  */
 int move_bullet(minion *target, projectile *shoot){
+    if(shoot == NULL){
+        return 0;
+    }
+    if(shoot -> node == NULL){
+        return 0;
+    }
     // 1 - Get required properties.
     int diff_x = target->node->xPos - shoot->node->xPos;
     int diff_y = target->node->yPos - shoot->node->yPos;

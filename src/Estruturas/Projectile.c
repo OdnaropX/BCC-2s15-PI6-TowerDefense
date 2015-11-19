@@ -69,7 +69,9 @@ void free_list_projectile(list_projectile *list){
         
         list_projectile *rmv = aux;
         aux = aux->next;
-        free(rmv);
+        if(rmv){
+            free(rmv);
+        }
         rmv = NULL;
     }
     
