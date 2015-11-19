@@ -226,25 +226,32 @@ int get_touched_menu_address(int x_touch, int y_touch, int center_position[], in
 	
 	columns = (number / row) + correction; //3
 	
-	width = columns * MENU_ICON;
-	height = row * MENU_ICON;
+	width = row * MENU_ICON;
+	height = columns * MENU_ICON;
 	
-	if (x_touch < center_position[0] - width / 2 && x_touch > center_position[0] + width / 2) {
+	if (x_touch < center_position[0] - (width / 2) || x_touch > center_position[0] + (width / 2)) {
 		printf("Here\n");
 		return 0;
 	}
-	if (y_touch < center_position[1] - height / 2 && y_touch > center_position[1] + height / 2) {
+	if (y_touch < center_position[1] - (height / 2) || y_touch > center_position[1] + (height / 2)) {
 		printf("2222Here\n");
 		return 0;
 	}
 	
-	x_touch = x_touch - center_position[0] - width / 2;
-	y_touch = y_touch - center_position[1] - height / 2;
+	printf("tx: %d, ty: %d\n", x_touch, y_touch);
+	printf("cx: %d, cy: %d\n", center_position[0], center_position[1]);
+	x_touch -= center_position[0] - (width / 2);
+	y_touch -= center_position[1] - (height / 2);
+	
+	printf("w: %d, h: %d\n", width, height);
+	printf("tx: %d, ty: %d\n", x_touch, y_touch);
 	
 	int xAdd = x_touch/MENU_ICON;
 	int yAdd = y_touch/MENU_ICON;
 	
-	*selected_option = get_grid_address_linear(xAdd, yAdd, columns) + 1;
+	printf("grid x: %d, y: %d\n", xAdd, yAdd);
+	
+	*selected_option = get_grid_address_linear(xAdd, yAdd, row) + 1;
 	
 	return 1;
 }

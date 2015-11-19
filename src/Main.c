@@ -875,8 +875,9 @@ int main(int argc, char * argv[]) {
 										active_clicked = true;
 										selected_left = left_click;
 									}
+									
 									//Check where was clicked.
-									else if (get_touched_menu_address(event.motion.x, event.motion.y, grid_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
+									else if (get_touched_menu_address(event.motion.x, event.motion.y, center_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
 										printf("touch %d\n", select_grid_option);
 										if (selected_left) {
 											add_tower = select_grid_option;

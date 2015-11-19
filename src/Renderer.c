@@ -373,16 +373,13 @@ void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_le
 			//Get Minion menu size
 			get_menu_size_minion(size, list_m, &per_row);
 		}
-		//Add padding
-		//size[0] = size[0] + 20;
-		//size[1] = size[1] + 20;
-		
+
 		position[0] = center_clicked[0] - size[0] /2;
 		position[1] = center_clicked[1] - size[1] / 2;
 		
 		//Render menu
         SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);  //Enable transparency
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 128); // the rect color (solid red)
+		SDL_SetRenderDrawColor(renderer, 146, 147, 52, 128); // the rect color (solid red)
 		SDL_RenderFillRect(renderer, &(SDL_Rect){position[0] - padding, position[1] - padding, size[0] + padding *2, size[1] + padding *2});
 		
 		//Render minions or turrets
