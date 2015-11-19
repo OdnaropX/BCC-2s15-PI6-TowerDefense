@@ -26,6 +26,7 @@
 
 	struct _minions {
 		node *thumbnail;
+		char thumbnail_file[255];
 		int HP;
 		float speed;
 		float gold_per_second_bonus;//change from int

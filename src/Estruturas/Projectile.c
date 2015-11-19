@@ -183,7 +183,7 @@ list_projectile_avaliable *load_projectiles(char const *file_name){
 	char name[40];
 	int damage = 0;
 	float speed = 0;
-	int type = 0;
+	int type = 1;
 	bool first = true;
 	
 	//Get next line to be jumped

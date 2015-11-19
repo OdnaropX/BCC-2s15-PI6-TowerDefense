@@ -13,7 +13,7 @@ minion *init_minion(list_minion_avaliable *list, int minionID){
 
     // USAR MINIONID para diferentes minions dps.
     minion *new_minion = malloc(sizeof(minion));
-    new_minion->node = avaliable->thumbnail;
+    new_minion->node = init_node(avaliable->thumbnail_file, 0, 50);
     new_minion->HP = avaliable->HP;
     new_minion->speed = avaliable->speed;
     new_minion->minionType = minionID;
@@ -35,7 +35,9 @@ minion_avaliable *init_avaliable_minion(char *image_file, int hp, float speed, i
 		return NULL;
 	}
 	
+	
     new_minion->HP = hp;
+	strcpy(new_minion->thumbnail_file, image_file);
     new_minion->speed = speed;
     new_minion->gold_per_second_bonus = gold_p_s;
     new_minion->cost = cost;
@@ -200,7 +202,7 @@ list_minion_avaliable *load_minions(char const *file_name){
 	char name[40];
 	int hp, cost, gold_drop;
 	float speed, gold_per_second;
-	int type = 0;
+	int type = 1;
 	bool first = true;
 	
 	hp = gold_per_second = cost = gold_drop = 0;

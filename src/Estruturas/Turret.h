@@ -23,6 +23,7 @@
 	
 	struct _turrets {
 		node *thumbnail;
+		char thumbnail_file[255];
 		float atack_speed;
 		float atack_radius;
 		int cost;

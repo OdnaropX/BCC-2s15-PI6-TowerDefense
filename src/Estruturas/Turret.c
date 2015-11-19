@@ -11,10 +11,8 @@ turret *init_turret(list_turret_avaliable *list, int turretID, int gridX, int gr
 	}	
 	
     turret *new_turret = malloc(sizeof(turret));
-	new_turret->node = avaliable->thumbnail;
-	new_turret->node->xPos = gridX * block_width;
-	new_turret->node->yPos = gridY * block_height;
-    new_turret->timeUntilNextAttack = 5.0; // Sempre começa sem atacar.
+	new_turret->node = init_node(avaliable->thumbnail_file, gridX * block_width, gridY * block_height);
+    new_turret->timeUntilNextAttack = avaliable->atack_speed; // Sempre começa sem atacar.
     new_turret->turretType = turretID;
     new_turret->radius = avaliable->atack_radius;
     
@@ -30,7 +28,7 @@ turret_avaliable *init_avaliable_turret(char *image_file, float atack_speed, flo
 		new_turret = NULL;
 		return NULL;
 	}
-	
+	strcpy(new_turret->thumbnail_file, image_file);
     new_turret->atack_speed = atack_speed;
     new_turret->atack_radius = atack_radius;
     new_turret->cost = cost;
@@ -188,7 +186,7 @@ list_turret_avaliable *load_turrets(char const *file_name){
 	char name[40];
 	int cost;
 	float speed, radius;
-	int type = 0;
+	int type = 1;
 	bool first = true;
 	
 	//Get next line to be jumped

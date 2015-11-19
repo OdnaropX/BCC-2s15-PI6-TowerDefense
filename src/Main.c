@@ -1415,10 +1415,11 @@ int main(int argc, char * argv[]) {
 						//Add minion
 
                         new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
-                        add_minion_to_list(minions, new_minion);
-                        new_minion->node->xPos = 150;
-                        new_minion->node->yPos = 600;
-                        
+                        if(new_minion != NULL){
+							add_minion_to_list(minions, new_minion);
+							new_minion->node->xPos = 150;
+							new_minion->node->yPos = 600;
+                        }
                         
 						//Reset minion
 						add_minion = 0;
