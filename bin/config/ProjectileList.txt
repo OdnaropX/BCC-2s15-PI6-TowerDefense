@@ -1,0 +1,13 @@
+//In order: img movespeed dmg
+images/p_white.png 4 2
+images/p_white.png 4 6
+images/p_blue.png 3 1
+images/p_blue.png 4 4
+images/p_cyan.png 5 1
+images/p_cyan.png 6 3
+images/p_green.png 7 2
+images/p_green.png 8 5
+images/p_orange.png 4 2
+images/p_orange.png 5 5
+images/p_red.png 3 4
+images/p_red.png 4 9

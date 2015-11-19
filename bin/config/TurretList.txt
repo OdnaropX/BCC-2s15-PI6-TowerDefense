@@ -1,0 +1,13 @@
+//In order: img atkspeed radius cost
+images/t_white_1.png 5 200 100
+images/t_white_2.png 4 240 350
+images/t_blue_1.png 5 180 200
+images/t_blue_2.png 5 220 500
+images/t_cyan_1.png 3 150 200
+images/t_cyan_2.png 2 200 500
+images/t_green_1.png 4 250 200
+images/t_green_2.png 3 350 500
+images/t_orange_1.png 5 190 200
+images/t_orange_2.png 4 220 500
+images/t_red_1.png 6 170 200
+images/t_red_2.png 5 190 500

@@ -7,42 +7,34 @@
 //
 
 #include "GameScene.h"
-#include "Estruturas.h"
-#include <math.h>
-
-#include <stdbool.h>
-#include <SDL2/SDL.h>
-
 #include "Renderer.h"
 
 int grid[17][13];
 
-
-
 //Use this on main init(or when loading a map)
 SDL_Surface *init_map(){
     //Load map image
-    SDL_Surface *map_Image = IMG_Load("../images/Mapa.png");
-    if(!map_Image){
+    SDL_Surface *map_image = IMG_Load(MAP_IMAGE);
+    if(!map_image){
         printf("Imagem do mapa não encontrada! %s\n", IMG_GetError());
         return NULL;
     }
     
     //Load map grid
-    FILE *mapGrid = fopen("Map1.txt", "r");
-    if(!mapGrid){
+    FILE *map_grid = fopen(MAP_GRID, "r");
+    if(!map_grid){
         printf("Txt de grid do mapa não encontrado!\n");
         return NULL;
     }
     
     for(int w = 0; w < 17; w++){
         for(int h = 0; h < 13; h++){
-            fscanf(mapGrid, "%d ", &grid[w][h]);
+            fscanf(map_grid, "%d ", &grid[w][h]);
         }
-        fscanf(mapGrid, "\n");
+        fscanf(map_grid, "\n");
     }
     setShortestPaths(grid, 17, 13, 16, 5);
-    return map_Image;
+    return map_image;
 }
 
 
@@ -50,6 +42,12 @@ SDL_Surface *init_map(){
  Retorna 0 em sucesso e 1 em caso de colisão.
  */
 int move_bullet(minion *target, projectile *shoot){
+    if(shoot == NULL){
+        return 0;
+    }
+    if(shoot -> node == NULL){
+        return 0;
+    }
     // 1 - Get required properties.
     int diff_x = target->node->xPos - shoot->node->xPos;
     int diff_y = target->node->yPos - shoot->node->yPos;
@@ -234,25 +232,26 @@ int get_touched_menu_address(int x_touch, int y_touch, int center_position[], in
 	
 	columns = (number / row) + correction; //3
 	
-	width = columns * MENU_ICON;
-	height = row * MENU_ICON;
+	width = row * MENU_ICON;
+	height = columns * MENU_ICON;
 	
-	if (x_touch < center_position[0] - width / 2 && x_touch > center_position[0] + width / 2) {
+	if (x_touch < center_position[0] - (width / 2) || x_touch > center_position[0] + (width / 2)) {
 		printf("Here\n");
 		return 0;
 	}
-	if (y_touch < center_position[1] - height / 2 && y_touch > center_position[1] + height / 2) {
+	if (y_touch < center_position[1] - (height / 2) || y_touch > center_position[1] + (height / 2)) {
 		printf("2222Here\n");
 		return 0;
 	}
 	
-	x_touch = x_touch - center_position[0] - width / 2;
-	y_touch = y_touch - center_position[1] - height / 2;
+	x_touch -= center_position[0] - (width / 2);
+	y_touch -= center_position[1] - (height / 2);
+	
 	
 	int xAdd = x_touch/MENU_ICON;
 	int yAdd = y_touch/MENU_ICON;
 	
-	*selected_option = get_grid_address_linear(xAdd, yAdd, columns) + 1;
+	*selected_option = get_grid_address_linear(xAdd, yAdd, row) + 1;
 	
 	return 1;
 }

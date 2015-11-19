@@ -8,7 +8,6 @@
 
 //Main Menu (Loads SDL and main menu assets)
 
-#include "Estruturas.h"
 #include "Renderer.h"
 #include "GameScene.h"
 
@@ -84,6 +83,7 @@ int mana = 0;
 //Avaliables
 list_minion_avaliable *avaliable_minions;
 list_turret_avaliable *avaliable_turrets;
+list_projectile_avaliable *avaliable_projectiles;
 
 //Cabeçalhos
 bool main_init();
@@ -142,6 +142,7 @@ int main(int argc, char * argv[]) {
     
 	bool game_started = false;
 	bool game_paused = false;
+	bool multiplayer = false;
 	
 	//Click control
 	bool active_clicked = false;
@@ -537,7 +538,7 @@ int main(int argc, char * argv[]) {
 														select_running_option.game_area.left--;
 													}
 												}
-												else {
+												else if (multiplayer)  {
 													if (select_running_option.game_area.right == OPT_R_A_R_MINION_1) {
 														select_running_option.game_area.right = OPT_R_A_R_MINION_3;
 													}
@@ -597,7 +598,7 @@ int main(int argc, char * argv[]) {
 														select_running_option.game_area.left--;
 													}
 												}
-												else {
+												else if (multiplayer) {
 													if (select_running_option.game_area.right == OPT_R_A_R_MINION_1) {
 														select_running_option.game_area.right = OPT_R_A_R_MINION_3;
 													}
@@ -642,7 +643,7 @@ int main(int argc, char * argv[]) {
 												if (selected_left) {
 													select_running_option.game_area.left = (select_running_option.game_area.left + 1) % 3;
 												}
-												else {
+												else if (multiplayer){
 													select_running_option.game_area.right = (select_running_option.game_area.right + 1) % 3;
 												}
 											}
@@ -677,7 +678,7 @@ int main(int argc, char * argv[]) {
 													select_running_option.game_area.left = (select_running_option.game_area.left + 1) % 3;
 													
 												}
-												else {
+												else if (multiplayer) {
 													select_running_option.game_area.right = (select_running_option.game_area.right + 1) % 3;
 												}
 											}
@@ -714,7 +715,7 @@ int main(int argc, char * argv[]) {
 									break;
 								case SDLK_e:
 									printf("Key pressed: e\n"); 
-									if (running_option.current_tab == GAME_AREA && !active_clicked){
+									if (running_option.current_tab == GAME_AREA && !active_clicked && multiplayer){
 										//Active click on current location
 										active_clicked = true;
 										selected_left = false;
@@ -770,7 +771,7 @@ int main(int argc, char * argv[]) {
 													add_tower = select_running_option.game_area.right + 1;
                                                     get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
-												else {
+												else if (multiplayer) {
 													add_minion = select_running_option.game_area.left + 1;
 													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
@@ -829,7 +830,7 @@ int main(int argc, char * argv[]) {
 													add_tower = select_running_option.game_area.right + 1;
 													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
-												else {
+												else if (multiplayer) {
 													add_minion = select_running_option.game_area.left + 1;
 													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
@@ -857,8 +858,11 @@ int main(int argc, char * argv[]) {
 							if(event.button.button == SDL_BUTTON_LEFT || event.button.button == SDL_BUTTON_RIGHT){
 								left_click = event.button.button == SDL_BUTTON_LEFT;
 								
+								if (!left_click && !multiplayer){
+									printf("Do nothing\n");
+								}
 								//Game area
-								if(get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
+								else if(get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
 									current_position[0] = grid_clicked[0];
 									current_position[1] = grid_clicked[1];
 								
@@ -876,13 +880,9 @@ int main(int argc, char * argv[]) {
 										active_clicked = true;
 										selected_left = left_click;
 									}
+									
 									//Check where was clicked.
-<<<<<<< HEAD
-									else if (get_touched_menu_address(event.motion.x, event.motion.y, grid_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
-										printf("touch %d\n", select_grid_option);
-=======
-									else if (get_touched_menu_address(event.motion.x, event.motion.y, grid_clicked, &select_grid_option, selected_left)){
->>>>>>> 04a7f1409bfdcbe9848b7c142ae680d57d0e71bf
+									else if (get_touched_menu_address(event.motion.x, event.motion.y, center_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
 										if (selected_left) {
 											add_tower = select_grid_option;
 										}
@@ -893,7 +893,6 @@ int main(int argc, char * argv[]) {
 									}
 									else {
 										active_clicked = false;
-										printf("Not clicked");
 									}
 								}
 
@@ -922,6 +921,18 @@ int main(int argc, char * argv[]) {
 										//Set selected life
 										show_life_info = true;
 										show_timer = 0;
+									}
+								}
+								//Outside game area menu active_clicked.
+								else if(active_clicked){
+									if (get_touched_menu_address(event.motion.x, event.motion.y, center_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
+										if (selected_left) {
+											add_tower = select_grid_option;
+										}
+										else {
+											add_minion = select_grid_option;
+										}
+										active_clicked = false;
 									}
 								}
 							}
@@ -1011,57 +1022,6 @@ int main(int argc, char * argv[]) {
 									}
 									
 									break;
-<<<<<<< HEAD
-								//Keyboard enter
-								case SDLK_RETURN:
-									//Check current action selected from menu paused and initiated it.
-									switch(select_pause_option){
-										case OPT_P_RESUME:
-											//Resume game
-											current_screen = GAME_RUNNING;
-											break;
-										case OPT_P_CONFIG:
-											current_screen = CONFIG;
-											previous_screen = GAME_PAUSED;
-											break;
-										case OPT_P_SCORE:	
-											current_screen = SCORE;
-											previous_screen = GAME_PAUSED;
-											break;
-										case OPT_P_EXIT:
-											//End the game
-											quit = true;
-											break;
-										case OPT_P_CREDITS:	
-											current_screen = CREDITS;
-											previous_screen = GAME_PAUSED;
-											break;
-										case OPT_P_MAIN:
-											current_screen = MAIN;
-											break;
-										case OPT_P_NONE:
-											//Do nothing
-											break;
-									}
-									break;
-								
-=======
-                                    
-								case SDLK_UP: case SDLK_RIGHT:
-									//Move to option above
-									if (select_pause_option == OPT_P_RESUME) {
-										select_pause_option = OPT_P_CREDITS;
-									}
-									else {
-										select_pause_option--;
-									}
-									break;
-									
-								case SDLK_DOWN: case SDLK_LEFT:
-									//Move to option bellow
-									select_pause_option = (select_pause_option + 1) % OPT_P_NONE;
-									break;
->>>>>>> 04a7f1409bfdcbe9848b7c142ae680d57d0e71bf
 							}
 							break;
 						//Handle mouse event
@@ -1249,8 +1209,8 @@ int main(int argc, char * argv[]) {
 				//Add more mana 1
 				mana++;
 					
-				//Wave spawning.
-				if(pending_wave_number > 0) {
+				//Wave spawning. Only to single player.
+				if(pending_wave_number > 0 && !multiplayer) {
 					add_minion = (add_minion + 1) % get_minion_avaliable(avaliable_minions);
 					pending_wave_number--;
 				}
@@ -1287,7 +1247,7 @@ int main(int argc, char * argv[]) {
 					
 
 				//Timer, use this if to run code for each timer_minion seconds, for minions.
-				if (is_time(timer_count, timer_minion)){
+				if (is_time(timer_count, timer_minion) && !multiplayer){
 					//New wave
 					pending_wave_number = monsterSpawner[spawn_minion];
 					timer_minion = pending_wave_number + 20;
@@ -1455,7 +1415,7 @@ int main(int argc, char * argv[]) {
                                     perform_path_verification(16, 5);
                                 }
                                 else{ // SUCCESS
-                                    new_turret = init_turret(add_tower, current_position[0], current_position[1]);
+                                    new_turret = init_turret(avaliable_turrets, add_tower, current_position[0], current_position[1]);
                                     add_turret_to_list(turrets, new_turret);
                                     gold -= 100;
                                 }
@@ -1468,11 +1428,12 @@ int main(int argc, char * argv[]) {
 					if (add_minion > 0){
 						//Add minion
 
-                        new_minion = init_minion(add_minion);     //minion_id not used
-                        add_minion_to_list(minions, new_minion);
-                        new_minion->node->xPos = 150;
-                        new_minion->node->yPos = 600;
-                        
+                        new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
+                        if(new_minion != NULL){
+							add_minion_to_list(minions, new_minion);
+							new_minion->node->xPos = 150;
+							new_minion->node->yPos = 600;
+                        }
                         
 						//Reset minion
 						add_minion = 0;
@@ -1499,6 +1460,7 @@ int main(int argc, char * argv[]) {
                                 
                                 enemy->e->targetted_projectils = remove_projectile_from_list(enemy->e->targetted_projectils, temp_lp->e);
                                 temp_lp->e = NULL;
+                                
                             }
                             
                             else
@@ -1667,7 +1629,7 @@ int main(int argc, char * argv[]) {
 			
                 draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count);
                 
-				display_mouse(renderer, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option, avaliable_minions, avaliable_turrets);
+				display_mouse(renderer, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option, avaliable_minions, avaliable_turrets, multiplayer);
 				
                 display_health(renderer, health, font);
                 display_mana(renderer, mana, font);
@@ -1717,7 +1679,7 @@ int main(int argc, char * argv[]) {
 //Init SDL, configs e menu principal
 bool main_init(){
     //Read Settings
-    FILE *settings = fopen("Config.txt", "r");
+    FILE *settings = fopen(CONFIG_FILE, "r");
     if(!settings){
         printf("Config file not found!\n");
         return false;
@@ -2145,25 +2107,27 @@ bool main_init(){
     game_interface_rects[1] = (SDL_Rect){1095, 0, 185, 720};
     
 	//Init minions avaliable
-	if (windows)
-		avaliable_minions = load_minions("MinionListWin.txt");
-	else
-		avaliable_minions = load_minions("MinionListMac.txt");
-	
+	avaliable_minions = load_minions(MINION_FILE);
+
 	if(avaliable_minions == NULL) {
 		printf("Falha ao carregar Minions");
 		return false;
 	}
 	//Init turrets avaliable
-	if (windows)
-		avaliable_turrets = load_turrets("TurretsListWin.txt");
-	else
-		avaliable_turrets = load_turrets("TurretsListMac.txt");
+	avaliable_turrets = load_turrets(TURRET_FILE);
 	
-	if(avaliable_minions == NULL) {
+	if(avaliable_turrets == NULL) {
 		printf("Falha ao carregar Turrets");
 		return false;
 	}
+	
+	avaliable_projectiles = load_projectiles(PROJECTILE_FILE);
+	
+	if (avaliable_projectiles == NULL) {
+		printf("Falha ao carregar projectiles");
+		//return false;
+	}
+	
     return true;
 }
 
@@ -2238,8 +2202,8 @@ void main_quit(){
 	if(avaliable_minions) 
 		free_avaliable_list_minion(avaliable_minions);
 		
-	//if(avaliable_turrets) 
-	//	free_avaliable_list_turret(avaliable_turrets);
+	if(avaliable_turrets) 
+		free_avaliable_list_turret(avaliable_turrets);
 	
     reset_game_data();
 }
