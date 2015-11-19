@@ -31,14 +31,14 @@
 	// List Tower
 	struct _list_turret {
 		turret *e;
-		struct _list_turret *next;
+		list_turret *next;
 	};
 
 	//List turret avaliable
 	struct _list_turret_avaliable {
 		turret_avaliable *e;
 		int type;
-		struct _list_turret_avaliable *next;
+		list_turret_avaliable *next;
 	};
 
 	//Allocation Functions
