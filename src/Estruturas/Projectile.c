@@ -7,6 +7,7 @@
 projectile *init_projectile(int projectileID, turret* shooter){
     projectile *new_projectile = malloc(sizeof(projectile));
     new_projectile->node = init_node("../images/Projectile.png", shooter->node->xPos, shooter->node->yPos);
+	
     new_projectile->speed = 4;
     new_projectile->damage = 2;
     
@@ -23,6 +24,7 @@ projectile_avaliable *init_avaliable_projectile(char *image_file, float speed, i
 		return NULL;
 	}
 	
+	strcpy(new_proj->thumbnail_file, image_file);
     new_proj->speed = speed;
     new_proj->damage = damage;
     

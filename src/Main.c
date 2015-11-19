@@ -879,7 +879,6 @@ int main(int argc, char * argv[]) {
 									
 									//Check where was clicked.
 									else if (get_touched_menu_address(event.motion.x, event.motion.y, center_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
-										printf("touch %d\n", select_grid_option);
 										if (selected_left) {
 											add_tower = select_grid_option;
 										}
@@ -890,7 +889,6 @@ int main(int argc, char * argv[]) {
 									}
 									else {
 										active_clicked = false;
-										printf("Not clicked");
 									}
 								}
 
@@ -919,6 +917,18 @@ int main(int argc, char * argv[]) {
 										//Set selected life
 										show_life_info = true;
 										show_timer = 0;
+									}
+								}
+								//Outside game area menu active_clicked.
+								else if(active_clicked){
+									if (get_touched_menu_address(event.motion.x, event.motion.y, center_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
+										if (selected_left) {
+											add_tower = select_grid_option;
+										}
+										else {
+											add_minion = select_grid_option;
+										}
+										active_clicked = false;
 									}
 								}
 							}
