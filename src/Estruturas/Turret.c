@@ -176,16 +176,15 @@ list_turret_avaliable *load_turrets(char const *file_name){
 		return false;
 	}
 	
-	int readed = 4;
+	int readed, len;
 	char name[40];
 	int cost;
 	float speed, radius;
 	int type = 0;
 	bool first = true;
 	
-	//Jump first line
-	sscanf(file, "%*s\n");
-	
+	//Get next line to be jumped
+	len = get_next_line(file);
 	
 	//Init avaliable turret list
 	list_turret_avaliable *avaliables = init_avaliable_list_turret();
@@ -193,10 +192,14 @@ list_turret_avaliable *load_turrets(char const *file_name){
 		for(int i=0; i < 40; i++) {
 			name[i] = '\0'; 
 		}
+		//Set point to next line
+		file += len + 1;
 		readed = sscanf(file, "%s %f %f %d", name, &speed, &radius, &cost);
 		if (readed != 4){
 			break;
 		}
+		
+		len = get_next_line(file);
 		if (first) {
 			first = false;
 		}
@@ -225,7 +228,7 @@ int get_tower_avaliable(list_turret_avaliable *list) {
 	list_turret_avaliable *temp = list;
 	int avaliable = 0;
 	
-	while(temp){
+	while(temp != NULL){
 		temp = temp->next;
 		avaliable++;
 	}

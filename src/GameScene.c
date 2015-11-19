@@ -7,42 +7,34 @@
 //
 
 #include "GameScene.h"
-#include "Estruturas.h"
-#include <math.h>
-
-#include <stdbool.h>
-#include <SDL2/SDL.h>
-
 #include "Renderer.h"
 
 int grid[17][13];
 
-
-
 //Use this on main init(or when loading a map)
 SDL_Surface *init_map(){
     //Load map image
-    SDL_Surface *map_Image = IMG_Load("../images/Mapa.png");
-    if(!map_Image){
+    SDL_Surface *map_image = IMG_Load(MAP_IMAGE);
+    if(!map_image){
         printf("Imagem do mapa não encontrada! %s\n", IMG_GetError());
         return NULL;
     }
     
     //Load map grid
-    FILE *mapGrid = fopen("Map1.txt", "r");
-    if(!mapGrid){
+    FILE *map_grid = fopen(MAP_GRID, "r");
+    if(!map_grid){
         printf("Txt de grid do mapa não encontrado!\n");
         return NULL;
     }
     
     for(int w = 0; w < 17; w++){
         for(int h = 0; h < 13; h++){
-            fscanf(mapGrid, "%d ", &grid[w][h]);
+            fscanf(map_grid, "%d ", &grid[w][h]);
         }
-        fscanf(mapGrid, "\n");
+        fscanf(map_grid, "\n");
     }
     setShortestPaths(grid, 17, 13, 16, 5);
-    return map_Image;
+    return map_image;
 }
 
 

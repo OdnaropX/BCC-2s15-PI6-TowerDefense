@@ -56,5 +56,15 @@ char* load_file(char const *file_name){
     }
 
     res[nb_read_total] = '\0';
+	
     return res;
+}
+
+//Get functions
+///////////////////////////////////////////////////////////////////////
+
+int get_next_line(char* string) {
+	char line[255];
+	sscanf(string, "%[^\n]\n", &line);
+	return strlen (line);
 }

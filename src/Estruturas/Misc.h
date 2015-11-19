@@ -60,4 +60,9 @@
 	
 	char* load_file(char const *file_name);
 	
+	//Get functions
+	///////////////////////////////////////////////////////////////////////
+	
+	int get_next_line(char* string);
+	
 #endif

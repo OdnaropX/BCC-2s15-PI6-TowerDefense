@@ -18,7 +18,7 @@ minion *init_minion(int minionID){
 }
 
 //Avaliable minion
-minion_avaliable *init_avaliable_minion(char *image_file, int hp, float speed, int cost, int gold_p_s, int gold_drop){
+minion_avaliable *init_avaliable_minion(char *image_file, int hp, float speed, int cost, float gold_p_s, int gold_drop){
     // USAR MINIONID para diferentes minions dps.
     minion_avaliable *new_minion = malloc(sizeof(minion_avaliable));
     new_minion->thumbnail = init_node(image_file, 0, 400);
@@ -187,19 +187,22 @@ void add_minion_to_avaliable_list(list_minion_avaliable *list, minion_avaliable 
 list_minion_avaliable *load_minions(char const *file_name){
 	char *file = load_file(file_name);
 	if(file == NULL) {
-		return false;
+		return NULL;
 	}
 	
-	int readed = 6;
+	int readed, len;
 	char name[40];
-	int hp, gold_per_second, cost, gold_drop;
-	float speed;
+	int hp, cost, gold_drop;
+	float speed, gold_per_second;
 	int type = 0;
 	bool first = true;
 	
-	//Jump first line
-	sscanf(file, "%*s\n");
+	hp = gold_per_second = cost = gold_drop = 0;
+	speed = gold_per_second = 0;
 	
+	
+	//Read first line
+	len = get_next_line(file);
 	
 	//Init avaliable minion list
 	list_minion_avaliable *avaliables = init_avaliable_list_minion();
@@ -207,10 +210,15 @@ list_minion_avaliable *load_minions(char const *file_name){
 		for(int i=0; i < 40; i++) {
 			name[i] = '\0'; 
 		}
-		readed = sscanf(file, "%s %d %f %d %d %d", name, &hp, &speed, &gold_per_second, &cost, &gold_drop);
+		//Set point to next line
+		file += len + 1;
+		readed = sscanf(file, "%s %d %f %f %d %d\n", name, &hp, &speed, &gold_per_second, &cost, &gold_drop);
 		if (readed != 6){
 			break;
 		}
+
+		len = get_next_line(file);
+		
 		if (first) {
 			first = false;
 		}
@@ -240,7 +248,7 @@ int get_minion_avaliable(list_minion_avaliable *list) {
 	list_minion_avaliable *temp = list;
 	int avaliable = 0;
 	
-	while(temp){
+	while(temp != NULL){
 		temp = temp->next;
 		avaliable++;
 	}

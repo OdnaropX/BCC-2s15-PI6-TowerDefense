@@ -8,7 +8,6 @@
 
 //Main Menu (Loads SDL and main menu assets)
 
-#include "Estruturas.h"
 #include "Renderer.h"
 #include "GameScene.h"
 
@@ -1662,7 +1661,7 @@ int main(int argc, char * argv[]) {
 //Init SDL, configs e menu principal
 bool main_init(){
     //Read Settings
-    FILE *settings = fopen("Config.txt", "r");
+    FILE *settings = fopen(CONFIG_FILE, "r");
     if(!settings){
         printf("Config file not found!\n");
         return false;
@@ -2090,25 +2089,21 @@ bool main_init(){
     game_interface_rects[1] = (SDL_Rect){1095, 0, 185, 720};
     
 	//Init minions avaliable
-	if (windows)
-		avaliable_minions = load_minions("MinionListWin.txt");
-	else
-		avaliable_minions = load_minions("MinionListMac.txt");
-	
+	avaliable_minions = load_minions(MINION_FILE);
+
 	if(avaliable_minions == NULL) {
 		printf("Falha ao carregar Minions");
 		return false;
 	}
 	//Init turrets avaliable
-	if (windows)
-		avaliable_turrets = load_turrets("TurretsListWin.txt");
-	else
-		avaliable_turrets = load_turrets("TurretsListMac.txt");
+	avaliable_turrets = load_turrets(TURRET_FILE);
 	
-	if(avaliable_minions == NULL) {
+	if(avaliable_turrets == NULL) {
 		printf("Falha ao carregar Turrets");
 		return false;
 	}
+	
+	
     return true;
 }
 
@@ -2183,8 +2178,8 @@ void main_quit(){
 	if(avaliable_minions) 
 		free_avaliable_list_minion(avaliable_minions);
 		
-	//if(avaliable_turrets) 
-	//	free_avaliable_list_turret(avaliable_turrets);
+	if(avaliable_turrets) 
+		free_avaliable_list_turret(avaliable_turrets);
 	
     reset_game_data();
 }

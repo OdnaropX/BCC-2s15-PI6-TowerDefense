@@ -30,6 +30,60 @@ void draw_node(SDL_Surface *screen, node *drawn_node, bool tower){
     SDL_BlitSurface(drawn_node->sprite, NULL, screen, &rect);
 }
 
+void draw_thumbnail(SDL_Renderer *renderer, node *drawn_node, int x_init, int y_init){
+	SDL_Texture *texture;
+	texture = SDL_CreateTextureFromSurface(renderer, drawn_node->sprite);
+	SDL_RenderCopy(renderer, texture, NULL, &(SDL_Rect){x_init, y_init, MENU_ICON, MENU_ICON});
+	SDL_DestroyTexture(texture);
+}
+
+void draw_turret_avaliable(SDL_Renderer *renderer, list_turret_avaliable *list, int per_row, int position[]){
+	list_turret_avaliable *temp = list;
+	int x_init, y_init;
+	int line = 0;
+	
+	x_init =  position[0];
+	y_init = position[1];
+	
+	while(temp != NULL && temp->e != NULL) {
+		printf("x %d, y %d\n", x_init, y_init);
+		draw_thumbnail(renderer, temp->e->thumbnail, x_init, y_init);
+		line++;
+		temp = temp->next;
+		if(line == per_row) {
+			x_init = position[0];
+			y_init += MENU_ICON;
+			line = 0;
+		}
+		else {
+			x_init += MENU_ICON;
+		}
+	}
+}
+
+void draw_minion_avaliable(SDL_Renderer *renderer, list_minion_avaliable *list, int per_row, int position[]){
+	list_minion_avaliable *temp = list;
+	int x_init, y_init;
+	int line = 0;
+	
+	x_init =  position[0];
+	y_init = position[1];
+	
+	while(temp != NULL && temp->e != NULL) {
+		draw_thumbnail(renderer, temp->e->thumbnail, x_init, y_init);
+		line++;
+		temp = temp->next;
+		if(line == per_row) {
+			x_init = position[0];
+			y_init += MENU_ICON;
+			line = 0;
+		}
+		else {
+			x_init += MENU_ICON;
+		}
+	}
+}
+
 void draw_screen_main(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *rectangles, int count, main_options select_option){
     for(int i = 0; i < count; i++){
         int sel = 0;
@@ -247,7 +301,7 @@ void draw_screen_multiplayer_menu(SDL_Renderer *renderer, SDL_Texture **assets, 
     
 }
 
-void get_menu_size_tower(int size[], list_turret_avaliable *list){
+void get_menu_size_tower(int size[], list_turret_avaliable *list, int *per_row){
 	int correction, number, row, columns;
 	
 	number = get_tower_avaliable(list);
@@ -266,11 +320,13 @@ void get_menu_size_tower(int size[], list_turret_avaliable *list){
 	
 	columns = (number / row) + correction; //3
 	
-	size[0] = columns * MENU_ICON;
-	size[1] = row * MENU_ICON;
+	size[0] = row * MENU_ICON;
+	size[1] = columns * MENU_ICON;
+	
+	*per_row = row;
 }
 
-void get_menu_size_minion(int size[], list_minion_avaliable *list){
+void get_menu_size_minion(int size[], list_minion_avaliable *list, int *per_row){
 	int correction, number, row, columns;
 	
 	number = get_minion_avaliable(list);
@@ -289,8 +345,10 @@ void get_menu_size_minion(int size[], list_minion_avaliable *list){
 	
 	columns = (number / row) + correction; //3
 	
-	size[0] = columns * MENU_ICON;
-	size[1] = row * MENU_ICON;
+	size[0] = row * MENU_ICON;
+	size[1] = columns * MENU_ICON;
+	
+	*per_row = row;
 }
 
 void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], GAME_RUNNING_OPTIONS running_option, list_minion_avaliable *list_m, list_turret_avaliable *list_t) {
@@ -300,27 +358,42 @@ void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_le
 	
 	
 	
+
 	if(active_clicked){
 		int size[] = {0,0};
-		int center[] = {0,0};
+		int position[] = {0,0};
+		int per_row = 0;
+		int padding = 10;
 		
 		if(selected_left){
 			//Get tower menu size
-			get_menu_size_tower(size, list_t);
+			get_menu_size_tower(size, list_t, &per_row);
 		}
 		else {
 			//Get Minion menu size
-			get_menu_size_minion(size, list_m);
+			get_menu_size_minion(size, list_m, &per_row);
 		}
 		//Add padding
-		size[0] = size[0] + 20;
-		size[1] = size[1] + 20;
+		//size[0] = size[0] + 20;
+		//size[1] = size[1] + 20;
 		
-		//Render menu option
+		position[0] = center_clicked[0] - size[0] /2;
+		position[1] = center_clicked[1] - size[1] / 2;
 		
+		//Render menu
         SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);  //Enable transparency
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 128); // the rect color (solid red)
-		SDL_RenderFillRect(renderer, &(SDL_Rect){center_clicked[0] - block_width /2, center_clicked[1] - block_height / 2, block_width, block_height});
+		SDL_RenderFillRect(renderer, &(SDL_Rect){position[0] - padding, position[1] - padding, size[0] + padding *2, size[1] + padding *2});
+		
+		//Render minions or turrets
+		if(selected_left){
+			draw_turret_avaliable(renderer, list_t, per_row, position);
+		}
+		else {
+			draw_minion_avaliable(renderer, list_m, per_row, position);
+		}
+		
+		
 	}
 }
 

@@ -28,7 +28,7 @@
 		node *thumbnail;
 		int HP;
 		float speed;
-		int gold_per_second_bonus;
+		float gold_per_second_bonus;//change from int
 		int cost;
 		int gold_drop;
 	};
@@ -49,7 +49,7 @@
 	///////////////////////////////////////////////////////////////////////
 	
 	minion *init_minion(int minionID);
-	minion_avaliable *init_avaliable_minion(char *image_file, int hp, float speed, int cost, int gold_p_s, int gold_drop);
+	minion_avaliable *init_avaliable_minion(char *image_file, int hp, float speed, int cost, float gold_p_s, int gold_drop);
 	void remove_minion(minion *mium);
 	void remove_avaliable_minion(minion_avaliable *mium);
 
