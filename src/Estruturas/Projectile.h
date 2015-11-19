@@ -23,6 +23,7 @@
 	
 	struct _projectiles {
 		node *thumbnail;
+		char thumbnail_file[255];
 		float speed;
 		int damage;
 	};

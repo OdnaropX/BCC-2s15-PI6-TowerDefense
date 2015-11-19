@@ -142,6 +142,7 @@ int main(int argc, char * argv[]) {
     
 	bool game_started = false;
 	bool game_paused = false;
+	bool multiplayer = false;
 	
 	//Click control
 	bool active_clicked = false;
@@ -537,7 +538,7 @@ int main(int argc, char * argv[]) {
 														select_running_option.game_area.left--;
 													}
 												}
-												else {
+												else if (multiplayer)  {
 													if (select_running_option.game_area.right == OPT_R_A_R_MINION_1) {
 														select_running_option.game_area.right = OPT_R_A_R_MINION_3;
 													}
@@ -597,7 +598,7 @@ int main(int argc, char * argv[]) {
 														select_running_option.game_area.left--;
 													}
 												}
-												else {
+												else if (multiplayer) {
 													if (select_running_option.game_area.right == OPT_R_A_R_MINION_1) {
 														select_running_option.game_area.right = OPT_R_A_R_MINION_3;
 													}
@@ -642,7 +643,7 @@ int main(int argc, char * argv[]) {
 												if (selected_left) {
 													select_running_option.game_area.left = (select_running_option.game_area.left + 1) % 3;
 												}
-												else {
+												else if (multiplayer){
 													select_running_option.game_area.right = (select_running_option.game_area.right + 1) % 3;
 												}
 											}
@@ -677,7 +678,7 @@ int main(int argc, char * argv[]) {
 													select_running_option.game_area.left = (select_running_option.game_area.left + 1) % 3;
 													
 												}
-												else {
+												else if (multiplayer) {
 													select_running_option.game_area.right = (select_running_option.game_area.right + 1) % 3;
 												}
 											}
@@ -714,7 +715,7 @@ int main(int argc, char * argv[]) {
 									break;
 								case SDLK_e:
 									printf("Key pressed: e\n"); 
-									if (running_option.current_tab == GAME_AREA && !active_clicked){
+									if (running_option.current_tab == GAME_AREA && !active_clicked && multiplayer){
 										//Active click on current location
 										active_clicked = true;
 										selected_left = false;
@@ -770,7 +771,7 @@ int main(int argc, char * argv[]) {
 													add_tower = select_running_option.game_area.right + 1;
                                                     get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
-												else {
+												else if (multiplayer) {
 													add_minion = select_running_option.game_area.left + 1;
 													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
@@ -829,7 +830,7 @@ int main(int argc, char * argv[]) {
 													add_tower = select_running_option.game_area.right + 1;
 													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
-												else {
+												else if (multiplayer) {
 													add_minion = select_running_option.game_area.left + 1;
 													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
@@ -857,8 +858,11 @@ int main(int argc, char * argv[]) {
 							if(event.button.button == SDL_BUTTON_LEFT || event.button.button == SDL_BUTTON_RIGHT){
 								left_click = event.button.button == SDL_BUTTON_LEFT;
 								
+								if (!left_click && !multiplayer){
+									printf("Do nothing\n");
+								}
 								//Game area
-								if(get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
+								else if(get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
 									current_position[0] = grid_clicked[0];
 									current_position[1] = grid_clicked[1];
 								
@@ -879,7 +883,6 @@ int main(int argc, char * argv[]) {
 									
 									//Check where was clicked.
 									else if (get_touched_menu_address(event.motion.x, event.motion.y, center_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
-										printf("touch %d\n", select_grid_option);
 										if (selected_left) {
 											add_tower = select_grid_option;
 										}
@@ -890,7 +893,6 @@ int main(int argc, char * argv[]) {
 									}
 									else {
 										active_clicked = false;
-										printf("Not clicked");
 									}
 								}
 
@@ -919,6 +921,18 @@ int main(int argc, char * argv[]) {
 										//Set selected life
 										show_life_info = true;
 										show_timer = 0;
+									}
+								}
+								//Outside game area menu active_clicked.
+								else if(active_clicked){
+									if (get_touched_menu_address(event.motion.x, event.motion.y, center_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
+										if (selected_left) {
+											add_tower = select_grid_option;
+										}
+										else {
+											add_minion = select_grid_option;
+										}
+										active_clicked = false;
 									}
 								}
 							}
@@ -1195,8 +1209,8 @@ int main(int argc, char * argv[]) {
 				//Add more mana 1
 				mana++;
 					
-				//Wave spawning.
-				if(pending_wave_number > 0) {
+				//Wave spawning. Only to single player.
+				if(pending_wave_number > 0 && !multiplayer) {
 					add_minion = (add_minion + 1) % get_minion_avaliable(avaliable_minions);
 					pending_wave_number--;
 				}
@@ -1233,7 +1247,7 @@ int main(int argc, char * argv[]) {
 					
 
 				//Timer, use this if to run code for each timer_minion seconds, for minions.
-				if (is_time(timer_count, timer_minion)){
+				if (is_time(timer_count, timer_minion) && !multiplayer){
 					//New wave
 					pending_wave_number = monsterSpawner[spawn_minion];
 					timer_minion = pending_wave_number + 20;
@@ -1615,7 +1629,7 @@ int main(int argc, char * argv[]) {
 			
                 draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count);
                 
-				display_mouse(renderer, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option, avaliable_minions, avaliable_turrets);
+				display_mouse(renderer, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option, avaliable_minions, avaliable_turrets, multiplayer);
 				
                 display_health(renderer, health, font);
                 display_mana(renderer, mana, font);
