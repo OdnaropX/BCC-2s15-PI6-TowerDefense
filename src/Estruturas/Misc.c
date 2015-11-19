@@ -65,6 +65,6 @@ char* load_file(char const *file_name){
 
 int get_next_line(char* string) {
 	char line[255];
-	sscanf(string, "%[^\n]\n", &line);
+	sscanf(string, "%[^\n]\n", line);
 	return strlen (line);
 }
