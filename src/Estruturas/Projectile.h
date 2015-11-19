@@ -25,7 +25,7 @@
 		node *thumbnail;
 		float speed;
 		int damage;
-	}
+	};
 	
 	// List Shoots
 	struct _list_projectile {

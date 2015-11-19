@@ -46,7 +46,6 @@ void draw_turret_avaliable(SDL_Renderer *renderer, list_turret_avaliable *list, 
 	y_init = position[1];
 	
 	while(temp != NULL && temp->e != NULL) {
-		printf("x %d, y %d\n", x_init, y_init);
 		draw_thumbnail(renderer, temp->e->thumbnail, x_init, y_init);
 		line++;
 		temp = temp->next;

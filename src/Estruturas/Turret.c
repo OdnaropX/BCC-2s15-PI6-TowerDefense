@@ -3,12 +3,20 @@
 //Allocation Functions
 ///////////////////////////////////////////////////////////////////////
 
-turret *init_turret(int turretID, int gridX, int gridY){
+turret *init_turret(list_turret_avaliable *list, int turretID, int gridX, int gridY){
+	turret_avaliable *avaliable = get_turret_from_avaliable_list(list, turretID);
+
+	if (avaliable == NULL){
+		return NULL;
+	}	
+	
     turret *new_turret = malloc(sizeof(turret));
-    new_turret->node = init_node("../images/Turret.png", gridX * block_width, gridY * block_height);
+	new_turret->node = avaliable->thumbnail;
+	new_turret->node->xPos = gridX * block_width;
+	new_turret->node->yPos = gridY * block_height;
     new_turret->timeUntilNextAttack = 5.0; // Sempre começa sem atacar.
     new_turret->turretType = turretID;
-    new_turret->radius = 200;
+    new_turret->radius = avaliable->atack_radius;
     
     return new_turret;
 }

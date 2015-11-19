@@ -44,7 +44,7 @@
 	//Allocation Functions
 	///////////////////////////////////////////////////////////////////////
 	
-	turret *init_turret(int turretID, int gridX, int gridY);
+	turret *init_turret(list_turret_avaliable *list, int turretID, int gridX, int gridY);
 	turret_avaliable *init_avaliable_turret(char *image_file, float atack_speed, float atack_radius, int cost);
 	void remove_turret(turret *turret);
 	void remove_avaliable_turret(turret_avaliable *turret);

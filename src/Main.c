@@ -83,6 +83,7 @@ int mana = 0;
 //Avaliables
 list_minion_avaliable *avaliable_minions;
 list_turret_avaliable *avaliable_turrets;
+list_projectile_avaliable *avaliable_projectiles;
 
 //Cabeçalhos
 bool main_init();
@@ -1400,7 +1401,7 @@ int main(int argc, char * argv[]) {
                                     perform_path_verification(16, 5);
                                 }
                                 else{ // SUCCESS
-                                    new_turret = init_turret(add_tower, current_position[0], current_position[1]);
+                                    new_turret = init_turret(avaliable_turrets, add_tower, current_position[0], current_position[1]);
                                     add_turret_to_list(turrets, new_turret);
                                     gold -= 100;
                                 }
@@ -1413,7 +1414,7 @@ int main(int argc, char * argv[]) {
 					if (add_minion > 0){
 						//Add minion
 
-                        new_minion = init_minion(add_minion);     //minion_id not used
+                        new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
                         add_minion_to_list(minions, new_minion);
                         new_minion->node->xPos = 150;
                         new_minion->node->yPos = 600;
@@ -2104,6 +2105,12 @@ bool main_init(){
 		return false;
 	}
 	
+	avaliable_projectiles = load_projectiles(PROJECTILE_FILE);
+	
+	if (avaliable_projectiles == NULL) {
+		printf("Falha ao carregar projectiles");
+		//return false;
+	}
 	
     return true;
 }

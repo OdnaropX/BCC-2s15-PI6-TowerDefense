@@ -4,12 +4,18 @@
 ///////////////////////////////////////////////////////////////////////
 	
 //Minion
-minion *init_minion(int minionID){
+minion *init_minion(list_minion_avaliable *list, int minionID){
+	minion_avaliable *avaliable = get_minion_from_avaliable_list(list, minionID);
+	
+	if (avaliable == NULL){
+		return NULL;
+	}	
+
     // USAR MINIONID para diferentes minions dps.
     minion *new_minion = malloc(sizeof(minion));
-    new_minion->node = init_node("../images/Minion.png", 0, 400);
-    new_minion->HP = 7;
-    new_minion->speed = 4;
+    new_minion->node = avaliable->thumbnail;
+    new_minion->HP = avaliable->HP;
+    new_minion->speed = avaliable->speed;
     new_minion->minionType = minionID;
     
     new_minion->targetted_projectils = init_list_projectile();

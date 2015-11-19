@@ -48,7 +48,7 @@
 	//Allocation Functions
 	///////////////////////////////////////////////////////////////////////
 	
-	minion *init_minion(int minionID);
+	minion *init_minion(list_minion_avaliable *list, int minionID);
 	minion_avaliable *init_avaliable_minion(char *image_file, int hp, float speed, int cost, float gold_p_s, int gold_drop);
 	void remove_minion(minion *mium);
 	void remove_avaliable_minion(minion_avaliable *mium);
