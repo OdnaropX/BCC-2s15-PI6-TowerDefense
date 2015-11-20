@@ -83,11 +83,11 @@ void free_list_projectile(list_projectile *list){
 
 void add_projectile_to_list(list_projectile *list, projectile *projectile){
     //Caso a lista esteja vazia ainda
-    if(!list->e){
+    if(list->e != NULL){
         list->e = projectile;
         return;
     }
-    while(list->next)
+    while(list->next != NULL)
         list = list->next;
     
     list_projectile *new_element = init_list_projectile();

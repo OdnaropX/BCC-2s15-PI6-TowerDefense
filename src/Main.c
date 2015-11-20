@@ -94,7 +94,8 @@ void get_multiplayer_status(multiplayer_menu_options selected_option, multiplaye
 void reset_game_data();
 
 //Socket structure
-
+bool start_multiplay;
+int players[4];
 
 int main(int argc, char * argv[]) {
     bool quit = false;
@@ -103,7 +104,6 @@ int main(int argc, char * argv[]) {
     if(!main_init()){
         quit = true;
     }
-	
 	
 	//Screen control
 	screen current_screen = MAIN;
@@ -1333,6 +1333,7 @@ int main(int argc, char * argv[]) {
                     case MP_CREATE_GAME:
                         //Create server
                         multiplayer_status = MPS_SEARCHING_PLAYER;
+						
                         break;
                         
                     case MP_SEARCH_GAME:
@@ -1602,6 +1603,9 @@ int main(int argc, char * argv[]) {
             
 		}
         
+		// Select the color for drawing.
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
         //Clear render
         SDL_RenderClear(renderer);
 		
@@ -1730,6 +1734,12 @@ bool main_init(){
         printf("SDL_Init error: %s\n", SDL_GetError());
         return false;
     }
+	
+	//Init network
+	if(SDLNet_Init() < 0){
+		printf("SDLNet_Init error: %s\n", SDLNet_GetError());
+        return false;
+	}
     
     //Create window
     main_Window = SDL_CreateWindow("PI-6 Tower Defense", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screen_Width, screen_Height, SDL_WINDOW_SHOWN);
@@ -2198,9 +2208,10 @@ void main_quit(){
     if(main_Window)
         SDL_DestroyWindow(main_Window);
     
-    //Quit SDL, TTF, IMG
+    //Quit SDL, SDLNet, TTF, IMG
     IMG_Quit();
     TTF_Quit();
+	SDLNet_Quit();
     SDL_Quit();
 	
 	//Free config
