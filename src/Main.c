@@ -191,6 +191,7 @@ int main(int argc, char * argv[]) {
 	
 	int grid_clicked[] = {0,0};
 	int center_clicked[] = {0,0};
+	int original_clicked[] = {0,0};
 	
 	int select_grid_option = 0;
 	
@@ -863,9 +864,10 @@ int main(int argc, char * argv[]) {
 								}
 								//Game area
 								else if(get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
-									current_position[0] = grid_clicked[0];
-									current_position[1] = grid_clicked[1];
-								
+									if (!active_clicked){
+										current_position[0] = grid_clicked[0];
+										current_position[1] = grid_clicked[1];
+									}
 									select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);								
 									
 									//convert select grid
@@ -885,9 +887,11 @@ int main(int argc, char * argv[]) {
 									else if (get_touched_menu_address(event.motion.x, event.motion.y, center_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
 										if (selected_left) {
 											add_tower = select_grid_option;
+											//*original_clicked = *center_clicked;
 										}
 										else {
 											add_minion = select_grid_option;
+											//*original_clicked = *center_clicked;
 										}
 										active_clicked = false;
 									}
@@ -928,9 +932,11 @@ int main(int argc, char * argv[]) {
 									if (get_touched_menu_address(event.motion.x, event.motion.y, center_clicked, &select_grid_option, selected_left, avaliable_minions, avaliable_turrets)){
 										if (selected_left) {
 											add_tower = select_grid_option;
+											*original_clicked = *center_clicked;
 										}
 										else {
 											add_minion = select_grid_option;
+											*original_clicked = *center_clicked;
 										}
 										active_clicked = false;
 									}
@@ -1407,6 +1413,8 @@ int main(int argc, char * argv[]) {
 					if (add_tower > 0){
 						//Add tower
                         if(gold > 100){
+							//
+							
                             //Check if position already has tower
                             if(occupyGrid(current_position[0], current_position[1])){
                                 //Check if turret == Snorlax
