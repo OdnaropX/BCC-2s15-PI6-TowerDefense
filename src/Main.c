@@ -1452,6 +1452,8 @@ int main(int argc, char * argv[]) {
                         }
                         
                         while (shoot && shoot->e) {
+                            if(shoot->e->node)
+                                printf("ué\n");
                             if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
                                 enemy->e->HP -= shoot->e->damage;
                                 list_projectile *temp_lp = shoot;

@@ -98,15 +98,14 @@ void add_projectile_to_list(list_projectile *list, projectile *projectile){
 list_projectile *remove_projectile_from_list(list_projectile *list, projectile *projectile){
     list_projectile *first_node = list;
     list_projectile *remove = NULL;
-    
+    int count = 0;
     while(list->e && list != remove){
-        
+        count++;
         if(list->e == projectile){
             remove = list;
-            
             if(list->next){
                 list_projectile *aux = list->next;
-                list->next = list;
+//                list->next = NULL;
                 list = aux;
             }
             
@@ -115,7 +114,6 @@ list_projectile *remove_projectile_from_list(list_projectile *list, projectile *
         
         list = list->next;
     }
-    
     if(remove){
         remove_projectile(remove->e);
 		//remove_projectile(remove->next->e);//Need to check this for bug
@@ -125,6 +123,9 @@ list_projectile *remove_projectile_from_list(list_projectile *list, projectile *
         if(remove != first_node){
             free(remove);
             remove = NULL;
+        }
+        else{
+            remove->next = NULL;
         }
     }
     
