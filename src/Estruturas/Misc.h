@@ -14,14 +14,14 @@
 		#define windows 1
 		#include <SDL2/SDL_image.h>
 		#include <SDL2/SDL_ttf.h>
-		#include <SDL2/SDL_ttf.h>
 		#include <SDL2/SDL_net.h>
+		#include <SDL2/SDL_thread.h>
 	#else
 		#define windows 0
 		#include <SDL2_image/SDL_image.h>
 		#include <SDL2_ttf/SDL_ttf.h>
-		#include <SDL2_ttf/SDL_ttf.h>
-		#include <SDL_net.h>
+		#include <SDL2/SDL_net.h>
+		#include <SDL2/SDL_thread.h>
 	#endif
 	
 	#include "../Path.h"

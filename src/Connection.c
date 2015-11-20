@@ -1,3 +1,5 @@
+#include "Connection.h"
+
 /*
 void encrypt(){
 	
@@ -56,3 +58,19 @@ void send_request(){
 void send_(){}
 
 */
+
+void run_server(void *data){
+	printf("hererere %d\n", terminate_thread);
+	while(!terminate_thread){
+		printf("Test server = %d\n", terminate_thread);
+	}
+	return;
+}
+
+
+void run_client(void *data){
+	while(!terminate_thread){
+		printf("Test client 1\n");
+	}
+	return;
+}

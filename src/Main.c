@@ -10,6 +10,7 @@
 
 #include "Renderer.h"
 #include "GameScene.h"
+#include "Connection.h"
 
 #define main_menu_assets_count 13
 #define config_menu_assets_count 9
@@ -169,13 +170,7 @@ int main(int argc, char * argv[]) {
 	bool show_life_info = false;
 	
 	
-	//FPS and timer
-    int t1, t2;
-    int delay = 17; //Aprox. de 1000ms/60
-	int show_timer = 0;
-	int timer_count = 0;
-	int frame = 0;
-    t1 = SDL_GetTicks();
+	
     
 	int select_grid = 0;
 	int click_grid = 0;
@@ -196,6 +191,18 @@ int main(int argc, char * argv[]) {
 	int select_grid_option = 0;
 	
 	int temp_option;
+	//Thread
+	SDL_Thread *thread = NULL;
+	terminate_thread = 0;
+	
+	
+	//FPS and timer
+    int t1, t2;
+    int delay = 17; //Aprox. de 1000ms/60
+	int show_timer = 0;
+	int timer_count = 0;
+	int frame = 0;
+    t1 = SDL_GetTicks();
 	
     //Main loop
     while(!quit){
@@ -1333,17 +1340,33 @@ int main(int argc, char * argv[]) {
                     case MP_CREATE_GAME:
                         //Create server
                         multiplayer_status = MPS_SEARCHING_PLAYER;
-						
+						if (thread == NULL) {
+							terminate_thread = 0;
+							thread = SDL_CreateThread(run_server, "run_server", (void *) NULL);
+							if (thread == NULL) {
+								multiplayer_status = MPS_NONE;
+							}
+						}
                         break;
                         
                     case MP_SEARCH_GAME:
                         //Create client
                         multiplayer_status = MPS_SEARCHING_GAME;
+						if (thread == NULL) {
+							terminate_thread = 0;
+							thread = SDL_CreateThread(run_client, "run_client", (void *) NULL);
+							if (thread == NULL) {
+								multiplayer_status = MPS_NONE;
+							}
+						}
                         break;
                         
                     case MP_CANCEL:
                         //Filter whether client or server and finnish
                         multiplayer_status = MPS_NONE;
+						terminate_thread = 1;
+						SDL_DetachThread(thread);
+						thread = NULL;
                         break;
                         
                     case MP_BACK:
