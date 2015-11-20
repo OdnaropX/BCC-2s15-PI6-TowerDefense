@@ -1361,18 +1361,19 @@ int main(int argc, char * argv[]) {
 						}
                         break;
                         
-                    case MP_CANCEL:
-                        //Filter whether client or server and finnish
-                        multiplayer_status = MPS_NONE;
-						terminate_thread = 1;
-						SDL_DetachThread(thread);
-						thread = NULL;
-                        break;
-                        
                     case MP_BACK:
                         //Same as cancel option
                         current_screen = MAIN;
                         previous_screen = GAME_MULTIPLAY_SERVER;
+
+					case MP_CANCEL:
+                        //Filter whether client or server and finnish
+						if(thread != NULL){
+							multiplayer_status = MPS_NONE;
+							terminate_thread = 1;
+							SDL_DetachThread(thread);
+							thread = NULL;
+						}
                         break;
                         
                     case MP_NONE:
