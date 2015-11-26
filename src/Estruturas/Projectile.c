@@ -83,11 +83,11 @@ void free_list_projectile(list_projectile *list){
 
 void add_projectile_to_list(list_projectile *list, projectile *projectile){
     //Caso a lista esteja vazia ainda
-    if(!list->e){
+    if(list->e == NULL){
         list->e = projectile;
         return;
     }
-    while(list->next)
+    while(list->next != NULL)
         list = list->next;
     
     list_projectile *new_element = init_list_projectile();
@@ -98,6 +98,7 @@ void add_projectile_to_list(list_projectile *list, projectile *projectile){
 list_projectile *remove_projectile_from_list(list_projectile *list, projectile *projectile){
     list_projectile *first_node = list;
     list_projectile *remove = NULL;
+    bool willReturnNull;
     int count = 0;
     while(list->e && list != remove){
         count++;
@@ -115,14 +116,15 @@ list_projectile *remove_projectile_from_list(list_projectile *list, projectile *
         list = list->next;
     }
     if(remove){
-        remove_projectile(remove->e);
 		//remove_projectile(remove->next->e);//Need to check this for bug
         remove->e = NULL;
         remove->next = NULL;
         
         if(remove != first_node){
-            free(remove);
+            remove_projectile(remove->e);
             remove = NULL;
+            free(remove);
+            
         }
         else{
             remove->next = NULL;

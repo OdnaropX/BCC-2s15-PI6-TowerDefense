@@ -37,7 +37,7 @@
 	struct _list_projectile_avaliable {
 		projectile_avaliable *e;
 		int type;
-		list_projectile *next;
+		list_projectile_avaliable *next;
 	};
 	
 	

@@ -248,17 +248,17 @@ void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *r
     }
 }
 
-void draw_screen_game_over(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, game_over_options select_game_over_option){
+void draw_screen_end_game(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, end_game_options select_end_game_option){
     for(int i = 0; i < count; i++){
         int sel = 0;
-        switch(select_game_over_option){
-            case GO_RETRY:
+        switch(select_end_game_option){
+            case EG_NEW_GAME:
                 sel = 2;
                 break;
-            case GO_MAIN:
+            case EG_MAIN:
                 sel = 4;
                 break;
-            case GO_QUIT:
+            case EG_QUIT:
                 sel = 6;
                 break;
             default:

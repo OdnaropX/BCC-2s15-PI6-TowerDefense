@@ -7,9 +7,9 @@ CC= gcc -std=c99
 CFLAGS= -W -Wall -pedantic
 
 ifeq ($(OS),Windows_NT)
-LIBS = -lmingw32 -lSDL2main -lSDL2_image -lSDL2_ttf  -lSDL2 
+LIBS = -lmingw32 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2_net -lSDL2 
 else
-LIBS = -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2
+LIBS = -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2 -lSDL2_net
 endif
 
 SOURCEDIR = src
