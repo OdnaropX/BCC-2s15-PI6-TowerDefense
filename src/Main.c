@@ -2047,7 +2047,7 @@ bool main_init(){
     }
     
     //Init end game screen assets, except status
-    for(int i = 0; i < end_game_interface_assets_count; i++){
+    for(int i = 0; i < end_game_interface_assets_count - 1; i++){
         char *text = NULL;
         SDL_Rect rect;
         
@@ -2107,7 +2107,7 @@ bool main_init(){
         SDL_FreeSurface(surface);
     }
     
-    for(int i = 0; i < multiplayer_menu_assets_count; i++){
+    for(int i = 0; i < multiplayer_menu_assets_count - 1; i++){
         char *text = NULL;
         SDL_Rect rect;
         
