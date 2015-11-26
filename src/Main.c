@@ -1460,7 +1460,7 @@ int main(int argc, char * argv[]) {
                         }
                         
                         while (shoot && shoot->e) {
-                            if(shoot->e->node)
+                            if(shoot->e->damage)
                                 printf("ué\n");
                             if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
                                 enemy->e->HP -= shoot->e->damage;
@@ -1478,14 +1478,17 @@ int main(int argc, char * argv[]) {
                         }
                         
                         if(enemy->e->HP <= 0){ // Death of minions
-                            list_minion *temp_minion = enemy;
-                            enemy = enemy->next;
-                            
-                            gold += 12;
-                            
-                            minions = remove_minion_from_list(minions, temp_minion->e);
-                            temp_minion->e = NULL;
-                            temp_minion = NULL;
+                            if(enemy->e->targetted_projectils->e == NULL){
+                                
+                                list_minion *temp_minion = enemy;
+                                enemy = enemy->next;
+                                
+                                gold += 12;
+                                
+                                minions = remove_minion_from_list(minions, temp_minion->e);
+                                temp_minion->e = NULL;
+                                temp_minion = NULL;
+                            }
                         }
                         
                         else
@@ -1511,6 +1514,9 @@ int main(int argc, char * argv[]) {
                             if(target){
                                 projectile* newShoot = init_projectile(0, turret->e);
                                 add_projectile_to_list(target->targetted_projectils, newShoot);
+
+                                
+
                                 turret->e->timeUntilNextAttack = 1.0;
                             }
                         }
