@@ -11,7 +11,7 @@
 		#include <SDL2/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
 	#else
-		#include <SDL2/SDL_net.h>
+		#include <SDL2_net/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
 	#endif
 	
@@ -99,7 +99,6 @@
 	
 	//Server runner
 	///////////////////////////////////////////////////////////////////////
-	
 	void run_server(void *data);
 
 	void run_client(void *data);

@@ -307,6 +307,7 @@ void run_server(void *data){
 	while(!terminate_thread){
 		printf("Test server\n");
 	}
+
 	return;
 }
 
