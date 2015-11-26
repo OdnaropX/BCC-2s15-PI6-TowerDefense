@@ -1295,6 +1295,7 @@ int main(int argc, char * argv[]) {
 				switch(main_option){
 					case OPT_EXIT:
 						quit = true;
+						terminate_thread = 1;
 						break;
 					case OPT_PLAY:
 						game_started = true;
