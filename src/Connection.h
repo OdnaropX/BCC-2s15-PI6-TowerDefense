@@ -6,10 +6,11 @@
 	#include <stdlib.h>
 	#include <stdio.h>
 	#include <strings.h>
-	
+
 	#ifdef _WIN32 //Load lib for windows or mac.
 		#include <SDL2/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
+		
 	#else
 		#include <SDL2_net/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
@@ -18,6 +19,7 @@
 	//Constants
 	///////////////////////////////////////////////////////////////////////
 	#define DEFAULT_PORT 4242
+	#define DEFAULT_PLAYERS_LIFE 10
 	#define BUFFER_LIMIT 512
 	#define SERVER_NAME 150
 	#define MAX_SERVER 4//Change to get from config file.
@@ -39,18 +41,24 @@
 	struct _game_communication {
 		int game_can_start;//Game can be started or not. Only if all players can start.
 		int game_finished;//Game finished or not.
+		int players_left;//Game finished or not.
 		int connection_lost;//Connection to server lost or not.
 		int server_found;//Server found or not found.
 		int server_choose;//Server need to be choosed.
+		int server_choosed;
 		int server_connecting;//Server connected.
 		int server_connected;//Server connected.
-		player_comm **other_players;//Other players info.
+		player_comm **players;//[MAX_CLIENT];//Other players info.
 		player_comm *current_player;
 	};
 	
 	struct _player_communication {
 		int exited_game;
 		int connection_lost;
+		int ready_to_play;
+		SDLNet_SocketSet activity;
+		IPaddress ip;
+		TCPsocket tcp_socket;
 		//int lose_game //this is equal to info->life == 0
 		Player *info;
 	};
@@ -65,6 +73,7 @@
 		int life;
 		int winner;
 		int *minions_type_sent;
+		//int left_game; Dont need, must update on game side.
 	};
 	
 	struct _send_minion {
@@ -75,8 +84,10 @@
 	
 	//Allocation Functions
 	///////////////////////////////////////////////////////////////////////
-	game_comm *init_communication();
+	game_comm *init_communication(char *name);
+	void remove_player(player_comm *player);
 	void remove_communication(game_comm *comm);
+	void remove_client(game_comm *game_communication, int client);
 	
 	//Update Functions
 	///////////////////////////////////////////////////////////////////////
@@ -85,8 +96,14 @@
 	
 	//Check Functions
 	///////////////////////////////////////////////////////////////////////
-	UDPsocket check_network_avaliable();
+	
+	UDPsocket establish_udp(int port);
 	int find_servers();
+	int establish_server(IPaddress *ip);
+	void check_messages_udp();
+	void check_connection_tcp(game_comm *game_communication);
+	void check_messages_tcp(game_comm *game_communication);
+	void game_status_and_clients(game_comm *game_communication);
 	
 	//Connection Functions
 	///////////////////////////////////////////////////////////////////////
@@ -102,5 +119,10 @@
 	void run_server(void *data);
 
 	void run_client(void *data);
+	int send_message(char *message, int message_type, TCPsocket socket);
+	void terminate_server();
+	void begin_game(game_comm * game_communication);
+	void finish_game(game_comm *game_communication);
+	void handle_message(int client_id, char* buffer, int type);
 	
 #endif

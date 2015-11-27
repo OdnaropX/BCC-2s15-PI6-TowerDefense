@@ -12,6 +12,13 @@
 #include "GameScene.h"
 #include "Connection.h"
 
+#ifdef _WIN32
+	#include <windows.h>
+	#include <Lmcons.h>
+#else
+	#include <unistd.h>
+#endif
+
 #define main_menu_assets_count 13
 #define config_menu_assets_count 9
 #define game_interface_assets_count 2
@@ -196,7 +203,16 @@ int main(int argc, char * argv[]) {
 	int temp_option;
 	//Thread
 	SDL_Thread *thread = NULL;
+	game_comm *comm = NULL;
+	terminate_thread = 0;
 	
+	//Multiplayer
+	char *player_name = NULL;
+#ifdef _WIN32
+	player_name = getenv("USERNAME");
+#else
+	player_name = getlogin();
+#endif
 	
 	//FPS and timer
     int t1, t2;
@@ -1344,8 +1360,12 @@ int main(int argc, char * argv[]) {
                         //Create server
                         multiplayer_status = MPS_SEARCHING_PLAYER;
 						if (thread == NULL) {
-//							terminate_thread = 0;
-							thread = SDL_CreateThread(run_server, "run_server", (void *) NULL);
+							terminate_thread = 0;
+							if(!comm) {
+								comm = init_communication(player_name);
+							}
+
+							thread = SDL_CreateThread((SDL_ThreadFunction) run_server, "run_server", comm);
 							if (thread == NULL) {
 								multiplayer_status = MPS_NONE;
 							}
@@ -1356,8 +1376,12 @@ int main(int argc, char * argv[]) {
                         //Create client
                         multiplayer_status = MPS_SEARCHING_GAME;
 						if (thread == NULL) {
-//							terminate_thread = 0;
-							thread = SDL_CreateThread(run_client, "run_client", (void *) NULL);
+							terminate_thread = 0;
+							if(!comm) {
+								comm = init_communication(player_name);
+							}
+							
+							thread = SDL_CreateThread((SDL_ThreadFunction) run_client, "run_client", comm);
 							if (thread == NULL) {
 								multiplayer_status = MPS_NONE;
 							}
@@ -1373,9 +1397,12 @@ int main(int argc, char * argv[]) {
                         //Filter whether client or server and finnish
 						if(thread != NULL){
 							multiplayer_status = MPS_NONE;
-//							terminate_thread = 1;
+							terminate_thread = 1;
 							SDL_DetachThread(thread);
 							thread = NULL;
+						}
+						if(comm) {
+							remove_communication(comm);
 						}
                         break;
                         
