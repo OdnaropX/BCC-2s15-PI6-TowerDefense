@@ -396,7 +396,7 @@ void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_le
 void display_health(SDL_Renderer *renderer, int value, TTF_Font *font){
     char str[5];
     sprintf(str, "%d", value);
-    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255});
+    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255, 255});
     
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, s);
     
@@ -409,7 +409,7 @@ void display_health(SDL_Renderer *renderer, int value, TTF_Font *font){
 void display_mana(SDL_Renderer *renderer, int value, TTF_Font *font){
     char str[5];
     sprintf(str, "%d", value);
-    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255});
+    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255, 255});
     
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, s);
     
@@ -422,7 +422,7 @@ void display_mana(SDL_Renderer *renderer, int value, TTF_Font *font){
 void display_gold(SDL_Renderer *renderer, int value, TTF_Font *font){
     char str[5];
     sprintf(str, "%d", value);
-    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255});
+    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255, 255});
     
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, s);
     
