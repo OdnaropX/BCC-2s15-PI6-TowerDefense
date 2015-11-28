@@ -111,7 +111,7 @@
 	//Allocation Functions
 	///////////////////////////////////////////////////////////////////////
 	game_comm *init_communication(char *name);
-	void remove_player(player_comm *player);
+	void remove_player(player_comm *player, int remove_name);
 	void remove_communication(game_comm *comm);
 	void remove_client(game_comm *game_communication, int client);
 	

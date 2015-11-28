@@ -40,26 +40,25 @@ game_comm *init_communication(char *name) {
 	game->server->choosed = -1;
 	game->server->search_result = 0;
 	game->server->avaliable = 0;
-	
 	game->server->host = NULL;
-		
-	game->current_player = malloc(sizeof(player_comm));
 	
+	game->current_player = malloc(sizeof(player_comm));
+	game->current_player->tcp_socket = NULL;
 	game->current_player->exited_game = 0;
 	game->current_player->connection_lost = 0;
+	game->current_player->ready_to_play = 0;
 	
 	game->current_player->info = malloc(sizeof(Player));
+	game->current_player->info->life = DEFAULT_PLAYERS_LIFE;
+	game->current_player->info->winner = 0;
+	game->current_player->info->minions_type_sent = NULL;
 	if(name){
 		game->current_player->info->name = name;
 	}
 	else {
+		game->current_player->info->name = malloc(sizeof(char) * SERVER_NAME);
 		strncpy(game->current_player->info->name, "Unknown", SERVER_NAME);
 	}
-	game->current_player->info->life = DEFAULT_PLAYERS_LIFE;
-	game->current_player->info->winner = 0;
-	
-	game->current_player->info->minions_type_sent = NULL;
-	
 	
 	game->players = malloc(sizeof(player_comm*) * MAX_CLIENT);
 	for(int i = 0; i < MAX_CLIENT; i++) {
@@ -74,29 +73,38 @@ game_comm *init_communication(char *name) {
 		game->players[i]->info->life = DEFAULT_PLAYERS_LIFE;
 		game->players[i]->info->winner = 0;
 		game->players[i]->info->minions_type_sent = NULL;
+		printf("herea1aa\n");
+		game->players[i]->info->name = malloc(sizeof(char) * SERVER_NAME);
 		strncpy(game->players[i]->info->name, "No name", SERVER_NAME);
+		printf("herea1aa\n");
 	}
-	
+	printf("hereaaa\n");
 	return game;
 }
 
-void remove_player(player_comm *player){
-	if(player && player->info){
-		if(player->info->name){
-			free(player->info->name);
-			player->info->name = NULL;
-		}
-		if(player->info->minions_type_sent){
-			free(player->info->minions_type_sent);
-			player->info->minions_type_sent = NULL;
-		}
-		free(player->info);
-		player->info = NULL;
-	}
+void remove_player(player_comm *player, int remove_name){
 	if(player){
-		SDLNet_FreeSocketSet(player->activity);
+		if(player->info){
+			if(remove_name && player->info->name){
+				free(player->info->name);
+				player->info->name = NULL;
+			}
+			if(player->info->minions_type_sent){
+				free(player->info->minions_type_sent);
+				player->info->minions_type_sent = NULL;
+			}
+			free(player->info);
+			player->info = NULL;
+		}
+		if(player->activity){
+			SDLNet_FreeSocketSet(player->activity);
+			player->activity = NULL;
+		}
 		//player->ip
-		SDLNet_TCP_Close(player->tcp_socket);
+		if(player->tcp_socket) {
+			SDLNet_TCP_Close(player->tcp_socket);
+			player->tcp_socket = NULL;
+		}
 		free(player);
 		player = NULL;
 	}
@@ -104,16 +112,17 @@ void remove_player(player_comm *player){
 }
 
 void remove_communication(game_comm *comm){
+	printf("Removing communication\n");
 	if (comm) {
 		for(int i = 0; i < MAX_CLIENT; i++) {
-			remove_player(comm->players[i]);
+			remove_player(comm->players[i], 1);
 		}
 		if(comm->players) {
 			free(comm->players);
 			comm->players = NULL;
 		}
 		if(comm->current_player){
-			remove_player(comm->current_player);
+			remove_player(comm->current_player, 1);
 		}
 		if(comm->server){
 			if(comm->server->host){
@@ -704,6 +713,9 @@ void run_server(void *data){
 		
 		//Handle game events
 		
+		
+		
+		
 		//Delay server
 		
 		printf("Connected %d\n", connected_clients);
@@ -789,24 +801,32 @@ void run_client(void *data){
 		game_communication->server->connection_failed = 1;
 	}
 	else {
+		game_communication->server->connecting = 0;
 		game_communication->server->connected = 1;
 	}
-	
+	printf("hereq\n");
 	while(!terminate_thread){
 		//Running 
 		if(connected){
 			printf("Connected\n");
 			
 			//Check if there is response to begin game.
+			//Check tcp messages only.
 			
-			
+			//Check if connection was not lost.
 			//Get server 
+			
+			//Send message to server that can start game
+			
+			
+			//Send message to server that exit game
 			
 			
 			
 			
 		}
 	}
+	printf("Destroctor\n");
 	//Destroy game communication
 	remove_communication(game_communication);
 	return;
