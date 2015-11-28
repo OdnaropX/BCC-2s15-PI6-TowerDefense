@@ -12,7 +12,7 @@
 	typedef enum _end_game_options{EG_NEW_GAME, EG_MAIN, EG_QUIT, EG_NONE} end_game_options;
 	typedef enum _multiplayer_menu_options{MP_CREATE_GAME, MP_SEARCH_GAME, MP_CANCEL, MP_BACK, MP_NONE} multiplayer_menu_options;
 
-	typedef enum _multiplayer_status{MPS_SEARCHING_PLAYER, MPS_SEARCHING_GAME, MPS_PLAYER_FOUND, MPS_GAME_FOUND, MPS_STARTED_GAME, MPS_NONE} multiplayer_status;
+	typedef enum _multiplayer_status{MPS_SEARCHING_PLAYER, MPS_SEARCHING_GAME, MPS_PLAYER_FOUND, MPS_GAME_FOUND, MPS_WAITING_PLAYER, MPS_STARTED_GAME, MPS_NONE} multiplayer_status;
     typedef enum _end_game_status{EGS_WIN, EGS_LOSE, EGS_DC, EGS_OPLEFT, EGS_NONE}end_game_status;
 
 	typedef enum _running_top_option {OPT_R_T_PAUSE, OPT_R_T_RESUME, OPT_R_T_NONE} RUNNING_TOP_OPTIONS;
