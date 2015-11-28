@@ -206,6 +206,7 @@ int main(int argc, char * argv[]) {
 	SDL_Thread *thread = NULL;
 	terminate_thread = 0;
 	char *thread_name = NULL;
+	comm = NULL;
 	
 	//Multiplayer
 	char *player_name = NULL;
@@ -1453,7 +1454,7 @@ int main(int argc, char * argv[]) {
 								comm = init_communication(player_name);
 								next = 1;
 							}
-							SDL_AtomicLock(&lock);
+							SDL_AtomicUnlock(&lock);
 							
 							if(next){
 								printf("After init\n");

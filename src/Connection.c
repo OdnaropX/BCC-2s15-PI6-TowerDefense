@@ -772,7 +772,7 @@ void run_client(void *data){
 	
 	int found = 0;
 	int connected = 0;
-	
+	printf("After\n");
 	if(comm){
 	//Set searching network
 	comm->server->searching = 1;
@@ -864,6 +864,7 @@ void run_client(void *data){
 	//Destroy game communication
 	remove_communication();
 	}
+	printf("After server 2\n");
 	return;
 }
 
