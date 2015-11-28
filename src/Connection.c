@@ -83,7 +83,6 @@ game_comm *init_communication(char *name) {
 		strncpy(game->players[i].info->name, "No name", SERVER_NAME);
 
         game->players[i].activity = NULL;
-
 	}
 	return game;
 }
@@ -120,34 +119,35 @@ void remove_player(player_comm *player){
 	return;
 }
 
-void remove_communication(game_comm **comm){
+void remove_communication(){
 	printf("Removing communication\n");
-	if (*comm){
+	if (comm){
 		for(int i = 0; i < MAX_CLIENT; i++) {
-			remove_player_info((*comm)->players[i].info, 1);
+			remove_player_info(comm->players[i].info, 1);
 		}
-		remove_player((*comm)->players);
+		remove_player(comm->players);
 		printf("After remove player\n");
-		if((*comm)->players) {
-			free((*comm)->players);
-			(*comm)->players = NULL;
+		if(comm->players) {
+			free(comm->players);
+			comm->players = NULL;
 		}
 		printf("After remove players\n");
-		if((*comm)->current_player){
-			remove_player_info((*comm)->current_player->info, 0);
-			remove_player((*comm)->current_player);
+		if(comm->current_player){
+			remove_player_info(comm->current_player->info, 0);
+			remove_player(comm->current_player);
 		}
 		printf("After current\n");
-		if((*comm)->server){
-			if((*comm)->server->host){
-				free((*comm)->server->host);
-				(*comm)->server->host = NULL;
+		if(comm->server){
+			if(comm->server->host){
+				free(comm->server->host);
+				comm->server->host = NULL;
 			}
-			free((*comm)->server);
-			(*comm)->server = NULL;
+			free(comm->server);
+			comm->server = NULL;
 		}
-		free(*comm);
-		*comm = NULL;
+		free(comm);
+		//*comm = NULL;
+		comm = NULL;
 	}
 	return;
 }
@@ -723,7 +723,7 @@ void handle_message(int client_id, char* buffer, int type){
 
 void run_server(void *data){
 	int created_server = 0;
-	game_comm *game_communication = (game_comm *) data;
+	//game_comm *game_communication = (game_comm *) data;
 
 	//Initial setup 
 	//------------------------------------
@@ -737,11 +737,11 @@ void run_server(void *data){
 
 	while(!terminate_thread){
 		//Check UDP messages
-		check_messages_udp(game_communication);
+		check_messages_udp(comm);
 		//Check connection with client 
-		check_connection_tcp(game_communication);
+		check_connection_tcp(comm);
 		//Check TCP messages from clients connected. This also connect with a 
-		check_messages_tcp(game_communication);
+		check_messages_tcp(comm);
 		
 		//Handle game events
 		
@@ -768,72 +768,74 @@ void run_server(void *data){
 
 
 void run_client(void *data){
-	game_comm *game_communication = (game_comm *) data;
+	//game_comm *game_communication = (game_comm *) data;
 	
 	int found = 0;
 	int connected = 0;
 	
+	if(comm){
 	//Set searching network
-	game_communication->server->searching = 1;
-	
+	comm->server->searching = 1;
+	printf("After server\n");
 	//Search server
 	found = find_servers();
 	
+	printf("After find server\n");
 	//Connect or choose server to connect.
 	if(found == 0) {
-		game_communication->server->searching = 0;
-		game_communication->server->searching_finished = 1;
-		game_communication->server->connecting = 0;
-		game_communication->server->search_result = 0;
-		game_communication->server->avaliable = 0;
+		comm->server->searching = 0;
+		comm->server->searching_finished = 1;
+		comm->server->connecting = 0;
+		comm->server->search_result = 0;
+		comm->server->avaliable = 0;
 
 		//Not connect.
 		printf("No server found");
 	}
 	else if(found == 1) {
-		game_communication->server->searching = 0;
-		game_communication->server->searching_finished = 1;
-		game_communication->server->connecting = 1;
-		game_communication->server->search_result = 1;//Same as avaliable?
-		game_communication->server->avaliable = 1;
-		game_communication->server->host = malloc(sizeof(Host));
-		game_communication->server->host = get_host();
+		comm->server->searching = 0;
+		comm->server->searching_finished = 1;
+		comm->server->connecting = 1;
+		comm->server->search_result = 1;//Same as avaliable?
+		comm->server->avaliable = 1;
+		comm->server->host = malloc(sizeof(Host));
+		comm->server->host = get_host();
 		
 		//Connect to this server.
 		connected = connect_to_server(0);
 	}
 	else {
-		game_communication->server->searching = 0;
-		game_communication->server->searching_finished = 1;
-		game_communication->server->connecting = 0;
-		game_communication->server->search_result = found;//Same as avaliable?
-		game_communication->server->avaliable = found;//Maybe change to 1 and use for server avaliable or not.
-		game_communication->server->host = malloc(sizeof(Host) * found);
-		game_communication->server->host = get_host();
+		comm->server->searching = 0;
+		comm->server->searching_finished = 1;
+		comm->server->connecting = 0;
+		comm->server->search_result = found;//Same as avaliable?
+		comm->server->avaliable = found;//Maybe change to 1 and use for server avaliable or not.
+		comm->server->host = malloc(sizeof(Host) * found);
+		comm->server->host = get_host();
 		
 		
-		game_communication->server->choosing = 1;
+		comm->server->choosing = 1;
 		
 		//Need to choose server.
-		while(game_communication->server->choosing && !terminate_thread){
+		while(comm->server->choosing && !terminate_thread){
 			//Wait until the user choose a server on main thread.
 			SDL_Delay(SERVER_USER_RESPONSE_DELAY);
 		}
 
-		game_communication->server->connecting = 1;
+		comm->server->connecting = 1;
 		
 		//Connect to selected server.
-		connected = connect_to_server(game_communication->server->choosed);
+		connected = connect_to_server(comm->server->choosed);
 	}
-	
+	printf("After find\n");
 	if(!connected) {
 		printf("Not able to connect with server.\n");
-		game_communication->server->connecting = 0;
-		game_communication->server->connection_failed = 1;
+		comm->server->connecting = 0;
+		comm->server->connection_failed = 1;
 	}
 	else {
-		game_communication->server->connecting = 0;
-		game_communication->server->connected = 1;
+		comm->server->connecting = 0;
+		comm->server->connected = 1;
 	}
 	printf("hereq\n");
 	while(!terminate_thread){
@@ -860,7 +862,8 @@ void run_client(void *data){
 	}
 	printf("Destroctor\n");
 	//Destroy game communication
-	remove_communication(&game_communication);
+	remove_communication();
+	}
 	return;
 }
 

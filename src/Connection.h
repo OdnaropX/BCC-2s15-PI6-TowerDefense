@@ -26,11 +26,6 @@
 	#define MAX_CLIENT 3//4 Players in total.
 	#define SERVER_USER_RESPONSE_DELAY 300//Miliseconds.
 	
-	//Global variable
-	///////////////////////////////////////////////////////////////////////
-	static int terminate_thread;
-	static SDL_SpinLock lock;
-
 	//Structs
 	///////////////////////////////////////////////////////////////////////
 	
@@ -41,6 +36,14 @@
 	typedef struct _player_communication player_comm;
 	typedef struct _send_minion send_minion;
 	typedef struct _network NETWORK;
+	
+	//Global variable
+	///////////////////////////////////////////////////////////////////////
+	static int terminate_thread;
+	static SDL_SpinLock lock;
+	static game_comm *comm;
+	
+	
 	
 	struct _game_communication {
 		int game_can_start;//Game can be started or not. Only if all players can start.
@@ -113,7 +116,7 @@
 	game_comm *init_communication(char *name);
 	void remove_player_info(Player *info, int remove_name);
 	void remove_player(player_comm *player);
-	void remove_communication(game_comm **comm);
+	void remove_communication();
 	void remove_client(game_comm *game_communication, int client);
 	
 	//Update Functions

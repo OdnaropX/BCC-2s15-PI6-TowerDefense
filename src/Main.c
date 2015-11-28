@@ -203,7 +203,6 @@ int main(int argc, char * argv[]) {
 	int temp_option;
 	//Thread
 	SDL_Thread *thread = NULL;
-	game_comm *comm = NULL;
 	terminate_thread = 0;
 	char *thread_name = NULL;
 	
@@ -234,6 +233,7 @@ int main(int argc, char * argv[]) {
 	int frame = 0;
     t1 = SDL_GetTicks();
 	
+	int next = 0;
     //Main loop
     while(!quit){
         //FPS Handling
@@ -1403,11 +1403,7 @@ int main(int argc, char * argv[]) {
                 switch (multiplayer_option) {
                     case MP_CREATE_GAME:
 						//Check if there is a thread running
-						
-						
-						
-					
-                        //Create server
+	                    //Create server
                         multiplayer_status = MPS_SEARCHING_PLAYER;
 						if (thread == NULL) {
 							terminate_thread = 0;
@@ -1417,7 +1413,7 @@ int main(int argc, char * argv[]) {
 							}
 							SDL_AtomicUnlock(&lock);
 
-							thread = SDL_CreateThread((SDL_ThreadFunction) run_server, "run_server", comm);
+							thread = SDL_CreateThread((SDL_ThreadFunction) run_server, "run_server", (void *)NULL);
 							if (thread == NULL) {
 								multiplayer_status = MPS_NONE;
 							}
@@ -1447,13 +1443,19 @@ int main(int argc, char * argv[]) {
 							terminate_thread = 0;
 							multiplayer_status = MPS_SEARCHING_GAME;
 							//Start thread and network communication.
+							
+							next = 0;
 							SDL_AtomicLock(&lock);
 							if(!comm) {
 								comm = init_communication(player_name);
+								next = 1;
+							}
+							SDL_AtomicLock(&lock);
+							
+							if(next){
 								printf("After init\n");
-								SDL_AtomicUnlock(&lock);
 								
-								thread = SDL_CreateThread((SDL_ThreadFunction) run_client, "run_client", comm);
+								thread = SDL_CreateThread((SDL_ThreadFunction) run_client, "run_client", (void *) NULL);
 								printf("After sdl thread\n");
 								if (thread == NULL) {
 									multiplayer_status = MPS_NONE;
