@@ -36,15 +36,7 @@
 	typedef struct _player_communication player_comm;
 	typedef struct _send_minion send_minion;
 	typedef struct _network NETWORK;
-	
-	//Global variable
-	///////////////////////////////////////////////////////////////////////
-	static int terminate_thread;
-	static SDL_SpinLock lock;
-	static game_comm *comm;
-	
-	
-	
+		
 	struct _game_communication {
 		int game_can_start;//Game can be started or not. Only if all players can start.
 		int game_finished;//Game finished or not.
