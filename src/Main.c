@@ -355,8 +355,6 @@ int main(int argc, char * argv[]) {
 					break;
                     
                 case GAME_MULTIPLAY_SERVER:
-				//TODO: Check if user is ready to play game, he must click on option ready to play if game was found and server connected.
-				//TODO: In case the user is a server he also need to inform that he is ready to play. 
                     switch (event.type) {
                         case SDL_QUIT:
                             quit = true;
@@ -365,19 +363,68 @@ int main(int argc, char * argv[]) {
                         case SDL_KEYDOWN:
                             switch (event.key.keysym.sym) {
                                 case SDLK_UP: case SDLK_LEFT:
-                                    if(select_multiplayer_option == MP_CREATE_ROOM)
-                                        select_multiplayer_option = MP_BACK_TO_MAIN;
-                                    else
-                                        select_multiplayer_option --;
+                                    if(multiplayer_status == MPS_NONE){
+                                        if(select_multiplayer_option == MP_CREATE_ROOM)
+                                            select_multiplayer_option = MP_BACK_TO_MAIN;
+                                        else
+                                            select_multiplayer_option --;
+                                    }
+                                    
+                                    else if(comm && comm->server && comm->server->host){
+                                        if(strcmp(player_name, comm->server->host->name)){
+                                            printf("Host\n");
+                                            
+                                            if(select_multiplayer_option == MP_START)
+                                                select_multiplayer_option = MP_BACK_TO_MAIN;
+                                            else if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                                select_multiplayer_option = MP_LEAVE;
+                                            else if(select_multiplayer_option == MP_LEAVE)
+                                                select_multiplayer_option = MP_START;
+                                        }
+                                        
+                                        else{
+                                            printf("Client\n");
+                                            if(select_multiplayer_option == MP_TOGGLE_READY)
+                                                select_multiplayer_option = MP_BACK_TO_MAIN;
+                                            else if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                                select_multiplayer_option = MP_LEAVE;
+                                            else if(select_multiplayer_option == MP_LEAVE)
+                                                select_multiplayer_option = MP_TOGGLE_READY;
+                                        }
+                                    }
                                     
                                     break;
                                     
                                 case SDLK_DOWN: case SDLK_RIGHT:
-                                    if(select_multiplayer_option == MP_BACK_TO_MAIN)
-                                        select_multiplayer_option = MP_CREATE_ROOM;
-                                    else
-                                        select_multiplayer_option ++;
+                                    if(multiplayer_status == MPS_NONE){
+                                        if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                            select_multiplayer_option = MP_CREATE_ROOM;
+                                        else
+                                            select_multiplayer_option ++;
+                                    }
                                     
+                                    else if(comm && comm->server && comm->server->host){
+                                        if(strcmp(player_name, comm->server->host->name)){
+                                            printf("Host\n");
+                                            
+                                            if(select_multiplayer_option == MP_START)
+                                                select_multiplayer_option = MP_LEAVE;
+                                            else if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                                select_multiplayer_option = MP_START;
+                                            else if(select_multiplayer_option == MP_LEAVE)
+                                                select_multiplayer_option = MP_BACK_TO_MAIN;
+                                        }
+                                        
+                                        else{
+                                            printf("Client\n");
+                                            if(select_multiplayer_option == MP_TOGGLE_READY)
+                                                select_multiplayer_option = MP_LEAVE;
+                                            else if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                                select_multiplayer_option = MP_TOGGLE_READY;
+                                            else if(select_multiplayer_option == MP_LEAVE)
+                                                select_multiplayer_option = MP_BACK_TO_MAIN;
+                                        }
+                                    }
                                     break;
                                     
                                 default:
@@ -406,9 +453,28 @@ int main(int argc, char * argv[]) {
                                 multiplayer_option = MP_NONE;
                                 
                                 if(event.motion.x >= 515 && event.motion.x <= 515 + BUTTON_MENU_WIDTH){
-                                    temp_option = (event.motion.y - 150) / BUTTON_MENU_HEIGHT;
-                                    if(temp_option < MP_NONE && temp_option >= 0)
-                                        multiplayer_option = temp_option;
+                                    temp_option = (event.motion.y - 150 - BUTTON_MENU_HEIGHT) / BUTTON_MENU_HEIGHT;
+                                    if(temp_option <= MP_BACK_TO_MAIN && temp_option >= 0){
+                                        if(multiplayer_status == MPS_NONE)
+                                            multiplayer_option = temp_option;
+                                        
+                                        else if(comm && comm->server && comm->server->host){
+                                            if(strcmp(player_name, comm->server->host->name)){
+                                                if(temp_option == 0)
+                                                    multiplayer_option = MP_START;
+                                            }
+                                            
+                                            else{
+                                                if(temp_option == 0)
+                                                    multiplayer_option = MP_TOGGLE_READY;
+                                            }
+                                            
+                                            if(temp_option == 1)
+                                                multiplayer_option = MP_LEAVE;
+                                            else if(temp_option == 2)
+                                                multiplayer_option = MP_BACK_TO_MAIN;
+                                        }
+                                    }
                                 }
                             }
                             
@@ -416,9 +482,28 @@ int main(int argc, char * argv[]) {
                             
                         case SDL_MOUSEMOTION:
                             if(event.motion.x >= 515 && event.motion.x <= 515 + BUTTON_MENU_WIDTH){
-                                temp_option = (event.motion.y - 150) / BUTTON_MENU_HEIGHT;
-                                if(temp_option < MP_NONE && temp_option >= 0)
-                                    select_multiplayer_option = temp_option;
+                                temp_option = (event.motion.y - 150 - BUTTON_MENU_HEIGHT) / BUTTON_MENU_HEIGHT;
+                                if(temp_option <= MP_BACK_TO_MAIN && temp_option >= 0){
+                                    if(multiplayer_status == MPS_NONE)
+                                        select_multiplayer_option = temp_option;
+                                    
+                                    else if(comm && comm->server && comm->server->host){
+                                        if(strcmp(player_name, comm->server->host->name)){
+                                            if(temp_option == 0)
+                                                multiplayer_option = MP_START;
+                                        }
+                                        
+                                        else{
+                                            if(temp_option == 0)
+                                                multiplayer_option = MP_TOGGLE_READY;
+                                        }
+                                        
+                                        if(temp_option == 1)
+                                            multiplayer_option = MP_LEAVE;
+                                        else if(temp_option == 2)
+                                            multiplayer_option = MP_BACK_TO_MAIN;
+                                    }
+                                }
                             }
                             
                             break;
@@ -1487,6 +1572,26 @@ int main(int argc, char * argv[]) {
                         
                         break;
                         
+                    case MP_START:
+                        ready_to_play = true;
+                        multiplayer_status = MPS_STARTED_GAME;
+                        break;
+                        
+                    case MP_TOGGLE_READY:
+                        comm->current_player->ready_to_play = (comm->current_player->ready_to_play + 1) % 2;
+                        break;
+                        
+                    case MP_LEAVE:
+                        //Leave room
+                        multiplayer_status = MPS_NONE;
+                        
+                        if(thread){
+                            printf("Kill thread!!\n");
+                            kill_thread(&thread);
+                        }
+
+                        break;
+                        
                     case MP_NONE:
                         break;
                         
@@ -2473,7 +2578,7 @@ void get_multiplayer_texts(multiplayer_status current_status, game_comm *servers
         else if(i == 3 || i == 4){
             if(current_status == MPS_NONE)
                 text = "Search Room";
-            else if(current_status != MPS_NONE && current_status != MPS_STARTED_GAME)
+            else if(current_status != MPS_NONE && current_status != MPS_STARTED_GAME && current_status != MPS_SEARCHING_ROOM)
                 text = "Leave Room";
             
             rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
