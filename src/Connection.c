@@ -43,10 +43,13 @@ game_comm *init_communication(char *name) {
 	game->server->host = NULL;
 	
 	game->current_player = malloc(sizeof(player_comm));
+	game->current_player->activity = NULL;
+	//game->current_player->ip;
 	game->current_player->tcp_socket = NULL;
 	game->current_player->exited_game = 0;
 	game->current_player->connection_lost = 0;
 	game->current_player->ready_to_play = 0;
+	
 	
 	game->current_player->info = malloc(sizeof(Player));
 	game->current_player->info->life = DEFAULT_PLAYERS_LIFE;
@@ -65,6 +68,8 @@ game_comm *init_communication(char *name) {
 		game->players[i] = malloc(sizeof(player_comm));
 		
 		game->players[i]->tcp_socket = NULL;
+		game->players[i]->activity = NULL;
+		//game->players[i]->ip;
 		game->players[i]->exited_game = 0;
 		game->players[i]->connection_lost = 0;
 		game->players[i]->ready_to_play = 0;
@@ -73,12 +78,11 @@ game_comm *init_communication(char *name) {
 		game->players[i]->info->life = DEFAULT_PLAYERS_LIFE;
 		game->players[i]->info->winner = 0;
 		game->players[i]->info->minions_type_sent = NULL;
-		printf("herea1aa\n");
+
 		game->players[i]->info->name = malloc(sizeof(char) * SERVER_NAME);
 		strncpy(game->players[i]->info->name, "No name", SERVER_NAME);
-		printf("herea1aa\n");
+
 	}
-	printf("hereaaa\n");
 	return game;
 }
 
@@ -491,6 +495,24 @@ void check_messages_tcp(game_comm *game_communication){
 	return;
 }
 
+void check_messages_tcp_client() {
+	//Get message
+	
+	//Check if there are new users
+	
+	
+	//Check if game can begin
+	
+	
+	//Check if game was ended
+	
+	
+	
+	
+	
+	
+}
+
 
 /**
 Based on Tuxmath (by  Akash Gangil, David Bruce) check game clients function.
@@ -811,6 +833,7 @@ void run_client(void *data){
 			printf("Connected\n");
 			
 			//Check if there is response to begin game.
+			check_messages_tcp_client();
 			//Check tcp messages only.
 			
 			//Check if connection was not lost.
@@ -832,9 +855,9 @@ void run_client(void *data){
 	return;
 }
 
-void kill_thread(SDL_Thread *thread){
+void kill_thread(SDL_Thread **thread){
 	//Kill thread.
 	terminate_thread = 1;
-	SDL_DetachThread(thread);
-	thread = NULL;
+	SDL_DetachThread(*thread);
+	*thread = NULL;
 }

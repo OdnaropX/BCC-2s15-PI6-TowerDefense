@@ -146,7 +146,7 @@
 
 	void run_client(void *data);
 	
-	void kill_thread(SDL_Thread *thread);
+	void kill_thread(SDL_Thread **thread);
 	
 	int send_message(char *message, int message_type, TCPsocket socket);
 	void terminate_server();
