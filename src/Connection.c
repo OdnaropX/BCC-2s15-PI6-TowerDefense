@@ -1,6 +1,6 @@
 #include "Connection.h"
 
-server_register servers[MAX_SERVER];
+Host servers[MAX_SERVER];
 TCPsocket tcp;
 
 UDPsocket server_udp_socket;       /* Socket descriptor */
@@ -12,7 +12,7 @@ TCPsocket server_ip = NULL;
 	
 SDLNet_SocketSet activity = NULL;//Used to TPC and UDP.
 
-server_register *main_server = NULL;
+Host *main_server = NULL;
 
 int connected_server = -1;
 int connected_clients = 0;
@@ -27,34 +27,41 @@ game_comm *init_communication(char *name) {
 	
 	game->game_can_start = 0;
 	game->game_finished = 0;
+	game->players_left = 0;
 	game->connection_lost = 0;
-	game->server_found = 0;
-	game->server_choose = 0;
-	game->server_choosed = -1;
-	game->server_connecting = 0;
-	game->server_connected = 0;
+	
+	game->server = malloc(sizeof(Server));
+	game->server->searching = 0;
+	game->server->searching_finished = 0;
+	game->server->connecting = 0;
+	game->server->connection_failed = 0;
+	game->server->connected = 0;
+	game->server->choosing = 0;
+	game->server->choosed = -1;
+	game->server->search_result = 0;
+	game->server->avaliable = 0;
+	
+	game->server->host = NULL;
+		
 	game->current_player = malloc(sizeof(player_comm));
-	game->players = malloc(sizeof(player_comm*) * MAX_CLIENT);
 	
-	if (game->current_player){
-		game->current_player->exited_game = 0;
-		game->current_player->connection_lost = 0;
+	game->current_player->exited_game = 0;
+	game->current_player->connection_lost = 0;
 	
-		game->current_player->info = malloc(sizeof(Player));
-	
-		if(game->current_player->info){
-			if(name){
-				game->current_player->info->name = name;
-			}
-			else {
-				strncpy(game->current_player->info->name, "Unknown", SERVER_NAME);
-			}
-			game->current_player->info->life = DEFAULT_PLAYERS_LIFE;
-			game->current_player->info->winner = 0;
-		}	
-		game->current_player->info->minions_type_sent = NULL;
+	game->current_player->info = malloc(sizeof(Player));
+	if(name){
+		game->current_player->info->name = name;
 	}
+	else {
+		strncpy(game->current_player->info->name, "Unknown", SERVER_NAME);
+	}
+	game->current_player->info->life = DEFAULT_PLAYERS_LIFE;
+	game->current_player->info->winner = 0;
 	
+	game->current_player->info->minions_type_sent = NULL;
+	
+	
+	game->players = malloc(sizeof(player_comm*) * MAX_CLIENT);
 	for(int i = 0; i < MAX_CLIENT; i++) {
 		game->players[i] = malloc(sizeof(player_comm));
 		
@@ -107,6 +114,14 @@ void remove_communication(game_comm *comm){
 		}
 		if(comm->current_player){
 			remove_player(comm->current_player);
+		}
+		if(comm->server){
+			if(comm->server->host){
+				free(comm->server->host);
+				comm->server->host = NULL;
+			}
+			free(comm->server);
+			comm->server = NULL;
 		}
 		free(comm);
 		comm = NULL;
@@ -563,6 +578,14 @@ char *get_connected_server_name(){
 	return servers[connected_server].name;
 }
 
+char *get_host_name(int i){
+	return servers[i].name;
+}
+
+Host *get_host(int i){
+	return &servers[i];
+}
+
 //Server runner
 ///////////////////////////////////////////////////////////////////////
 
@@ -663,7 +686,7 @@ void run_server(void *data){
 
 	//Initial setup 
 	//------------------------------------
-	main_server = malloc(sizeof(server_register));
+	main_server = malloc(sizeof(Host));
 	
 	created_server = establish_server(&main_server->ip);
 	if(!created_server){
@@ -706,44 +729,92 @@ void run_client(void *data){
 	int found = 0;
 	int connected = 0;
 	
+	//Set searching network
+	game_communication->server->searching = 1;
+	
 	//Search server
 	found = find_servers();
 	
+	//Connect or choose server to connect.
 	if(found == 0) {
-		game_communication->server_found = found;
+		game_communication->server->searching = 0;
+		game_communication->server->searching_finished = 1;
+		game_communication->server->connecting = 0;
+		game_communication->server->search_result = 0;
+		game_communication->server->avaliable = 0;
+
 		//Not connect.
 		printf("No server found");
 	}
 	else if(found == 1) {
-		game_communication->server_found = 1;
+		game_communication->server->searching = 0;
+		game_communication->server->searching_finished = 1;
+		game_communication->server->connecting = 1;
+		game_communication->server->search_result = 1;//Same as avaliable?
+		game_communication->server->avaliable = 1;
+		game_communication->server->host = malloc(sizeof(Host *));
+		game_communication->server->host[0] = get_host(0);
+		
 		//Connect to this server.
-		connected = connect_to_server(0);		
+		connected = connect_to_server(0);
 	}
 	else {
-		game_communication->server_found = 1;
-		game_communication->server_choose = 1;
+		game_communication->server->searching = 0;
+		game_communication->server->searching_finished = 1;
+		game_communication->server->connecting = 0;
+		game_communication->server->search_result = found;//Same as avaliable?
+		game_communication->server->avaliable = found;//Maybe change to 1 and use for server avaliable or not.
+		game_communication->server->host = malloc(sizeof(Host *) * found);
+		for(int i; i < found; i ++){
+			game_communication->server->host[i] = get_host(i);
+		}
+		
+		game_communication->server->choosing = 1;
 		
 		//Need to choose server.
-		while(game_communication->server_choosed == -1 && !terminate_thread){
+		while(game_communication->server->choosing && !terminate_thread){
 			//Wait until the user choose a server on main thread.
-			SDL_Delay(10);
+			SDL_Delay(SERVER_USER_RESPONSE_DELAY);
 		}
+
+		game_communication->server->connecting = 1;
+		
 		//Connect to selected server.
-		connected = connect_to_server(game_communication->server_choosed);
-		if (!connected){
-			printf("Not able to connect with server.\n");
-			//Set not connect status and terminate 
-			game_communication->server_connected = 0;
-			game_communication->server_choose = 0;
-			//End thread
-			terminate_thread = 1;
-		}
+		connected = connect_to_server(game_communication->server->choosed);
 	}
 	
-	while(!terminate_thread && found > 0){
-		printf("Test client\n");
-		//Running 
-		
+	if(!connected) {
+		printf("Not able to connect with server.\n");
+		game_communication->server->connecting = 0;
+		game_communication->server->connection_failed = 1;
 	}
+	else {
+		game_communication->server->connected = 1;
+	}
+	
+	while(!terminate_thread){
+		//Running 
+		if(connected){
+			printf("Connected\n");
+			
+			//Check if there is response to begin game.
+			
+			
+			//Get server 
+			
+			
+			
+			
+		}
+	}
+	//Destroy game communication
+	remove_communication(game_communication);
 	return;
+}
+
+void kill_thread(SDL_Thread *thread){
+	//Kill thread.
+	terminate_thread = 1;
+	SDL_DetachThread(thread);
+	thread = NULL;
 }
