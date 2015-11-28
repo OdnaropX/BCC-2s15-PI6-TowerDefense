@@ -208,11 +208,21 @@ int main(int argc, char * argv[]) {
 	
 	//Multiplayer
 	char *player_name = NULL;
-#ifdef _WIN32
+	#ifdef _WIN32
 	player_name = getenv("USERNAME");
-#else
+	#else
 	player_name = getlogin();
-#endif
+	#endif
+	
+	NETWORK network;
+	network.searching = 0;
+	network.searched = 0;
+	network.connecting = 0;
+	network.connection_failed = 0;
+	network.servers = 0;
+	network.choose_server = 0;
+	network.server_choosed = -1;
+	char *thread_name = NULL;
 	
 	//FPS and timer
     int t1, t2;
@@ -334,6 +344,8 @@ int main(int argc, char * argv[]) {
 					break;
                     
                 case GAME_MULTIPLAY_SERVER:
+				//TODO: Check if user is ready to play game, he must click on option ready to play if game was found and server connected.
+				//TODO: In case the user is a server he also need to inform that he is ready to play. 
                     switch (event.type) {
                         case SDL_QUIT:
                             quit = true;
@@ -1304,7 +1316,38 @@ int main(int argc, char * argv[]) {
 				}
 			}
 		}
+			
+		//Network Thread Status Checker
+		/////////////////////////////////////////////////////
+		if(multiplayer) {
+			SDL_AtomicLock(&lock);
+			if(comm){
+				if(comm->server->searching){
+					network.searching = 1;
+				}
+				if(comm->server->searching_finished){
+					network.searched = 1;
+				}
+				if(comm->server->search_result > 0){
+					if(comm->server->connecting){
+						network.connecting = 1;
+					}
+					network.servers = comm->server->search_result;
+					for(int i; i < network.servers; i++){
+						strncpy(network.server_name[i], comm->server->host[i]->name, SERVER_NAME);
+					}
+				}
+				if(comm->server->choosing) {
+					network.choose_server = 1;
+				}
 				
+				if(comm->server->connection_failed) {
+					network.connection_failed = 1;
+				}
+			}
+			SDL_AtomicUnlock(&lock);
+		}
+		
 		//Action Performancer
 		/////////////////////////////////////////////////////
 		switch(current_screen) {
@@ -1357,13 +1400,20 @@ int main(int argc, char * argv[]) {
             case GAME_MULTIPLAY_SERVER:
                 switch (multiplayer_option) {
                     case MP_CREATE_GAME:
+						//Check if there is a thread running
+						
+						
+						
+					
                         //Create server
                         multiplayer_status = MPS_SEARCHING_PLAYER;
 						if (thread == NULL) {
 							terminate_thread = 0;
+							SDL_AtomicLock(&lock);
 							if(!comm) {
 								comm = init_communication(player_name);
 							}
+							SDL_AtomicUnlock(&lock);
 
 							thread = SDL_CreateThread((SDL_ThreadFunction) run_server, "run_server", comm);
 							if (thread == NULL) {
@@ -1373,14 +1423,31 @@ int main(int argc, char * argv[]) {
                         break;
                         
                     case MP_SEARCH_GAME:
-                        //Create client
-                        multiplayer_status = MPS_SEARCHING_GAME;
-						if (thread == NULL) {
+						//Check if there is a thread in progress and is run_client
+						if(thread) {
+							thread_name = SDL_GetThreadName(thread);
+							if(strncmp(thread_name, "run_client", strlen("run_client")) != 0) {
+								kill_thread(thread);
+								multiplayer_status = MPS_NONE;
+							}
+							else {
+								//Check if a connection running was failed. This will kill the thread.
+								if(network.connection_failed){
+									//After this the thread will be dead must use network.connection_failed to show message with renderer.
+									kill_thread(thread);//Kill thread already kill comm.
+									multiplayer_status = MPS_NONE;
+								}
+							}
+						}
+						else {
 							terminate_thread = 0;
+							multiplayer_status = MPS_SEARCHING_GAME;
+							//Start thread and network communication.
+							SDL_AtomicLock(&lock);
 							if(!comm) {
 								comm = init_communication(player_name);
 							}
-							
+							SDL_AtomicUnlock(&lock);
 							thread = SDL_CreateThread((SDL_ThreadFunction) run_client, "run_client", comm);
 							if (thread == NULL) {
 								multiplayer_status = MPS_NONE;
@@ -1397,12 +1464,7 @@ int main(int argc, char * argv[]) {
                         //Filter whether client or server and finnish
 						if(thread != NULL){
 							multiplayer_status = MPS_NONE;
-							terminate_thread = 1;
-							SDL_DetachThread(thread);
-							thread = NULL;
-						}
-						if(comm) {
-							remove_communication(comm);
+							kill_thread(thread);
 						}
                         break;
                         
@@ -1662,6 +1724,11 @@ int main(int argc, char * argv[]) {
                 break;
             
 		}
+		
+		//Network Thread Status Changer
+		/////////////////////////////////////////////////////
+		
+		
         
 		// Select the color for drawing.
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
