@@ -205,6 +205,7 @@ int main(int argc, char * argv[]) {
 	SDL_Thread *thread = NULL;
 	game_comm *comm = NULL;
 	terminate_thread = 0;
+	char *thread_name = NULL;
 	
 	//Multiplayer
 	char *player_name = NULL;
@@ -222,7 +223,8 @@ int main(int argc, char * argv[]) {
 	network.servers = 0;
 	network.choose_server = 0;
 	network.server_choosed = -1;
-	char *thread_name = NULL;
+	
+	bool ready_to_play = false;
 	
 	//FPS and timer
     int t1, t2;
@@ -1334,7 +1336,7 @@ int main(int argc, char * argv[]) {
 					}
 					network.servers = comm->server->search_result;
 					for(int i; i < network.servers; i++){
-						strncpy(network.server_name[i], comm->server->host[i]->name, SERVER_NAME);
+						strncpy(network.server_name[i], comm->server->host[i].name, SERVER_NAME);
 					}
 				}
 				if(comm->server->choosing) {
@@ -1425,32 +1427,37 @@ int main(int argc, char * argv[]) {
                     case MP_SEARCH_GAME:
 						//Check if there is a thread in progress and is run_client
 						if(thread) {
+							printf("Thread running\n");
 							thread_name = SDL_GetThreadName(thread);
-							if(strncmp(thread_name, "run_client", strlen("run_client")) != 0) {
-								kill_thread(thread);
+							if(strcmp(thread_name, "run_client") != 0) {
+								kill_thread(&thread);
 								multiplayer_status = MPS_NONE;
 							}
 							else {
 								//Check if a connection running was failed. This will kill the thread.
 								if(network.connection_failed){
 									//After this the thread will be dead must use network.connection_failed to show message with renderer.
-									kill_thread(thread);//Kill thread already kill comm.
+									kill_thread(&thread);//Kill thread already kill comm.
 									multiplayer_status = MPS_NONE;
 								}
 							}
 						}
 						else {
+							printf("Thread not running\n");
 							terminate_thread = 0;
 							multiplayer_status = MPS_SEARCHING_GAME;
 							//Start thread and network communication.
 							SDL_AtomicLock(&lock);
 							if(!comm) {
 								comm = init_communication(player_name);
-							}
-							SDL_AtomicUnlock(&lock);
-							thread = SDL_CreateThread((SDL_ThreadFunction) run_client, "run_client", comm);
-							if (thread == NULL) {
-								multiplayer_status = MPS_NONE;
+								printf("After init\n");
+								SDL_AtomicUnlock(&lock);
+								
+								thread = SDL_CreateThread((SDL_ThreadFunction) run_client, "run_client", comm);
+								printf("After sdl thread\n");
+								if (thread == NULL) {
+									multiplayer_status = MPS_NONE;
+								}
 							}
 						}
                         break;
@@ -1462,9 +1469,9 @@ int main(int argc, char * argv[]) {
 
 					case MP_CANCEL:
                         //Filter whether client or server and finnish
-						if(thread != NULL){
+						if(thread){
 							multiplayer_status = MPS_NONE;
-							kill_thread(thread);
+							kill_thread(&thread);
 						}
                         break;
                         

@@ -49,7 +49,7 @@
 		int connection_lost;//Connection to server lost or not.
 
 		Server *server;
-		player_comm **players;//[MAX_CLIENT];//Other players info.
+		player_comm *players;//[MAX_CLIENT];//Other players info.
 		player_comm *current_player;
 	};
 	
@@ -63,7 +63,7 @@
 		int choosed;
 		int search_result;
 		int avaliable;
-		Host **host;
+		Host *host;
 	}; 
 	
 	struct _player_communication {
@@ -111,8 +111,9 @@
 	//Allocation Functions
 	///////////////////////////////////////////////////////////////////////
 	game_comm *init_communication(char *name);
-	void remove_player(player_comm *player, int remove_name);
-	void remove_communication(game_comm *comm);
+	void remove_player_info(Player *info, int remove_name);
+	void remove_player(player_comm *player);
+	void remove_communication(game_comm **comm);
 	void remove_client(game_comm *game_communication, int client);
 	
 	//Update Functions

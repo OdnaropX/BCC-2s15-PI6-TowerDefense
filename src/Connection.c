@@ -55,6 +55,7 @@ game_comm *init_communication(char *name) {
 	game->current_player->info->life = DEFAULT_PLAYERS_LIFE;
 	game->current_player->info->winner = 0;
 	game->current_player->info->minions_type_sent = NULL;
+
 	if(name){
 		game->current_player->info->name = name;
 	}
@@ -63,43 +64,46 @@ game_comm *init_communication(char *name) {
 		strncpy(game->current_player->info->name, "Unknown", SERVER_NAME);
 	}
 	
-	game->players = malloc(sizeof(player_comm*) * MAX_CLIENT);
+	game->players = (player_comm *) malloc(sizeof(player_comm) * MAX_CLIENT);
 	for(int i = 0; i < MAX_CLIENT; i++) {
-		game->players[i] = malloc(sizeof(player_comm));
+		//game->players[i] = (player_comm) malloc(sizeof(player_comm));
 		
-		game->players[i]->tcp_socket = NULL;
-		game->players[i]->activity = NULL;
+		game->players[i].tcp_socket = NULL;
 		//game->players[i]->ip;
-		game->players[i]->exited_game = 0;
-		game->players[i]->connection_lost = 0;
-		game->players[i]->ready_to_play = 0;
+		game->players[i].exited_game = 0;
+		game->players[i].connection_lost = 0;
+		game->players[i].ready_to_play = 0;
 		
-		game->players[i]->info = malloc(sizeof(Player));
-		game->players[i]->info->life = DEFAULT_PLAYERS_LIFE;
-		game->players[i]->info->winner = 0;
-		game->players[i]->info->minions_type_sent = NULL;
+		game->players[i].info = (Player *) malloc(sizeof(Player));
+		game->players[i].info->life = DEFAULT_PLAYERS_LIFE;
+		game->players[i].info->winner = 0;
+		game->players[i].info->minions_type_sent = NULL;
 
-		game->players[i]->info->name = malloc(sizeof(char) * SERVER_NAME);
-		strncpy(game->players[i]->info->name, "No name", SERVER_NAME);
+		game->players[i].info->name = malloc(sizeof(char) * SERVER_NAME);
+		strncpy(game->players[i].info->name, "No name", SERVER_NAME);
+
+        game->players[i].activity = NULL;
 
 	}
 	return game;
 }
 
-void remove_player(player_comm *player, int remove_name){
-	if(player){
-		if(player->info){
-			if(remove_name && player->info->name){
-				free(player->info->name);
-				player->info->name = NULL;
-			}
-			if(player->info->minions_type_sent){
-				free(player->info->minions_type_sent);
-				player->info->minions_type_sent = NULL;
-			}
-			free(player->info);
-			player->info = NULL;
+void remove_player_info(Player *info, int remove_name){
+	if(info){
+		if(remove_name && info->name){
+			free(info->name);
+			info->name = NULL;
 		}
+		if(info->minions_type_sent){
+			free(info->minions_type_sent);
+			info->minions_type_sent = NULL;
+		}
+		free(info);
+		info = NULL;
+	}
+}
+void remove_player(player_comm *player){
+	if(player){
 		if(player->activity){
 			SDLNet_FreeSocketSet(player->activity);
 			player->activity = NULL;
@@ -112,32 +116,38 @@ void remove_player(player_comm *player, int remove_name){
 		free(player);
 		player = NULL;
 	}
+	
 	return;
 }
 
-void remove_communication(game_comm *comm){
+void remove_communication(game_comm **comm){
 	printf("Removing communication\n");
-	if (comm) {
+	if (*comm){
 		for(int i = 0; i < MAX_CLIENT; i++) {
-			remove_player(comm->players[i], 1);
+			remove_player_info((*comm)->players[i].info, 1);
 		}
-		if(comm->players) {
-			free(comm->players);
-			comm->players = NULL;
+		remove_player((*comm)->players);
+		printf("After remove player\n");
+		if((*comm)->players) {
+			free((*comm)->players);
+			(*comm)->players = NULL;
 		}
-		if(comm->current_player){
-			remove_player(comm->current_player, 1);
+		printf("After remove players\n");
+		if((*comm)->current_player){
+			remove_player_info((*comm)->current_player->info, 0);
+			remove_player((*comm)->current_player);
 		}
-		if(comm->server){
-			if(comm->server->host){
-				free(comm->server->host);
-				comm->server->host = NULL;
+		printf("After current\n");
+		if((*comm)->server){
+			if((*comm)->server->host){
+				free((*comm)->server->host);
+				(*comm)->server->host = NULL;
 			}
-			free(comm->server);
-			comm->server = NULL;
+			free((*comm)->server);
+			(*comm)->server = NULL;
 		}
-		free(comm);
-		comm = NULL;
+		free(*comm);
+		*comm = NULL;
 	}
 	return;
 }
@@ -148,24 +158,24 @@ void remove_client(game_comm *game_communication, int client){
 	char buffer[2];
 	
 	for(i=0; i <MAX_CLIENT; i++) {
-        if(i != client && game_communication->players[i]->tcp_socket) {
+        if(i != client && game_communication->players[i].tcp_socket) {
 			sprintf(buffer, "%d\0", i);
 			//Send message to other players that user left.
-			send_message(buffer, 2, game_communication->players[i]->tcp_socket);
+			send_message(buffer, 2, game_communication->players[i].tcp_socket);
             //SDLNet_TCP_Send(slave_thread[thread_id_no].client[j].sock, buffer, strlen(buffer) + 1);
         }
     }
 
-    SDLNet_TCP_DelSocket(activity, game_communication->players[client]->tcp_socket);
+    SDLNet_TCP_DelSocket(activity, game_communication->players[client].tcp_socket);
 
-    if(game_communication->players[client]->tcp_socket != NULL)
-        SDLNet_TCP_Close(game_communication->players[client]->tcp_socket);
+    if(game_communication->players[client].tcp_socket != NULL)
+        SDLNet_TCP_Close(game_communication->players[client].tcp_socket);
 
-	game_communication->players[client]->tcp_socket = NULL;
-	game_communication->players[client]->ready_to_play = 0;  
-	if(game_communication->players[client]->info->name) {
-		free(game_communication->players[client]->info->name);
-		game_communication->players[client]->info->name = NULL;
+	game_communication->players[client].tcp_socket = NULL;
+	game_communication->players[client].ready_to_play = 0;  
+	if(game_communication->players[client].info->name) {
+		free(game_communication->players[client].info->name);
+		game_communication->players[client].info->name = NULL;
 	}
 	
 	//Change player status to left.
@@ -421,7 +431,7 @@ void check_connection_tcp(game_comm *game_communication){
 	}
 	
 	//Check if there is slot avaliable
-	for(i = 0; i < MAX_CLIENT && game_communication->players[i]->tcp_socket;i++);
+	for(i = 0; i < MAX_CLIENT && game_communication->players[i].tcp_socket;i++);
 	if (i == MAX_CLIENT) {
 		//Inform client that connection cannot be made.
 		send_message("Maximum number of clients connected.", 1, socket);
@@ -439,10 +449,10 @@ void check_connection_tcp(game_comm *game_communication){
 	}
 	//Now make new connection. This is non-blocking.
 	//Add to client list
-	game_communication->players[i]->tcp_socket = socket;
+	game_communication->players[i].tcp_socket = socket;
 	
 	//Add client socket to set 
-	sockets = SDLNet_TCP_AddSocket(activity, game_communication->players[i]->tcp_socket);
+	sockets = SDLNet_TCP_AddSocket(activity, game_communication->players[i].tcp_socket);
 	if(sockets == -1) {
 		fprintf(stderr, "SDLNet_AddSocket: %s\n", SDLNet_GetError());
 		terminate_server();
@@ -468,10 +478,10 @@ void check_messages_tcp(game_comm *game_communication){
 	}
 	else if(action){
 		for(i = 0; i < MAX_CLIENT; i++){
-			if(game_communication->players[i]->tcp_socket != NULL && SDLNet_SocketReady(game_communication->players[i]->tcp_socket)){ 
+			if(game_communication->players[i].tcp_socket != NULL && SDLNet_SocketReady(game_communication->players[i].tcp_socket)){ 
                 clients_ready++;
 
-                if (SDLNet_TCP_Recv(game_communication->players[i]->tcp_socket, buffer, BUFFER_LIMIT) > 0){
+                if (SDLNet_TCP_Recv(game_communication->players[i].tcp_socket, buffer, BUFFER_LIMIT) > 0){
                     if(game_in_progress){
                         handle_message(i, buffer, 0);
                     }
@@ -523,7 +533,7 @@ void game_status_and_clients(game_comm *game_communication){
 	if(game_in_progress){
 		int someone_still_playing = 0;
 		for(i = 0; i < MAX_CLIENT; i++){
-			if(game_communication->players[i]->tcp_socket != NULL && game_communication->players[i]->ready_to_play){
+			if(game_communication->players[i].tcp_socket != NULL && game_communication->players[i].ready_to_play){
                 someone_still_playing = 1;
                 break;
             }
@@ -532,9 +542,9 @@ void game_status_and_clients(game_comm *game_communication){
 		if(!someone_still_playing){
 			for(i = 0; i < MAX_CLIENT; i++){
 				//Check if all clients are closed.
-				SDLNet_TCP_Close(game_communication->players[i]->tcp_socket);
-				game_communication->players[i]->tcp_socket = NULL;
-				game_communication->players[i]->ready_to_play = 0;
+				SDLNet_TCP_Close(game_communication->players[i].tcp_socket);
+				game_communication->players[i].tcp_socket = NULL;
+				game_communication->players[i].ready_to_play = 0;
 			}
 			game_in_progress = 0;
 			//Finish game
@@ -545,9 +555,9 @@ void game_status_and_clients(game_comm *game_communication){
 		int someone_connected = 0;
 		int someone_not_ready = 0;
         for(i = 0; i < MAX_CLIENT; i++){
-            if(game_communication->players[i]->tcp_socket != NULL){ 
+            if(game_communication->players[i].tcp_socket != NULL){ 
                 someone_connected = 1;
-                if (!game_communication->players[i]->ready_to_play){
+                if (!game_communication->players[i].ready_to_play){
                     someone_not_ready = 1;
                 }
             }
@@ -613,8 +623,8 @@ char *get_host_name(int i){
 	return servers[i].name;
 }
 
-Host *get_host(int i){
-	return &servers[i];
+Host *get_host(){
+	return &servers;
 }
 
 //Server runner
@@ -647,7 +657,7 @@ void begin_game(game_comm * game_communication){
 	
 	for(i = 0; i < MAX_CLIENT; i++){
         // Only check sockets that aren't null:
-        if(game_communication->players[i]->ready_to_play != 1 && game_communication->players[i]->tcp_socket != NULL){
+        if(game_communication->players[i].ready_to_play != 1 && game_communication->players[i].tcp_socket != NULL){
             return;      
         }
     }
@@ -655,8 +665,8 @@ void begin_game(game_comm * game_communication){
 	
 	
 	for(i = 0; i < MAX_CLIENT; i++){
-        if(game_communication->players[i]->ready_to_play == 1 && game_communication->players[i]->tcp_socket != NULL){
-            sent = send_message("START_GAME", 1, game_communication->players[i]->tcp_socket);
+        if(game_communication->players[i].ready_to_play == 1 && game_communication->players[i].tcp_socket != NULL){
+            sent = send_message("START_GAME", 1, game_communication->players[i].tcp_socket);
 			//(SDLNet_TCP_Send(slave_thread[thread_id_no].client[j].sock, buf, NET_BUF_LEN) == NET_BUF_LEN)
             if(sent) {
 				connected_clients++;
@@ -688,16 +698,16 @@ void finish_game(game_comm *game_communication){
 	//Transmit message to all
 	for(i = 0; i < MAX_CLIENT;i++){
 		alive = 0;
-		alive = send_message("GAME_STOPED", 0, game_communication->players[i]->tcp_socket);
+		alive = send_message("GAME_STOPED", 0, game_communication->players[i].tcp_socket);
 		if(!alive){
 			remove_client(game_communication, i);
 		}
 	}
 	for(i = 0; i < MAX_CLIENT; i++){
-		if( game_communication->players[i]->tcp_socket) {
-			SDLNet_TCP_Close(game_communication->players[i]->tcp_socket);
-			 game_communication->players[i]->tcp_socket = NULL;
-			  game_communication->players[i]->ready_to_play = 0;
+		if( game_communication->players[i].tcp_socket) {
+			SDLNet_TCP_Close(game_communication->players[i].tcp_socket);
+			 game_communication->players[i].tcp_socket = NULL;
+			  game_communication->players[i].ready_to_play = 0;
 		}
     }
 	
@@ -786,8 +796,8 @@ void run_client(void *data){
 		game_communication->server->connecting = 1;
 		game_communication->server->search_result = 1;//Same as avaliable?
 		game_communication->server->avaliable = 1;
-		game_communication->server->host = malloc(sizeof(Host *));
-		game_communication->server->host[0] = get_host(0);
+		game_communication->server->host = malloc(sizeof(Host));
+		game_communication->server->host = get_host();
 		
 		//Connect to this server.
 		connected = connect_to_server(0);
@@ -798,10 +808,9 @@ void run_client(void *data){
 		game_communication->server->connecting = 0;
 		game_communication->server->search_result = found;//Same as avaliable?
 		game_communication->server->avaliable = found;//Maybe change to 1 and use for server avaliable or not.
-		game_communication->server->host = malloc(sizeof(Host *) * found);
-		for(int i; i < found; i ++){
-			game_communication->server->host[i] = get_host(i);
-		}
+		game_communication->server->host = malloc(sizeof(Host) * found);
+		game_communication->server->host = get_host();
+		
 		
 		game_communication->server->choosing = 1;
 		
@@ -851,7 +860,7 @@ void run_client(void *data){
 	}
 	printf("Destroctor\n");
 	//Destroy game communication
-	remove_communication(game_communication);
+	remove_communication(&game_communication);
 	return;
 }
 
