@@ -52,6 +52,7 @@ game_comm *init_communication(char *name) {
 	game->current_player->info->life = DEFAULT_PLAYERS_LIFE;
 	game->current_player->info->winner = 0;
 	game->current_player->info->minions_type_sent = NULL;
+    game->current_player->activity = NULL;
 	if(name){
 		game->current_player->info->name = name;
 	}
@@ -77,6 +78,7 @@ game_comm *init_communication(char *name) {
 		game->players[i]->info->name = malloc(sizeof(char) * SERVER_NAME);
 		strncpy(game->players[i]->info->name, "No name", SERVER_NAME);
 		printf("herea1aa\n");
+        game->players[i]->activity = NULL;
 	}
 	printf("hereaaa\n");
 	return game;
