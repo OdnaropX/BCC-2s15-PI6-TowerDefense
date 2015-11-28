@@ -30,6 +30,13 @@
 
 #define FRAMES_PER_SEC 60
 
+//Global variable
+///////////////////////////////////////////////////////////////////////
+int terminate_thread;
+SDL_SpinLock lock;
+game_comm *comm;
+
+
 //SDL stuff
 SDL_Window *main_Window;
 SDL_Surface *main_Surface;
@@ -1448,19 +1455,16 @@ int main(int argc, char * argv[]) {
 							multiplayer_status = MPS_SEARCHING_ROOM;
 							//Start thread and network communication.
 							
-							next = 0;
 							SDL_AtomicLock(&lock);
 							if(!comm) {
+								printf("Initing\n");
 								comm = init_communication(player_name);
-								next = 1;
+								printf("Initing %d\n", comm);
 							}
 							SDL_AtomicUnlock(&lock);
 							
-							if(next){
-								printf("After init\n");
-								
+							if(!thread){
 								thread = SDL_CreateThread((SDL_ThreadFunction) run_client, "run_client", (void *) NULL);
-								printf("After sdl thread\n");
 								if (thread == NULL) {
 									multiplayer_status = MPS_NONE;
 								}
@@ -1473,10 +1477,14 @@ int main(int argc, char * argv[]) {
                         current_screen = MAIN;
                         previous_screen = GAME_MULTIPLAY_SERVER;
                         
+                        printf("Cancel\n");
+                        //Filter whether client or server and finnish
                         if(thread){
+                            printf("Kill thread!!\n");
                             multiplayer_status = MPS_NONE;
                             kill_thread(&thread);
                         }
+                        
                         break;
                         
                     case MP_NONE:

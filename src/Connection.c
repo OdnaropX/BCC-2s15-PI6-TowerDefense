@@ -19,11 +19,15 @@ int connected_clients = 0;
 int game_in_progress = 0;
 char server_name[SERVER_NAME];
 
+extern game_comm *comm;
+extern int terminate_thread;
+extern SDL_SpinLock lock;
+
 //Allocation Functions
 ///////////////////////////////////////////////////////////////////////
 
 game_comm *init_communication(char *name) {
-	game_comm *game = malloc(sizeof(game_comm));
+	game_comm *game = (game_comm *) malloc(sizeof(game_comm));
 	
 	game->game_can_start = 0;
 	game->game_finished = 0;
@@ -121,33 +125,35 @@ void remove_player(player_comm *player){
 
 void remove_communication(){
 	printf("Removing communication\n");
-	if (comm){
-		for(int i = 0; i < MAX_CLIENT; i++) {
-			remove_player_info(comm->players[i].info, 1);
+	
+	for(int i = 0; i < MAX_CLIENT; i++) {
+		remove_player_info(comm->players[i].info, 1);
+	}
+	remove_player(comm->players);
+	printf("After remove player\n");
+	if(comm->players) {
+		free(comm->players);
+		comm->players = NULL;
+	}
+	printf("After remove players\n");
+	if(comm->current_player){
+		remove_player_info(comm->current_player->info, 0);
+		remove_player(comm->current_player);
+	}
+	printf("After current\n");
+	if(comm->server){
+		if(comm->server->host){
+			free(comm->server->host);
+			comm->server->host = NULL;
 		}
-		remove_player(comm->players);
-		printf("After remove player\n");
-		if(comm->players) {
-			free(comm->players);
-			comm->players = NULL;
-		}
-		printf("After remove players\n");
-		if(comm->current_player){
-			remove_player_info(comm->current_player->info, 0);
-			remove_player(comm->current_player);
-		}
-		printf("After current\n");
-		if(comm->server){
-			if(comm->server->host){
-				free(comm->server->host);
-				comm->server->host = NULL;
-			}
-			free(comm->server);
-			comm->server = NULL;
-		}
-		free(comm);
-		//*comm = NULL;
-		comm = NULL;
+		free(comm->server);
+		comm->server = NULL;
+	}
+	free(comm);
+	//*comm = NULL;
+	comm = NULL;
+	if(comm){
+		printf("not nul\n");
 	}
 	return;
 }
@@ -772,97 +778,98 @@ void run_client(void *data){
 	
 	int found = 0;
 	int connected = 0;
-	printf("After\n");
+	printf("After %d\n", comm);
+
 	if(comm){
-	//Set searching network
-	comm->server->searching = 1;
-	printf("After server\n");
-	//Search server
-	found = find_servers();
-	
-	printf("After find server\n");
-	//Connect or choose server to connect.
-	if(found == 0) {
-		comm->server->searching = 0;
-		comm->server->searching_finished = 1;
-		comm->server->connecting = 0;
-		comm->server->search_result = 0;
-		comm->server->avaliable = 0;
+		//Set searching network
+		comm->server->searching = 1;
+		printf("After server\n");
+		//Search server
+		found = find_servers();
+		
+		printf("After find server\n");
+		//Connect or choose server to connect.
+		if(found == 0) {
+			comm->server->searching = 0;
+			comm->server->searching_finished = 1;
+			comm->server->connecting = 0;
+			comm->server->search_result = 0;
+			comm->server->avaliable = 0;
 
-		//Not connect.
-		printf("No server found");
-	}
-	else if(found == 1) {
-		comm->server->searching = 0;
-		comm->server->searching_finished = 1;
-		comm->server->connecting = 1;
-		comm->server->search_result = 1;//Same as avaliable?
-		comm->server->avaliable = 1;
-		comm->server->host = malloc(sizeof(Host));
-		comm->server->host = get_host();
-		
-		//Connect to this server.
-		connected = connect_to_server(0);
-	}
-	else {
-		comm->server->searching = 0;
-		comm->server->searching_finished = 1;
-		comm->server->connecting = 0;
-		comm->server->search_result = found;//Same as avaliable?
-		comm->server->avaliable = found;//Maybe change to 1 and use for server avaliable or not.
-		comm->server->host = malloc(sizeof(Host) * found);
-		comm->server->host = get_host();
-		
-		
-		comm->server->choosing = 1;
-		
-		//Need to choose server.
-		while(comm->server->choosing && !terminate_thread){
-			//Wait until the user choose a server on main thread.
-			SDL_Delay(SERVER_USER_RESPONSE_DELAY);
+			//Not connect.
+			printf("No server found");
 		}
+		else if(found == 1) {
+			comm->server->searching = 0;
+			comm->server->searching_finished = 1;
+			comm->server->connecting = 1;
+			comm->server->search_result = 1;//Same as avaliable?
+			comm->server->avaliable = 1;
+			comm->server->host = malloc(sizeof(Host));
+			comm->server->host = get_host();
+			
+			//Connect to this server.
+			connected = connect_to_server(0);
+		}
+		else {
+			comm->server->searching = 0;
+			comm->server->searching_finished = 1;
+			comm->server->connecting = 0;
+			comm->server->search_result = found;//Same as avaliable?
+			comm->server->avaliable = found;//Maybe change to 1 and use for server avaliable or not.
+			comm->server->host = malloc(sizeof(Host) * found);
+			comm->server->host = get_host();
+			
+			
+			comm->server->choosing = 1;
+			
+			//Need to choose server.
+			while(comm->server->choosing && !terminate_thread){
+				//Wait until the user choose a server on main thread.
+				SDL_Delay(SERVER_USER_RESPONSE_DELAY);
+			}
 
-		comm->server->connecting = 1;
-		
-		//Connect to selected server.
-		connected = connect_to_server(comm->server->choosed);
-	}
-	printf("After find\n");
-	if(!connected) {
-		printf("Not able to connect with server.\n");
-		comm->server->connecting = 0;
-		comm->server->connection_failed = 1;
-	}
-	else {
-		comm->server->connecting = 0;
-		comm->server->connected = 1;
-	}
-	printf("hereq\n");
-	while(!terminate_thread){
-		//Running 
-		if(connected){
-			printf("Connected\n");
+			comm->server->connecting = 1;
 			
-			//Check if there is response to begin game.
-			check_messages_tcp_client();
-			//Check tcp messages only.
-			
-			//Check if connection was not lost.
-			//Get server 
-			
-			//Send message to server that can start game
-			
-			
-			//Send message to server that exit game
-			
-			
-			
-			
+			//Connect to selected server.
+			connected = connect_to_server(comm->server->choosed);
 		}
-	}
-	printf("Destroctor\n");
-	//Destroy game communication
-	remove_communication();
+		printf("After find\n");
+		if(!connected) {
+			printf("Not able to connect with server.\n");
+			comm->server->connecting = 0;
+			comm->server->connection_failed = 1;
+		}
+		else {
+			comm->server->connecting = 0;
+			comm->server->connected = 1;
+		}
+		printf("hereq\n");
+		while(!terminate_thread){
+			//Running 
+			if(connected){
+				printf("Connected\n");
+				
+				//Check if there is response to begin game.
+				check_messages_tcp_client();
+				//Check tcp messages only.
+				
+				//Check if connection was not lost.
+				//Get server 
+				
+				//Send message to server that can start game
+				
+				
+				//Send message to server that exit game
+				
+				
+				
+				
+			}
+		}
+		printf("Destroctor\n");
+		//Destroy game communication
+		remove_communication();
 	}
 	printf("After server 2\n");
 	return;
