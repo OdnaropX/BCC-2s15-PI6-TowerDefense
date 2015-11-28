@@ -26,7 +26,7 @@
 #define credits_menu_assets_count 7
 #define score_menu_assets_count 3
 #define end_game_interface_assets_count 8
-#define multiplayer_menu_assets_count 10
+#define multiplayer_menu_assets_count 27
 
 #define FRAMES_PER_SEC 60
 
@@ -74,7 +74,8 @@ SDL_Rect score_menu_rects[score_menu_assets_count];
 SDL_Texture *end_game_interface_assets[end_game_interface_assets_count];
 SDL_Rect end_game_interface_rects[end_game_interface_assets_count];
 
-//Multiplayer screen order: title, create game(+sel), search game(+sel), cancel(+sel), back(+sel), status
+//Multiplayer screen order: title, create room/start/ready(+sel), search room/leave room(+sel), back(+sel), room list(4)(+sel),
+//rooms, players, ready?, player list(4), ready list(4), status
 SDL_Texture *multiplayer_menu_assets[multiplayer_menu_assets_count];
 SDL_Rect multiplayer_menu_rects[multiplayer_menu_assets_count];
 
@@ -98,7 +99,7 @@ bool main_init();
 void main_quit();
 
 void get_config_text();
-void set_multiplayer_status_text(multiplayer_menu_options selected_option, multiplayer_status current_status);
+void get_multiplayer_texts(multiplayer_status current_status, game_comm *servers_data);
 void set_end_game_status_text(end_game_status end_status);
 void reset_game_data();
 
@@ -356,16 +357,16 @@ int main(int argc, char * argv[]) {
                         case SDL_KEYDOWN:
                             switch (event.key.keysym.sym) {
                                 case SDLK_UP: case SDLK_LEFT:
-                                    if(select_multiplayer_option == MP_CREATE_GAME)
-                                        select_multiplayer_option = MP_BACK;
+                                    if(select_multiplayer_option == MP_CREATE_ROOM)
+                                        select_multiplayer_option = MP_BACK_TO_MAIN;
                                     else
                                         select_multiplayer_option --;
                                     
                                     break;
                                     
                                 case SDLK_DOWN: case SDLK_RIGHT:
-                                    if(select_multiplayer_option == MP_BACK)
-                                        select_multiplayer_option = MP_CREATE_GAME;
+                                    if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                        select_multiplayer_option = MP_CREATE_ROOM;
                                     else
                                         select_multiplayer_option ++;
                                     
@@ -1401,10 +1402,12 @@ int main(int argc, char * argv[]) {
                 
             case GAME_MULTIPLAY_SERVER:
                 switch (multiplayer_option) {
-                    case MP_CREATE_GAME:
+                    case MP_CREATE_ROOM:
 						//Check if there is a thread running
-	                    //Create server
-                        multiplayer_status = MPS_SEARCHING_PLAYER;
+                        
+                        //Create server
+                        multiplayer_status = MPS_WAIT_FOR_PLAYER;
+
 						if (thread == NULL) {
 							terminate_thread = 0;
 							SDL_AtomicLock(&lock);
@@ -1420,7 +1423,7 @@ int main(int argc, char * argv[]) {
 						}
                         break;
                         
-                    case MP_SEARCH_GAME:
+                    case MP_SEARCH_ROOM:
 						//Check if there is a thread in progress and is run_client
 						if(thread) {
 							printf("Thread running\n");
@@ -1441,7 +1444,7 @@ int main(int argc, char * argv[]) {
 						else {
 							printf("Thread not running\n");
 							terminate_thread = 0;
-							multiplayer_status = MPS_SEARCHING_GAME;
+							multiplayer_status = MPS_SEARCHING_ROOM;
 							//Start thread and network communication.
 							
 							next = 0;
@@ -1464,17 +1467,15 @@ int main(int argc, char * argv[]) {
 						}
                         break;
                         
-                    case MP_BACK:
+                    case MP_BACK_TO_MAIN:
                         //Same as cancel option
                         current_screen = MAIN;
                         previous_screen = GAME_MULTIPLAY_SERVER;
-
-					case MP_CANCEL:
-                        //Filter whether client or server and finnish
-						if(thread){
-							multiplayer_status = MPS_NONE;
-							kill_thread(&thread);
-						}
+                        
+                        if(thread){
+                            multiplayer_status = MPS_NONE;
+                            kill_thread(&thread);
+                        }
                         break;
                         
                     case MP_NONE:
@@ -1485,6 +1486,10 @@ int main(int argc, char * argv[]) {
                 }
                 
                 multiplayer_option = MP_NONE;
+                
+                //Get multiplayer menu assets
+                get_multiplayer_texts(MPS_NONE, comm);
+                
                 break;
                 
 			case CONFIG:
@@ -2215,66 +2220,6 @@ bool main_init(){
         
         SDL_FreeSurface(surface);
     }
-    
-    for(int i = 0; i < multiplayer_menu_assets_count - 1; i++){
-        char *text = NULL;
-        SDL_Rect rect;
-        
-        switch(i){
-            case 0:
-                text = "MULTIPLAYER";
-                rect = (SDL_Rect){265, 0, 750, 150};
-                break;
-                
-            case 1: case 2:
-                text = "Create Game";
-                rect = (SDL_Rect){515, 150, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 3: case 4:
-                text = "Find Game";
-                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 5: case 6:
-                text = "Cancel Search";
-                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 7: case 8:
-                text = "Back to Main";
-                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            default:
-                break;
-        }
-        
-        multiplayer_menu_rects[i] = rect;
-        
-        SDL_Surface *surface;
-        if(i%2 == 0 && i > 0)
-            surface = TTF_RenderText_Solid(font, text, red);
-        else
-            surface = TTF_RenderText_Solid(font, text, black);
-        
-        if(!surface){
-            printf("(Multiplayer)Text not rendered! %s\n", TTF_GetError());
-            return false;
-        }
-        
-        multiplayer_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
-        
-        if(!multiplayer_menu_assets[i]){
-            printf("(Multiplayer)Text texture not rendered! %s\n", SDL_GetError());
-            return false;
-        }
-        
-        SDL_FreeSurface(surface);
-    }
-    
-    //Init multiplayer menu assets
-    set_multiplayer_status_text(MP_NONE, MPS_NONE);
 	
 	//Init map
     map_Surface = init_map();
@@ -2494,57 +2439,121 @@ void get_config_text(){
 }
 
 //Carrega textos do menu de multiplayer
-void set_multiplayer_status_text(multiplayer_menu_options selected_option, multiplayer_status current_status){
-    char *text = NULL;
-    SDL_Rect rect;
-    
-    switch (current_status) {
-        case MPS_SEARCHING_PLAYER:
-            text = "Status: Searching for Player...";
-            break;
+void get_multiplayer_texts(multiplayer_status current_status, game_comm *servers_data){
+    for(int i = 0; i < multiplayer_menu_assets_count; i++){
+        char *text = NULL;
+        SDL_Rect rect;
+        
+        //Setting texts and rects
+        if(i == 0){
+            text = "MULTIPLAYER";
+            rect = (SDL_Rect){265, 0, 750, 150};
+        }
+        
+        else if(i == 1 || i == 2){
+            if(current_status == MPS_NONE)
+                text = "Create Room";
+            else if(current_status == MPS_CAN_START)
+                text = "Start Game";
+            else if(current_status == MPS_ENTERED_ROOM)     //Or not ready
+                text = "Ready!";
             
-        case MPS_SEARCHING_GAME:
-            text = "Status: Searching for Game...";
-            break;
+            rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+        }
+        
+        else if(i == 3 || i == 4){
+            if(current_status == MPS_NONE)
+                text = "Search Room";
+            else if(current_status != MPS_NONE && current_status != MPS_STARTED_GAME)
+                text = "Leave Room";
             
-        case MPS_PLAYER_FOUND:
-            text = "Status: Player Found. Starting game.";
-            break;
+            rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+        }
+        
+        else if(i == 5 || i == 6){
+            text = "Back to Main";
             
-        case MPS_GAME_FOUND:
-            text = "Status: Game Found. Starting Game.";
-            break;
+            rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+        }
+        
+        //Room hosts
+        else if(i >= 7 && i <= 14){
+//            if(current_status != MPS_SEARCHING_ROOM)
+        }
+        
+        else if(i == 15){
+            text = "Rooms";
             
-        case MPS_NONE:
-            text = "Status: ";
-            break;
+            rect = (SDL_Rect){195, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+        }
+        
+        else if(i == 16){
+            text = "Players";
             
-        default:
-            break;
+            rect = (SDL_Rect){515, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+        }
+        
+        else if(i == 17){
+            text = "Ready?";
+            
+            rect = (SDL_Rect){835, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+        }
+        
+        //Players in room
+        else if(i >= 18 && i <= 21){
+            
+        }
+        
+        //Ready?
+        else if(i >= 22 && i <= 25){
+            
+        }
+        
+        //Status
+        else{
+            if(current_status == MPS_NONE)
+                text = NULL;
+            else if(current_status == MPS_WAIT_FOR_PLAYER)
+                text = "Waiting for players...";
+            else if(current_status == MPS_SEARCHING_ROOM)
+                text = "Searching rooms...";
+            else if(current_status == MPS_WAIT_READY)
+                text = "Everyone must be ready to start";
+            else if(current_status == MPS_CAN_START)
+                text = "Everyone ready!";
+            
+            rect = (SDL_Rect){390, 150, BUTTON_MENU_WIDTH * 2, BUTTON_MENU_HEIGHT};
+        }
+        
+        //Creating textures
+        if(text){
+            SDL_Surface *surface;
+            if(i%2 == 0 && i > 0)
+                surface = TTF_RenderText_Solid(font, text, red);
+            else
+                surface = TTF_RenderText_Solid(font, text, black);
+            
+            if(!surface){
+                printf("(Multiplayer)Text not rendered! %s\n", TTF_GetError());
+                return;
+            }
+            
+            multiplayer_menu_rects[i] = rect;
+            
+            multiplayer_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+            
+            if(!multiplayer_menu_assets[i]){
+                printf("(Multiplayer)Text texture not rendered! %s\n", SDL_GetError());
+                return;
+            }
+            
+            SDL_FreeSurface(surface);
+        }
+        
+        else
+            multiplayer_menu_assets[i] = NULL;
+        
     }
-    
-    if(current_status == MPS_NONE)
-        rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 8, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-    else
-        rect = (SDL_Rect){390, 150 + BUTTON_MENU_HEIGHT * 8, BUTTON_MENU_WIDTH * 2, BUTTON_MENU_HEIGHT};
-    
-    multiplayer_menu_rects[9] = rect;
-    
-    SDL_Surface *surface = TTF_RenderText_Solid(font, text, black);
-    
-    if(!surface){
-        printf("(Multiplayer)Text not rendered! %s\n", TTF_GetError());
-        return;
-    }
-    
-    multiplayer_menu_assets[9] = SDL_CreateTextureFromSurface(renderer, surface);
-    
-    if(!multiplayer_menu_assets[9]){
-        printf("(Multiplayer)Text texture not rendered! %s\n", SDL_GetError());
-        return;
-    }
-    
-    SDL_FreeSurface(surface);
 }
 
 //Reseta listas, e dados do jogo

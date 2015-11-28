@@ -11,11 +11,8 @@
 	typedef enum _config_options{AUDIO_SFX, AUDIO_MUSIC, LANGUAGE, BACK, NONE} config_options;
 	typedef enum _end_game_options{EG_NEW_GAME, EG_MAIN, EG_QUIT, EG_NONE} end_game_options;
 
-	typedef enum _multiplayer_menu_options{MP_CREATE_GAME, MP_SEARCH_GAME, MP_CANCEL, MP_BACK, MP_NONE} multiplayer_menu_options;
-    typedef enum _choose_room_options{CR_ENTER_ROOM, CR_REFRESH, CR_STOP, CR_RETURN} choose_room_options;
-    typedef enum _multiplayer_room_options{MR_READY, MR_EXIT};
-
-	typedef enum _multiplayer_status{MPS_SEARCHING_PLAYER, MPS_SEARCHING_GAME, MPS_PLAYER_FOUND, MPS_GAME_FOUND, MPS_WAITING_PLAYER, MPS_STARTED_GAME, MPS_NONE} multiplayer_status;
+	typedef enum _multiplayer_menu_options{MP_CREATE_ROOM, MP_SEARCH_ROOM, MP_BACK_TO_MAIN, MP_START, MP_TOGGLE_READY, MP_LEAVE, MP_NONE} multiplayer_menu_options;
+	typedef enum _multiplayer_status{MPS_WAIT_FOR_PLAYER, MPS_SEARCHING_ROOM, MPS_WAIT_READY, MPS_ENTERED_ROOM, MPS_CAN_START, MPS_STARTED_GAME, MPS_NONE} multiplayer_status;
     typedef enum _end_game_status{EGS_WIN, EGS_LOSE, EGS_DC, EGS_OPLEFT, EGS_NONE}end_game_status;
 
 	typedef enum _running_top_option {OPT_R_T_PAUSE, OPT_R_T_RESUME, OPT_R_T_NONE} RUNNING_TOP_OPTIONS;

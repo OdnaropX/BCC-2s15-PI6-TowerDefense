@@ -274,19 +274,15 @@ void draw_screen_multiplayer_menu(SDL_Renderer *renderer, SDL_Texture **assets, 
     for(int i = 0; i < count; i++){
         int sel = 0;
         switch (select_multiplayer_option) {
-            case MP_CREATE_GAME:
+            case MP_CREATE_ROOM:
                 sel = 2;
                 break;
                 
-            case MP_SEARCH_GAME:
+            case MP_SEARCH_ROOM:
                 sel = 4;
                 break;
                 
-            case MP_CANCEL:
-                sel = 6;
-                break;
-                
-            case MP_BACK:
+            case MP_BACK_TO_MAIN:
                 sel = 8;
                 break;
                 
