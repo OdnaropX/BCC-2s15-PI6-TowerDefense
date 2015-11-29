@@ -4,15 +4,15 @@
 	//Enum
 	///////////////////////////////////////////////////////////////////////
 	
-	typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE, END_GAME, GAME_MULTIPLAY_SERVER, MINIONS_INFO, } screen;
+	typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE, END_GAME, GAME_MULTIPLAY_SERVER, MINIONS_INFO, MULTIPLAYER_CHOOSE_ROOM, MULTIPLAYER_ROOM} screen;
 	typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA} TAB;
 	typedef enum _main_options {OPT_PLAY, OPT_MULTIPLAYER, OPT_CONFIG, OPT_SCORE, OPT_EXIT, OPT_CREDIT, OPT_NONE} main_options;
 	typedef enum _pause_options {OPT_P_RESUME, OPT_P_CONFIG, OPT_P_SCORE, OPT_P_EXIT, OPT_P_MAIN, OPT_P_CREDITS, OPT_P_NONE} pause_options;
 	typedef enum _config_options{AUDIO_SFX, AUDIO_MUSIC, LANGUAGE, BACK, NONE} config_options;
 	typedef enum _end_game_options{EG_NEW_GAME, EG_MAIN, EG_QUIT, EG_NONE} end_game_options;
-	typedef enum _multiplayer_menu_options{MP_CREATE_GAME, MP_SEARCH_GAME, MP_CANCEL, MP_BACK, MP_NONE} multiplayer_menu_options;
 
-	typedef enum _multiplayer_status{MPS_SEARCHING_PLAYER, MPS_SEARCHING_GAME, MPS_PLAYER_FOUND, MPS_GAME_FOUND, MPS_STARTED_GAME, MPS_NONE} multiplayer_status;
+	typedef enum _multiplayer_menu_options{MP_CREATE_ROOM, MP_SEARCH_ROOM, MP_BACK_TO_MAIN, MP_START, MP_TOGGLE_READY, MP_LEAVE, MP_NONE} multiplayer_menu_options;
+	typedef enum _multiplayer_status{MPS_WAIT_FOR_PLAYER, MPS_SEARCHING_ROOM, MPS_WAIT_READY, MPS_ENTERED_ROOM, MPS_CAN_START, MPS_STARTED_GAME, MPS_NONE} multiplayer_status;
     typedef enum _end_game_status{EGS_WIN, EGS_LOSE, EGS_DC, EGS_OPLEFT, EGS_NONE}end_game_status;
 
 	typedef enum _running_top_option {OPT_R_T_PAUSE, OPT_R_T_RESUME, OPT_R_T_NONE} RUNNING_TOP_OPTIONS;

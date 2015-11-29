@@ -12,6 +12,13 @@
 #include "GameScene.h"
 #include "Connection.h"
 
+#ifdef _WIN32
+	#include <windows.h>
+	#include <Lmcons.h>
+#else
+	#include <unistd.h>
+#endif
+
 #define main_menu_assets_count 13
 #define config_menu_assets_count 9
 #define game_interface_assets_count 2
@@ -19,9 +26,16 @@
 #define credits_menu_assets_count 7
 #define score_menu_assets_count 3
 #define end_game_interface_assets_count 8
-#define multiplayer_menu_assets_count 10
+#define multiplayer_menu_assets_count 27
 
 #define FRAMES_PER_SEC 60
+
+//Global variable
+///////////////////////////////////////////////////////////////////////
+int terminate_thread;
+SDL_SpinLock lock;
+game_comm *comm;
+
 
 //SDL stuff
 SDL_Window *main_Window;
@@ -67,7 +81,8 @@ SDL_Rect score_menu_rects[score_menu_assets_count];
 SDL_Texture *end_game_interface_assets[end_game_interface_assets_count];
 SDL_Rect end_game_interface_rects[end_game_interface_assets_count];
 
-//Multiplayer screen order: title, create game(+sel), search game(+sel), cancel(+sel), back(+sel), status
+//Multiplayer screen order: title, create room/start/ready(+sel), search room/leave room(+sel), back(+sel), room list(4)(+sel),
+//rooms, players, ready?, player list(4), ready list(4), status
 SDL_Texture *multiplayer_menu_assets[multiplayer_menu_assets_count];
 SDL_Rect multiplayer_menu_rects[multiplayer_menu_assets_count];
 
@@ -91,7 +106,7 @@ bool main_init();
 void main_quit();
 
 void get_config_text();
-void set_multiplayer_status_text(multiplayer_menu_options selected_option, multiplayer_status current_status);
+void get_multiplayer_texts(multiplayer_status current_status, game_comm *servers_data);
 void set_end_game_status_text(end_game_status end_status);
 void reset_game_data();
 
@@ -196,7 +211,28 @@ int main(int argc, char * argv[]) {
 	int temp_option;
 	//Thread
 	SDL_Thread *thread = NULL;
+	terminate_thread = 0;
+	char *thread_name = NULL;
+	comm = NULL;
 	
+	//Multiplayer
+	char *player_name = NULL;
+	#ifdef _WIN32
+	player_name = getenv("USERNAME");
+	#else
+	player_name = getlogin();
+	#endif
+	
+	NETWORK network;
+	network.searching = 0;
+	network.searched = 0;
+	network.connecting = 0;
+	network.connection_failed = 0;
+	network.servers = 0;
+	network.choose_server = 0;
+	network.server_choosed = -1;
+	
+	bool ready_to_play = false;
 	
 	//FPS and timer
     int t1, t2;
@@ -206,6 +242,7 @@ int main(int argc, char * argv[]) {
 	int frame = 0;
     t1 = SDL_GetTicks();
 	
+	int next = 0;
     //Main loop
     while(!quit){
         //FPS Handling
@@ -326,19 +363,68 @@ int main(int argc, char * argv[]) {
                         case SDL_KEYDOWN:
                             switch (event.key.keysym.sym) {
                                 case SDLK_UP: case SDLK_LEFT:
-                                    if(select_multiplayer_option == MP_CREATE_GAME)
-                                        select_multiplayer_option = MP_BACK;
-                                    else
-                                        select_multiplayer_option --;
+                                    if(multiplayer_status == MPS_NONE){
+                                        if(select_multiplayer_option == MP_CREATE_ROOM)
+                                            select_multiplayer_option = MP_BACK_TO_MAIN;
+                                        else
+                                            select_multiplayer_option --;
+                                    }
+                                    
+                                    else if(comm && comm->server && comm->server->host){
+                                        if(strcmp(player_name, comm->server->host->name)){
+                                            printf("Host\n");
+                                            
+                                            if(select_multiplayer_option == MP_START)
+                                                select_multiplayer_option = MP_BACK_TO_MAIN;
+                                            else if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                                select_multiplayer_option = MP_LEAVE;
+                                            else if(select_multiplayer_option == MP_LEAVE)
+                                                select_multiplayer_option = MP_START;
+                                        }
+                                        
+                                        else{
+                                            printf("Client\n");
+                                            if(select_multiplayer_option == MP_TOGGLE_READY)
+                                                select_multiplayer_option = MP_BACK_TO_MAIN;
+                                            else if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                                select_multiplayer_option = MP_LEAVE;
+                                            else if(select_multiplayer_option == MP_LEAVE)
+                                                select_multiplayer_option = MP_TOGGLE_READY;
+                                        }
+                                    }
                                     
                                     break;
                                     
                                 case SDLK_DOWN: case SDLK_RIGHT:
-                                    if(select_multiplayer_option == MP_BACK)
-                                        select_multiplayer_option = MP_CREATE_GAME;
-                                    else
-                                        select_multiplayer_option ++;
+                                    if(multiplayer_status == MPS_NONE){
+                                        if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                            select_multiplayer_option = MP_CREATE_ROOM;
+                                        else
+                                            select_multiplayer_option ++;
+                                    }
                                     
+                                    else if(comm && comm->server && comm->server->host){
+                                        if(strcmp(player_name, comm->server->host->name)){
+                                            printf("Host\n");
+                                            
+                                            if(select_multiplayer_option == MP_START)
+                                                select_multiplayer_option = MP_LEAVE;
+                                            else if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                                select_multiplayer_option = MP_START;
+                                            else if(select_multiplayer_option == MP_LEAVE)
+                                                select_multiplayer_option = MP_BACK_TO_MAIN;
+                                        }
+                                        
+                                        else{
+                                            printf("Client\n");
+                                            if(select_multiplayer_option == MP_TOGGLE_READY)
+                                                select_multiplayer_option = MP_LEAVE;
+                                            else if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                                select_multiplayer_option = MP_TOGGLE_READY;
+                                            else if(select_multiplayer_option == MP_LEAVE)
+                                                select_multiplayer_option = MP_BACK_TO_MAIN;
+                                        }
+                                    }
                                     break;
                                     
                                 default:
@@ -367,9 +453,28 @@ int main(int argc, char * argv[]) {
                                 multiplayer_option = MP_NONE;
                                 
                                 if(event.motion.x >= 515 && event.motion.x <= 515 + BUTTON_MENU_WIDTH){
-                                    temp_option = (event.motion.y - 150) / BUTTON_MENU_HEIGHT;
-                                    if(temp_option < MP_NONE && temp_option >= 0)
-                                        multiplayer_option = temp_option;
+                                    temp_option = (event.motion.y - 150 - BUTTON_MENU_HEIGHT) / BUTTON_MENU_HEIGHT;
+                                    if(temp_option <= MP_BACK_TO_MAIN && temp_option >= 0){
+                                        if(multiplayer_status == MPS_NONE)
+                                            multiplayer_option = temp_option;
+                                        
+                                        else if(comm && comm->server && comm->server->host){
+                                            if(strcmp(player_name, comm->server->host->name)){
+                                                if(temp_option == 0)
+                                                    multiplayer_option = MP_START;
+                                            }
+                                            
+                                            else{
+                                                if(temp_option == 0)
+                                                    multiplayer_option = MP_TOGGLE_READY;
+                                            }
+                                            
+                                            if(temp_option == 1)
+                                                multiplayer_option = MP_LEAVE;
+                                            else if(temp_option == 2)
+                                                multiplayer_option = MP_BACK_TO_MAIN;
+                                        }
+                                    }
                                 }
                             }
                             
@@ -377,9 +482,28 @@ int main(int argc, char * argv[]) {
                             
                         case SDL_MOUSEMOTION:
                             if(event.motion.x >= 515 && event.motion.x <= 515 + BUTTON_MENU_WIDTH){
-                                temp_option = (event.motion.y - 150) / BUTTON_MENU_HEIGHT;
-                                if(temp_option < MP_NONE && temp_option >= 0)
-                                    select_multiplayer_option = temp_option;
+                                temp_option = (event.motion.y - 150 - BUTTON_MENU_HEIGHT) / BUTTON_MENU_HEIGHT;
+                                if(temp_option <= MP_BACK_TO_MAIN && temp_option >= 0){
+                                    if(multiplayer_status == MPS_NONE)
+                                        select_multiplayer_option = temp_option;
+                                    
+                                    else if(comm && comm->server && comm->server->host){
+                                        if(strcmp(player_name, comm->server->host->name)){
+                                            if(temp_option == 0)
+                                                multiplayer_option = MP_START;
+                                        }
+                                        
+                                        else{
+                                            if(temp_option == 0)
+                                                multiplayer_option = MP_TOGGLE_READY;
+                                        }
+                                        
+                                        if(temp_option == 1)
+                                            multiplayer_option = MP_LEAVE;
+                                        else if(temp_option == 2)
+                                            multiplayer_option = MP_BACK_TO_MAIN;
+                                    }
+                                }
                             }
                             
                             break;
@@ -1288,7 +1412,38 @@ int main(int argc, char * argv[]) {
 				}
 			}
 		}
+			
+		//Network Thread Status Checker
+		/////////////////////////////////////////////////////
+		if(multiplayer) {
+			SDL_AtomicLock(&lock);
+			if(comm){
+				if(comm->server->searching){
+					network.searching = 1;
+				}
+				if(comm->server->searching_finished){
+					network.searched = 1;
+				}
+				if(comm->server->search_result > 0){
+					if(comm->server->connecting){
+						network.connecting = 1;
+					}
+					network.servers = comm->server->search_result;
+					for(int i; i < network.servers; i++){
+						strncpy(network.server_name[i], comm->server->host[i].name, SERVER_NAME);
+					}
+				}
+				if(comm->server->choosing) {
+					network.choose_server = 1;
+				}
 				
+				if(comm->server->connection_failed) {
+					network.connection_failed = 1;
+				}
+			}
+			SDL_AtomicUnlock(&lock);
+		}
+		
 		//Action Performancer
 		/////////////////////////////////////////////////////
 		switch(current_screen) {
@@ -1340,43 +1495,101 @@ int main(int argc, char * argv[]) {
                 
             case GAME_MULTIPLAY_SERVER:
                 switch (multiplayer_option) {
-                    case MP_CREATE_GAME:
+                    case MP_CREATE_ROOM:
+						//Check if there is a thread running
+                        
                         //Create server
-                        multiplayer_status = MPS_SEARCHING_PLAYER;
+                        multiplayer_status = MPS_WAIT_FOR_PLAYER;
+
 						if (thread == NULL) {
-//							terminate_thread = 0;
-							thread = SDL_CreateThread(run_server, "run_server", (void *) NULL);
+							terminate_thread = 0;
+							SDL_AtomicLock(&lock);
+							if(!comm) {
+								comm = init_communication(player_name);
+							}
+							SDL_AtomicUnlock(&lock);
+
+							thread = SDL_CreateThread((SDL_ThreadFunction) run_server, "run_server", (void *)NULL);
 							if (thread == NULL) {
 								multiplayer_status = MPS_NONE;
 							}
 						}
                         break;
                         
-                    case MP_SEARCH_GAME:
-                        //Create client
-                        multiplayer_status = MPS_SEARCHING_GAME;
-						if (thread == NULL) {
-//							terminate_thread = 0;
-							thread = SDL_CreateThread(run_client, "run_client", (void *) NULL);
-							if (thread == NULL) {
+                    case MP_SEARCH_ROOM:
+						//Check if there is a thread in progress and is run_client
+						if(thread) {
+							printf("Thread running\n");
+							thread_name = SDL_GetThreadName(thread);
+							if(strcmp(thread_name, "run_client") != 0) {
+								kill_thread(&thread);
 								multiplayer_status = MPS_NONE;
+							}
+							else {
+								//Check if a connection running was failed. This will kill the thread.
+								if(network.connection_failed){
+									//After this the thread will be dead must use network.connection_failed to show message with renderer.
+									kill_thread(&thread);//Kill thread already kill comm.
+									multiplayer_status = MPS_NONE;
+								}
+							}
+						}
+						else {
+							printf("Thread not running\n");
+							terminate_thread = 0;
+							multiplayer_status = MPS_SEARCHING_ROOM;
+							//Start thread and network communication.
+							
+							SDL_AtomicLock(&lock);
+							if(!comm) {
+								printf("Initing\n");
+								comm = init_communication(player_name);
+								printf("Initing %d\n", comm);
+							}
+							SDL_AtomicUnlock(&lock);
+							
+							if(!thread){
+								thread = SDL_CreateThread((SDL_ThreadFunction) run_client, "run_client", (void *) NULL);
+								if (thread == NULL) {
+									multiplayer_status = MPS_NONE;
+								}
 							}
 						}
                         break;
                         
-                    case MP_BACK:
+                    case MP_BACK_TO_MAIN:
                         //Same as cancel option
                         current_screen = MAIN;
                         previous_screen = GAME_MULTIPLAY_SERVER;
-
-					case MP_CANCEL:
+                        
+                        printf("Cancel\n");
                         //Filter whether client or server and finnish
-						if(thread != NULL){
-							multiplayer_status = MPS_NONE;
-//							terminate_thread = 1;
-							SDL_DetachThread(thread);
-							thread = NULL;
-						}
+                        if(thread){
+                            printf("Kill thread!!\n");
+                            multiplayer_status = MPS_NONE;
+                            kill_thread(&thread);
+                        }
+                        
+                        break;
+                        
+                    case MP_START:
+                        ready_to_play = true;
+                        multiplayer_status = MPS_STARTED_GAME;
+                        break;
+                        
+                    case MP_TOGGLE_READY:
+                        comm->current_player->ready_to_play = (comm->current_player->ready_to_play + 1) % 2;
+                        break;
+                        
+                    case MP_LEAVE:
+                        //Leave room
+                        multiplayer_status = MPS_NONE;
+                        
+                        if(thread){
+                            printf("Kill thread!!\n");
+                            kill_thread(&thread);
+                        }
+
                         break;
                         
                     case MP_NONE:
@@ -1387,6 +1600,10 @@ int main(int argc, char * argv[]) {
                 }
                 
                 multiplayer_option = MP_NONE;
+                
+                //Get multiplayer menu assets
+                get_multiplayer_texts(MPS_NONE, comm);
+                
                 break;
                 
 			case CONFIG:
@@ -1635,6 +1852,11 @@ int main(int argc, char * argv[]) {
                 break;
             
 		}
+		
+		//Network Thread Status Changer
+		/////////////////////////////////////////////////////
+		
+		
         
 		// Select the color for drawing.
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -2112,66 +2334,6 @@ bool main_init(){
         
         SDL_FreeSurface(surface);
     }
-    
-    for(int i = 0; i < multiplayer_menu_assets_count - 1; i++){
-        char *text = NULL;
-        SDL_Rect rect;
-        
-        switch(i){
-            case 0:
-                text = "MULTIPLAYER";
-                rect = (SDL_Rect){265, 0, 750, 150};
-                break;
-                
-            case 1: case 2:
-                text = "Create Game";
-                rect = (SDL_Rect){515, 150, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 3: case 4:
-                text = "Find Game";
-                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 5: case 6:
-                text = "Cancel Search";
-                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 7: case 8:
-                text = "Back to Main";
-                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            default:
-                break;
-        }
-        
-        multiplayer_menu_rects[i] = rect;
-        
-        SDL_Surface *surface;
-        if(i%2 == 0 && i > 0)
-            surface = TTF_RenderText_Solid(font, text, red);
-        else
-            surface = TTF_RenderText_Solid(font, text, black);
-        
-        if(!surface){
-            printf("(Multiplayer)Text not rendered! %s\n", TTF_GetError());
-            return false;
-        }
-        
-        multiplayer_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
-        
-        if(!multiplayer_menu_assets[i]){
-            printf("(Multiplayer)Text texture not rendered! %s\n", SDL_GetError());
-            return false;
-        }
-        
-        SDL_FreeSurface(surface);
-    }
-    
-    //Init multiplayer menu assets
-    set_multiplayer_status_text(MP_NONE, MPS_NONE);
 	
 	//Init map
     map_Surface = init_map();
@@ -2391,57 +2553,121 @@ void get_config_text(){
 }
 
 //Carrega textos do menu de multiplayer
-void set_multiplayer_status_text(multiplayer_menu_options selected_option, multiplayer_status current_status){
-    char *text = NULL;
-    SDL_Rect rect;
-    
-    switch (current_status) {
-        case MPS_SEARCHING_PLAYER:
-            text = "Status: Searching for Player...";
-            break;
+void get_multiplayer_texts(multiplayer_status current_status, game_comm *servers_data){
+    for(int i = 0; i < multiplayer_menu_assets_count; i++){
+        char *text = NULL;
+        SDL_Rect rect;
+        
+        //Setting texts and rects
+        if(i == 0){
+            text = "MULTIPLAYER";
+            rect = (SDL_Rect){265, 0, 750, 150};
+        }
+        
+        else if(i == 1 || i == 2){
+            if(current_status == MPS_NONE)
+                text = "Create Room";
+            else if(current_status == MPS_CAN_START)
+                text = "Start Game";
+            else if(current_status == MPS_ENTERED_ROOM)     //Or not ready
+                text = "Ready!";
             
-        case MPS_SEARCHING_GAME:
-            text = "Status: Searching for Game...";
-            break;
+            rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+        }
+        
+        else if(i == 3 || i == 4){
+            if(current_status == MPS_NONE)
+                text = "Search Room";
+            else if(current_status != MPS_NONE && current_status != MPS_STARTED_GAME && current_status != MPS_SEARCHING_ROOM)
+                text = "Leave Room";
             
-        case MPS_PLAYER_FOUND:
-            text = "Status: Player Found. Starting game.";
-            break;
+            rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+        }
+        
+        else if(i == 5 || i == 6){
+            text = "Back to Main";
             
-        case MPS_GAME_FOUND:
-            text = "Status: Game Found. Starting Game.";
-            break;
+            rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+        }
+        
+        //Room hosts
+        else if(i >= 7 && i <= 14){
+//            if(current_status != MPS_SEARCHING_ROOM)
+        }
+        
+        else if(i == 15){
+            text = "Rooms";
             
-        case MPS_NONE:
-            text = "Status: ";
-            break;
+            rect = (SDL_Rect){195, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+        }
+        
+        else if(i == 16){
+            text = "Players";
             
-        default:
-            break;
+            rect = (SDL_Rect){515, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+        }
+        
+        else if(i == 17){
+            text = "Ready?";
+            
+            rect = (SDL_Rect){835, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+        }
+        
+        //Players in room
+        else if(i >= 18 && i <= 21){
+            
+        }
+        
+        //Ready?
+        else if(i >= 22 && i <= 25){
+            
+        }
+        
+        //Status
+        else{
+            if(current_status == MPS_NONE)
+                text = NULL;
+            else if(current_status == MPS_WAIT_FOR_PLAYER)
+                text = "Waiting for players...";
+            else if(current_status == MPS_SEARCHING_ROOM)
+                text = "Searching rooms...";
+            else if(current_status == MPS_WAIT_READY)
+                text = "Everyone must be ready to start";
+            else if(current_status == MPS_CAN_START)
+                text = "Everyone ready!";
+            
+            rect = (SDL_Rect){390, 150, BUTTON_MENU_WIDTH * 2, BUTTON_MENU_HEIGHT};
+        }
+        
+        //Creating textures
+        if(text){
+            SDL_Surface *surface;
+            if(i%2 == 0 && i > 0)
+                surface = TTF_RenderText_Solid(font, text, red);
+            else
+                surface = TTF_RenderText_Solid(font, text, black);
+            
+            if(!surface){
+                printf("(Multiplayer)Text not rendered! %s\n", TTF_GetError());
+                return;
+            }
+            
+            multiplayer_menu_rects[i] = rect;
+            
+            multiplayer_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+            
+            if(!multiplayer_menu_assets[i]){
+                printf("(Multiplayer)Text texture not rendered! %s\n", SDL_GetError());
+                return;
+            }
+            
+            SDL_FreeSurface(surface);
+        }
+        
+        else
+            multiplayer_menu_assets[i] = NULL;
+        
     }
-    
-    if(current_status == MPS_NONE)
-        rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 8, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-    else
-        rect = (SDL_Rect){390, 150 + BUTTON_MENU_HEIGHT * 8, BUTTON_MENU_WIDTH * 2, BUTTON_MENU_HEIGHT};
-    
-    multiplayer_menu_rects[9] = rect;
-    
-    SDL_Surface *surface = TTF_RenderText_Solid(font, text, black);
-    
-    if(!surface){
-        printf("(Multiplayer)Text not rendered! %s\n", TTF_GetError());
-        return;
-    }
-    
-    multiplayer_menu_assets[9] = SDL_CreateTextureFromSurface(renderer, surface);
-    
-    if(!multiplayer_menu_assets[9]){
-        printf("(Multiplayer)Text texture not rendered! %s\n", SDL_GetError());
-        return;
-    }
-    
-    SDL_FreeSurface(surface);
 }
 
 //Reseta listas, e dados do jogo

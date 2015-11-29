@@ -274,20 +274,16 @@ void draw_screen_multiplayer_menu(SDL_Renderer *renderer, SDL_Texture **assets, 
     for(int i = 0; i < count; i++){
         int sel = 0;
         switch (select_multiplayer_option) {
-            case MP_CREATE_GAME:
+            case MP_CREATE_ROOM: case MP_START: case MP_TOGGLE_READY:
                 sel = 2;
                 break;
                 
-            case MP_SEARCH_GAME:
+            case MP_SEARCH_ROOM: case MP_LEAVE:
                 sel = 4;
                 break;
                 
-            case MP_CANCEL:
+            case MP_BACK_TO_MAIN:
                 sel = 6;
-                break;
-                
-            case MP_BACK:
-                sel = 8;
                 break;
                 
             default:
@@ -396,7 +392,7 @@ void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_le
 void display_health(SDL_Renderer *renderer, int value, TTF_Font *font){
     char str[5];
     sprintf(str, "%d", value);
-    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255});
+    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255, 255});
     
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, s);
     
@@ -409,7 +405,7 @@ void display_health(SDL_Renderer *renderer, int value, TTF_Font *font){
 void display_mana(SDL_Renderer *renderer, int value, TTF_Font *font){
     char str[5];
     sprintf(str, "%d", value);
-    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255});
+    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255, 255});
     
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, s);
     
@@ -422,7 +418,7 @@ void display_mana(SDL_Renderer *renderer, int value, TTF_Font *font){
 void display_gold(SDL_Renderer *renderer, int value, TTF_Font *font){
     char str[5];
     sprintf(str, "%d", value);
-    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255});
+    SDL_Surface *s = TTF_RenderText_Solid(font, str, (SDL_Color){255, 255, 255, 255});
     
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, s);
     
