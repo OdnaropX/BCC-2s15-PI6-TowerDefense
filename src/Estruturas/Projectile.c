@@ -4,12 +4,18 @@
 ///////////////////////////////////////////////////////////////////////
 
 //Projectile
-projectile *init_projectile(int projectileID, turret* shooter){
+projectile *init_projectile(list_projectile_avaliable *list, turret* shooter){
+    projectile_avaliable *available = get_projectile_from_avaliable_list(list, shooter->turretType);
+    
+    if (available == NULL){
+        return NULL;
+    }
+    
     projectile *new_projectile = malloc(sizeof(projectile));
-    new_projectile->node = init_node("../images/Projectile.png", shooter->node->xPos, shooter->node->yPos);
+    new_projectile->node = init_node(available -> thumbnail_file, shooter->node->xPos, shooter->node->yPos);
 	
-    new_projectile->speed = 4;
-    new_projectile->damage = 2;
+    new_projectile->speed = available->speed;
+    new_projectile->damage = available->damage;
     
     return new_projectile;
 }
@@ -204,7 +210,7 @@ list_projectile_avaliable *load_projectiles(char const *file_name){
 		//Set point to next line
 		file += len + 1;
 		readed = sscanf(file, "%s %f %d\n", name, &speed, &damage);
-		if (readed != 4){
+		if (readed != 3){
 			break;
 		}
 		

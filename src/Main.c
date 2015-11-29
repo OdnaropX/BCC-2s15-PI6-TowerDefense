@@ -1654,9 +1654,11 @@ int main(int argc, char * argv[]) {
 			
             
             case GAME_RUNNING:
+#warning HERE
 				if (!game_paused){
 					if (add_tower > 0){
 						//Add tower
+#warning HERE add tower correct pricing
                         if(gold > 100){
 							//
 							
@@ -1757,7 +1759,7 @@ int main(int argc, char * argv[]) {
                                 enemy = enemy->next;
                             }
                             if(target){
-                                projectile* newShoot = init_projectile(0, turret->e);
+                                projectile* newShoot = init_projectile(avaliable_projectiles, turret->e);
                                 add_projectile_to_list(target->targetted_projectils, newShoot);
 
                                 

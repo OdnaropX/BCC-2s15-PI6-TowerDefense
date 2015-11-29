@@ -44,7 +44,7 @@
 	//Allocation Functions
 	///////////////////////////////////////////////////////////////////////
 	
-	projectile *init_projectile(int projectileID, turret* shooter);
+	projectile *init_projectile(list_projectile_avaliable *list, turret* shooter);
 	projectile_avaliable *init_avaliable_projectile(char *image_file, float speed, int damage);
 	void remove_projectile(projectile *proj);
 	void remove_avaliable_projectile(projectile_avaliable *proj);
