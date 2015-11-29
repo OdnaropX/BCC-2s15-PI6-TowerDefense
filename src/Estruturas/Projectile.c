@@ -98,7 +98,6 @@ void add_projectile_to_list(list_projectile *list, projectile *projectile){
 list_projectile *remove_projectile_from_list(list_projectile *list, projectile *projectile){
     list_projectile *first_node = list;
     list_projectile *remove = NULL;
-    bool willReturnNull;
     int count = 0;
     while(list->e && list != remove){
         count++;
