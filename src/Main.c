@@ -1093,7 +1093,7 @@ int main(int argc, char * argv[]) {
 							//Move mouse selector over multiplayer users
                             if(event.motion.x >= 1030 && event.motion.x <= 1030 + BUTTON_MENU_WIDTH){
                                 temp_option = (event.motion.y - 350) / BUTTON_MENU_HEIGHT;
-                                if(temp_option <= comm->match->players - 2)
+                                if(temp_option <= MAX_CLIENT - 2)
                                     select_running_option.multiplay.current_player = temp_option;
                             }
 							
@@ -1190,7 +1190,7 @@ int main(int argc, char * argv[]) {
                                 //Click mouse selector over multiplayer users
                                 if(event.motion.x >= 1030 && event.motion.x <= 1030 + BUTTON_MENU_WIDTH){
                                     temp_option = (event.motion.y - 350) / BUTTON_MENU_HEIGHT;
-                                    if(temp_option <= comm->match->players - 2)
+                                    if(temp_option <= MAX_CLIENT - 2)
                                         player_adversary = temp_option;
                                 }							}
 							break;
@@ -3066,26 +3066,28 @@ void reset_game_data(){
     mana = 0;
 	
 	//Reset current user data used on network.
-	current_user->id = 0;
-	current_user->is_server = 0;
-	current_user->life = health;
-	current_user->ready_to_play = 0;
-	current_user->process.message_status = 0;
-	current_user->process.message_life = 0;
-	current_user->process.message_minion = 0;
-	if(current_user->minions){
-		for(i = 0; i<current_user->spawn_amount; i++){
-			if((*current_user->minions).type) {
-				free((*current_user->minions).type);
-				(*current_user->minions).type = NULL;
-			}
-			current_user->minions++;
-		}
-		current_user->minions-=i;
-		free(current_user->minions);
-		current_user->minions = NULL;
-	}
-	current_user->spawn_amount = 0;
+    if(current_user){
+        current_user->id = 0;
+        current_user->is_server = 0;
+        current_user->life = health;
+        current_user->ready_to_play = 0;
+        current_user->process.message_status = 0;
+        current_user->process.message_life = 0;
+        current_user->process.message_minion = 0;
+        if(current_user->minions){
+            for(i = 0; i<current_user->spawn_amount; i++){
+                if((*current_user->minions).type) {
+                    free((*current_user->minions).type);
+                    (*current_user->minions).type = NULL;
+                }
+                current_user->minions++;
+            }
+            current_user->minions-=i;
+            free(current_user->minions);
+            current_user->minions = NULL;
+        }
+        current_user->spawn_amount = 0;
+    }
 }
 
 void set_end_game_status_text(end_game_status end_status){
