@@ -2007,23 +2007,23 @@ int main(int argc, char * argv[]) {
 				if(multiplayer){
 					for(i = 0;i< comm->match->players;i++){
 						for(int j = 0; j < (*comm->adversary).pending_minions;j++){
-							if(*(*comm->adversary)->minions_sent > 0){
+							if(*(*comm->adversary).minions_sent > 0){
 								//Add minion
-								new_minion = init_minion(avaliable_minions, *(*comm->adversary)->minions_sent);     //minion_id not used
+								new_minion = init_minion(avaliable_minions, *(*comm->adversary).minions_sent);     //minion_id not used
 								if(new_minion != NULL){
 									add_minion_to_list(minions, new_minion);
 									new_minion->node->xPos = 150;
 									new_minion->node->yPos = 600;
 								}
 							}
-							(*comm->adversary)->minions_sent++;
+							(*comm->adversary).minions_sent++;
 						}
 						//Free minions_sent
-						if((*comm->adversary)->minions_sent){
-							free((*comm->adversary)->minions_sent);
-							(*comm->adversary)->minions_sent = NULL;
+						if((*comm->adversary).minions_sent){
+							free((*comm->adversary).minions_sent);
+							(*comm->adversary).minions_sent = NULL;
 						}
-						(*comm->adversary)->pending_minions = 0;
+						(*comm->adversary).pending_minions = 0;
 						comm->adversary++;
 					}
 					//Reset adversary position

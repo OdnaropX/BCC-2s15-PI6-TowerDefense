@@ -953,9 +953,10 @@ void handle_message(char *buffer, int handle_internal){
 		//Check if user 
 		for(i = 0; i < comm->match->players;i++){
 			if(comm->adversary->id == user_id){
+				int *minions_to_send = NULL;
 				if(comm->adversary->pending_minions > 0 && comm->adversary->minions_sent){
 					//Realloc
-					int *minions_to_send = malloc(sizeof(int) * (comm->adversary->pending_minions + temp));
+					minions_to_send = malloc(sizeof(int) * (comm->adversary->pending_minions + temp));
 					for(int z = 0;z < comm->adversary->pending_minions;z++){
 						*minions_to_send = comm->adversary->minions_sent[z];
 						minions_to_send++;
@@ -971,7 +972,7 @@ void handle_message(char *buffer, int handle_internal){
 				}
 				else {
 					//Allocate new minions
-					int *minions_to_send = malloc(sizeof(int) * (temp));
+					minions_to_send = malloc(sizeof(int) * (temp));
 					pointer+=2;//Now pointer point to first type.
 					for(int z = 0; z < temp;z++){
 						*minions_to_send = (int) *pointer;
