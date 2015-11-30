@@ -1088,15 +1088,10 @@ int main(int argc, char * argv[]) {
 								select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);
 							}
 							
-							//Move mouse selector over multiplayer users
-                            if(event.motion.x >= 1030 && event.motion.x <= 1030 + BUTTON_MENU_WIDTH){
-                                temp_option = (event.motion.y - 350) / BUTTON_MENU_HEIGHT;
-                                if(temp_option <= comm->match->players - 2)
-                                    select_running_option.multiplay.current_player = temp_option;
-                            }
+							//Move mouser selector over multiplayer users
+							
 							
 							break;
-                            
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
 							if(event.button.button == SDL_BUTTON_LEFT || event.button.button == SDL_BUTTON_RIGHT){
@@ -1184,14 +1179,12 @@ int main(int argc, char * argv[]) {
 										active_clicked = false;
 									}
 								}
-                                
-                                //Click mouse selector over multiplayer users
-                                if(event.motion.x >= 1030 && event.motion.x <= 1030 + BUTTON_MENU_WIDTH){
-                                    temp_option = (event.motion.y - 350) / BUTTON_MENU_HEIGHT;
-                                    if(temp_option <= comm->match->players - 2)
-                                        player_adversary = temp_option;
-                                }
-
+								//Multiplayer area menu
+								//else if(event.motion.x >= && event.motion.x <= ){
+								//	if(event.motion.y >= && event.motion.y <= (select_running_option.multiplay.players * PLAYER_NAME_HEIGHT)){
+								//		player_adversary = (event.motion.y - altura minima) / PLAYER_NAME_HEIGHT;
+								//	}
+								//}
 							}
 							break;
 					}
@@ -2072,7 +2065,7 @@ int main(int argc, char * argv[]) {
                 screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
                 SDL_RenderCopy(renderer, screen_surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
 			
-                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, select_running_option.multiplay.current_player);
+                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count);
                 
 				display_mouse(renderer, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option, avaliable_minions, avaliable_turrets, multiplayer);
 				
