@@ -732,9 +732,8 @@ TCPsocket get_socket_from_user_id(int user_id){
 ///////////////////////////////////////////////////////////////////////
 
 int send_message(char *message, int message_type, TCPsocket socket, int incomplete_message){
-    incomplete_message = 1;
 	char msg[BUFFER_LIMIT];
-	int result, next = 1;
+	int next = 1;
 	int sent;
 	
 	if(incomplete_message){
@@ -801,8 +800,6 @@ int send_message(char *message, int message_type, TCPsocket socket, int incomple
 }
 
 void handle_message(char *buffer, int handle_internal){
-    handle_internal = 0;
-	char intern_buffer[BUFFER_LIMIT];
 	char *pointer = NULL;
 	int i, user_id, temp, life;
 	i = 0;
@@ -1075,7 +1072,7 @@ void handle_message(char *buffer, int handle_internal){
 		pointer++;
 		user_id = (int)*pointer;
 	
-		sprintf(intern_buffer, "USER_READY\t%s", pointer);
+		sprintf(buffer, "USER_READY\t%s", pointer);
 		temp = 0;
 		for(i=0;i< MAX_CLIENT;i++){
 			if(temp == connected_clients) {
@@ -1084,7 +1081,7 @@ void handle_message(char *buffer, int handle_internal){
 			if(clients[i].tcp_socket) {
 				if(clients[i].id != user_id){
 				//Send message to all except who sent
-				send_message(intern_buffer, 5, clients[i].tcp_socket, 0);
+				send_message(buffer, 5, clients[i].tcp_socket, 0);
 				}
 				temp++;
 			}
@@ -1115,7 +1112,7 @@ void handle_message(char *buffer, int handle_internal){
 		life = (int) *pointer;
 		pointer -= 2;
 		
-		sprintf(intern_buffer, "USER_LIFE\t%s", pointer);
+		sprintf(buffer, "USER_LIFE\t%s", pointer);
 		temp = 0;
 		for(i=0;i< MAX_CLIENT;i++){
 			if(temp == connected_clients) {
@@ -1124,7 +1121,7 @@ void handle_message(char *buffer, int handle_internal){
 			if(clients[i].tcp_socket) {
 				if(clients[i].id != user_id){
 					//Send message to all except who sent
-					send_message(intern_buffer, 11, clients[i].tcp_socket, 0);
+					send_message(buffer, 11, clients[i].tcp_socket, 0);
 				}
 				else {
 					//Update alive status
@@ -1173,8 +1170,8 @@ void handle_message(char *buffer, int handle_internal){
 		//Set pointer back
 		comm->adversary -= i;
 		//Send add user to clients
-		pointer-2;
-		sprintf(intern_buffer, "ADD_USER\t%s", pointer);
+		pointer-=2;
+		sprintf(buffer, "ADD_USER\t%s", pointer);
 		temp = 0;
 		for(i=0;i< MAX_CLIENT;i++){
 			if(temp == connected_clients) {
@@ -1183,7 +1180,7 @@ void handle_message(char *buffer, int handle_internal){
 			if(clients[i].tcp_socket) {
 				if(clients[i].id != user_id){
 					//Send message to all except who sent//ADD_USER
-					send_message(intern_buffer, 0, clients[i].tcp_socket, 0);
+					send_message(buffer, 0, clients[i].tcp_socket, 0);
 				}
 				else {
 					clients[i].has_name = 1;
@@ -1233,8 +1230,7 @@ int handle_message_pool(TCPsocket tcp_socket){
 		has = has_message_tcp(buffer, tcp_socket);
 		if(has == 1){
 			//Message handle with success, give me the next one please.
-			handle_message(buffer, 1);
-		}
+			handle_message(buffer, 0);		}
 		else if (has == -1){
 			return 0;
 		}
@@ -1301,13 +1297,13 @@ void process_action(){
 		//Process minions.
 		if(minions) {
 			for(int j = 0; j < i; j++){
-				sprintf(buffer, "USER_MINION\t%c\t%c", (char) minions->client_id, (char) minions->amount);
-				for(int z; z < minions->amount;z++) {
-					sprintf(buffer, "%s\t%c", buffer, (char) *minions->type);
-					minions->type++;
+				sprintf(buffer, "USER_MINION\t%c\t%c", buffer, (char) (*minions).client_id, (char) (*minions).amount);
+				for(int z; z < (*minions).amount;z++) {
+					sprintf(buffer, "%s\t%c", buffer, (char) *(*minions).type);
+					(*minions).type++;
 				}
 				//minions->type--;
-				free(minions->type);
+				free((*minions).type);
 			
 				//Send message to server
 				if(is_server){

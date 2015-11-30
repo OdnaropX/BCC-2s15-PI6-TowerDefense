@@ -79,13 +79,19 @@
 		int avaliable;
 		Host *host;
 	};
-
-    struct _action {
-        int message_status;
-        int message_life;
-        int message_minion;
-    };
 		
+	struct _send_minion {
+		int client_id;
+		int amount;
+		int *type;
+	};
+		
+	struct _action {
+		int message_status;
+		int message_life;
+		int message_minion;
+	};
+	
 	struct _user {
 		int id;
 		int is_server;
@@ -96,8 +102,6 @@
 		Action process;
 		SpawnMinion *minions;
 	};
-	
-
 	
 	struct _host {
 		IPaddress ip;
@@ -110,12 +114,6 @@
 		int alive;
 		char name[SERVER_NAME];
 		TCPsocket tcp_socket;
-	};
-	
-	struct _send_minion {
-		int client_id;
-		int amount;
-		int *type;
 	};
 	
 	struct _network {

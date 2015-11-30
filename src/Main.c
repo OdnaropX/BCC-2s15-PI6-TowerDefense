@@ -132,7 +132,7 @@ int main(int argc, char * argv[]) {
 	main_options main_option = OPT_NONE;
     config_options config_option = NONE;
 	pause_options pause_option = OPT_P_NONE;
-	GAME_RUNNING_OPTIONS running_option;
+	Game_Running_Options running_option;
     end_game_options end_game_option = EG_NONE;
     multiplayer_menu_options multiplayer_option = MP_NONE;
     
@@ -149,7 +149,7 @@ int main(int argc, char * argv[]) {
 	main_options select_option = OPT_PLAY;
 	config_options select_config_option = AUDIO_SFX;
 	pause_options select_pause_option = OPT_P_NONE;
-	GAME_RUNNING_OPTIONS select_running_option;
+	Game_Running_Options select_running_option;
     end_game_options select_end_game_option = EG_NONE;
     multiplayer_menu_options select_multiplayer_option = MP_NONE;
 	
@@ -225,6 +225,8 @@ int main(int argc, char * argv[]) {
 	network.servers = 0;
 	network.choose_server = 0;
 	network.server_choosed = -1;
+	
+	int player_adversary = 0;
 	
 	//Current Player info
 	current_user = calloc(1, sizeof(User));
@@ -758,6 +760,14 @@ int main(int argc, char * argv[]) {
 												}
 											}
 											break;
+										case ADVERSARY_MENU:
+											if(select_running_option.multiplay.current_player == 0){
+												select_running_option.multiplay.current_player = select_running_option.multiplay.players - 1;
+											}
+											else {
+												select_running_option.multiplay.current_player--;
+											}
+											break;
 									}
 									break;
 								
@@ -818,6 +828,15 @@ int main(int argc, char * argv[]) {
 												}
 											}
 											break;
+										case ADVERSARY_MENU:
+											//Move between players.
+											if(select_running_option.multiplay.current_player == 0){
+												select_running_option.multiplay.current_player = select_running_option.multiplay.players - 1;
+											}
+											else {
+												select_running_option.multiplay.current_player--;
+											}
+											break;
 									}
 									break;
 									
@@ -853,6 +872,9 @@ int main(int argc, char * argv[]) {
 												select_grid = (select_grid + 1) % max_grid;
 											}
 											break;
+										case ADVERSARY_MENU:
+											select_running_option.multiplay.current_player = (select_running_option.multiplay.current_player + 1) % select_running_option.multiplay.players;										
+											break;
 									}
 									break;
 								
@@ -887,6 +909,9 @@ int main(int argc, char * argv[]) {
 											//Move down mouse cursor from GAME_AREA. 
 												select_grid = (select_grid + 1) % max_grid;
 											}
+											break;
+										case ADVERSARY_MENU:
+											select_running_option.multiplay.current_player = (select_running_option.multiplay.current_player + 1) % select_running_option.multiplay.players;										
 											break;
 									}
 									break;
@@ -973,12 +998,14 @@ int main(int argc, char * argv[]) {
                                                     get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
 												else if (multiplayer) {
-													add_minion = select_running_option.game_area.left + 1;
+													send_minion = select_running_option.game_area.left + 1;
 													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
 											}
 											break;
-										
+										case ADVERSARY_MENU:
+											player_adversary = select_running_option.multiplay.current_player;										
+											break;
 									}
 									break;
 								//Keyboard enter
@@ -1032,18 +1059,24 @@ int main(int argc, char * argv[]) {
 													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
 												else if (multiplayer) {
-													add_minion = select_running_option.game_area.left + 1;
+													send_minion = select_running_option.game_area.left + 1;
 													get_cartesian_from_grid_number(select_grid, current_position, 17);
 												}
 											}
 											break;
-										
+										case ADVERSARY_MENU:
+											player_adversary = select_running_option.multiplay.current_player;										
+											break;
 									}
 									break;
 								case SDLK_TAB:
 									//Move selector location
-									running_option.current_tab = (running_option.current_tab + 1) % 4;
-									
+									if(!multiplayer) {
+										running_option.current_tab = (running_option.current_tab + 1) % 4;
+									}
+									else {
+										running_option.current_tab = (running_option.current_tab + 1) % 5;
+									}
 									break;
 							}
 							break;
@@ -1053,6 +1086,10 @@ int main(int argc, char * argv[]) {
 							if (!active_clicked && get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
 								select_grid = get_grid_address_linear(grid_clicked[0], grid_clicked[1], 17);
 							}
+							
+							//Move mouser selector over multiplayer users
+							
+							
 							break;
 						//Handle mouse event
 						case SDL_MOUSEBUTTONUP:
@@ -1090,7 +1127,7 @@ int main(int argc, char * argv[]) {
 											//*original_clicked = *center_clicked;
 										}
 										else {
-											add_minion = select_grid_option;
+											send_minion = select_grid_option;
 											//*original_clicked = *center_clicked;
 										}
 										active_clicked = false;
@@ -1135,12 +1172,18 @@ int main(int argc, char * argv[]) {
 											*original_clicked = *center_clicked;
 										}
 										else {
-											add_minion = select_grid_option;
+											send_minion = select_grid_option;
 											*original_clicked = *center_clicked;
 										}
 										active_clicked = false;
 									}
 								}
+								//Multiplayer area menu
+								//else if(event.motion.x >= && event.motion.x <= ){
+								//	if(event.motion.y >= && event.motion.y <= (select_running_option.multiplay.players * PLAYER_NAME_HEIGHT)){
+								//		player_adversary = (event.motion.y - altura minima) / PLAYER_NAME_HEIGHT;
+								//	}
+								//}
 							}
 							break;
 					}
