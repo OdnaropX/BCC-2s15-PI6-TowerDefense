@@ -1567,6 +1567,12 @@ int main(int argc, char * argv[]) {
 			
 			//Set minions to send.
 			if(send_minion > 0) {
+                int price = get_minion_price(avaliable_minions, add_tower);
+                if(gold >= price){
+                    gold -= price;
+                    gold_per_second += get_minion_bonus(avaliable_minions, add_minion);
+                }
+                
 				SDL_AtomicLock(&lock);
 				if(current_user->minions && current_user->spawn_amount){
 					int adversary_found = 0;
@@ -1884,8 +1890,6 @@ int main(int argc, char * argv[]) {
 						//Add tower
                         int price = get_turret_price(avaliable_turrets, add_tower);
                         if(gold > price){
-							//
-							
                             //Check if position already has tower
                             if(occupyGrid(current_position[0], current_position[1])){
                                 //Check if turret == Snorlax
@@ -1905,17 +1909,12 @@ int main(int argc, char * argv[]) {
 					}
                     
 					if (add_minion > 0){
-						//Add minion
-                        int price = get_minion_price(avaliable_minions, add_tower);
-                        if(gold > price){
-                            new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
-                            if(new_minion != NULL){
-                                add_minion_to_list(minions, new_minion);
-                                new_minion->node->xPos = 150;
-                                new_minion->node->yPos = 600;
-                                gold -= price;
-                                gold_per_second += get_minion_bonus(avaliable_minions, add_minion);
-                            }
+						//Add minion(Single Player)
+                        new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
+                        if(new_minion != NULL){
+                            add_minion_to_list(minions, new_minion);
+                            new_minion->node->xPos = 150;
+                            new_minion->node->yPos = 600;
                         }
 
 						//Reset minion
@@ -2148,9 +2147,6 @@ int main(int argc, char * argv[]) {
                 
             case GAME_RUNNING:
 				select_running_option.current_tab = running_option.current_tab;
-				//active_clicked
-				//select_grid
-				//selected_left
 				
                 draw_screen_game_running(main_Surface, map_Surface, minions, turrets);
                 
