@@ -1611,6 +1611,7 @@ int main(int argc, char * argv[]) {
 					*minions->type = send_minion;
 				}
 				SDL_AtomicUnlock(&lock);
+				send_minion = 0;
 			}
 			
 			//Check if a connection running was failed. This will kill the thread.
