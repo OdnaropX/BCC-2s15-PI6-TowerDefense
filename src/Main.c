@@ -124,6 +124,8 @@ int main(int argc, char * argv[]) {
         quit = true;
     }
 	
+	int i = 0;
+	
 	//Screen control
 	screen current_screen = MAIN;
 	screen previous_screen = MAIN;
@@ -1119,8 +1121,8 @@ int main(int argc, char * argv[]) {
 									}
 								}
 								//Multiplayer area menu
-								//else if(event.motion.x >= && event.motion.x <= ){
-								//	if(event.motion.y >= && event.motion.y <= (select_running_option.multiplay.players * PLAYER_NAME_HEIGHT)){
+								//else if(event.motion.x >= width minimo && event.motion.x <= width maximo){
+								//	if(event.motion.y >= altura minima && event.motion.y <= altura minima + (select_running_option.multiplay.players * PLAYER_NAME_HEIGHT)){
 								//		player_adversary = (event.motion.y - altura minima) / PLAYER_NAME_HEIGHT;
 								//	}
 								//}
@@ -1479,7 +1481,7 @@ int main(int argc, char * argv[]) {
 						network.connecting = 1;
 					}
 					network.servers = comm->server->search_result;
-					for(int i; i < network.servers; i++){
+					for(i = 0; i < network.servers; i++){
 						strncpy(network.server_name[i], comm->server->host[i].name, SERVER_NAME);
 					}
 				}
@@ -1496,6 +1498,61 @@ int main(int argc, char * argv[]) {
 				
 			}
 			SDL_AtomicUnlock(&lock);
+			
+			//Set minions to send.
+			if(send_minion > 0) {
+				SDL_AtomicLock(&lock);
+				if(current_user->minions && current_user->spawn_amount){
+					int adversary_found = 0;
+					//Realloc minions.
+					for(i = 0; i < current_user->spawn_amount;i++){
+						if((*current_user->minions).client_id == comm->adversary[player_adversary % comm->match->players].id){
+							//User found
+							adversary_found = 1;
+							//Add minion to adversary array. Realloc array.
+							int *new_type = malloc(sizeof(int) * (*current_user->minions).amount + 1);
+							for(int j = 0; j < (*current_user->minions).amount;j++){
+								*new_type = (*current_user->minions).type[j];//Need to check if this is right.
+								new_type++;
+							}
+							*new_type = send_minion;
+							
+							free(current_user->minions->type);
+							current_user->minions->type = new_type;
+							(*current_user->minions).amount += 1;
+							break;
+						}
+						current_user->minions++;
+					}
+					current_user->minions-= i;
+					if(!adversary_found){
+						SpawnMinion *new_spawn = malloc(sizeof(SpawnMinion) * current_user->spawn_amount + 1);
+						//Realloc minions.
+						for(i = 0; i < current_user->spawn_amount;i++){
+							*new_spawn = current_user->minions[i];
+							new_spawn++;
+						}
+						(*new_spawn).client_id = comm->adversary[player_adversary % comm->match->players].id;
+						(*new_spawn).amount =  1;
+						(*new_spawn).type = malloc(sizeof(int));
+						*(*new_spawn).type = send_minion;
+						free(current_user->minions);
+						current_user->minions = new_spawn;
+					}
+					current_user->minions-=i;
+					
+				}
+				else {
+					current_user->spawn_amount = 1;
+					SpawnMinion *minions = malloc(sizeof(SpawnMinion));//Only one now.
+					minions->amount = 1;
+					minions->client_id = comm->adversary[player_adversary % comm->match->players].id;//Mod in case players amount changed.
+					minions->type = malloc(sizeof(int));
+					*minions->type = send_minion;
+				}
+				SDL_AtomicUnlock(&lock);
+			}
+			
 			//Check if a connection running was failed. This will kill the thread.
 			if(network.connection_failed && thread){
 				//After this the thread will be dead must use network.connection_failed to show message with renderer.
@@ -1503,6 +1560,8 @@ int main(int argc, char * argv[]) {
 				multiplayer_status = MPS_NONE;
 				multiplayer = false;
 			}
+			
+			
 		}
 		
 		//Action Performancer
@@ -2116,9 +2175,10 @@ bool main_init(){
         printf("Title font not loaded! %s\n", TTF_GetError());
         return false;
     }
-    
+    int i = 0;
+	
     //Init main menu assets
-    for(int i = 0; i < main_menu_assets_count; i++){
+    for(i = 0; i < main_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
         
