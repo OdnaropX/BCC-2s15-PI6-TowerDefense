@@ -34,11 +34,12 @@
 	typedef struct _client Client;
 	typedef struct _server_status Server;
 	typedef struct _match Match;
+	typedef struct _action Action;
 	typedef struct _adversary Adversary;
 	typedef struct _user User;
 	typedef struct _network Network;
 	typedef struct _game_communication Communication;
-	typedef struct _send_minion send_minion;
+	typedef struct _send_minion SpawnMinion;
 		
 	struct _game_communication {
 		int connection_lost;//Connection to server lost or not.
@@ -84,7 +85,16 @@
 		int is_server;
 		int life;
 		int ready_to_play;
+		int spawn_amount;
 		char *name;
+		Action process;
+		SpawnMinion *minions;
+	};
+	
+	struct _action {
+		int message_status;
+		int message_life;
+		int message_minion;
 	};
 	
 	struct _host {
@@ -101,9 +111,9 @@
 	};
 	
 	struct _send_minion {
-		int sent;
-		int minion_type;
-		int client_to_send_minion;
+		int client_id;
+		int amount;
+		int *type;
 	};
 	
 	struct _network {
@@ -156,7 +166,7 @@
 	//Messages Functions
 	///////////////////////////////////////////////////////////////////////
 	
-	int send_message(char *message, int message_type, TCPsocket socket);
+	int send_message(char *message, int message_type, TCPsocket socket, int incomplete_message = 1);
 	void handle_message(char *buffer);
 	int has_message_tcp(char *buffer, TCPsocket tcp_socket);
 	int handle_message_pool(TCPsocket tcp_socket);

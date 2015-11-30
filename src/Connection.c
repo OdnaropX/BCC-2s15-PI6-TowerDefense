@@ -731,59 +731,66 @@ TCPsocket get_socket_from_user_id(int user_id){
 //Messages Functions
 ///////////////////////////////////////////////////////////////////////
 
-int send_message(char *message, int message_type, TCPsocket socket){
+int send_message(char *message, int message_type, TCPsocket socket, int incomplete_message = 1){
 	char msg[BUFFER_LIMIT];
 	int result, next = 1;
+	int sent;
 	
-	switch(message_type){
-		case 0://ADD_USER
-			sprintf(msg, "ADD_USER\t%s", message);
-			break;
-		case 1://REMOVE_USER
-			sprintf(msg, "REMOVE_USER\t%s", message);
-			break;
-		case 2://ADD_MINION
-			sprintf(msg, "ADD_MINION\t%s", message);
-			break;
-		case 3://BEGIN_GAME
-			sprintf(msg, "BEGIN_GAME");
-			break;
-		case 4://END_GAME
-			sprintf(msg, "END_GAME\t%s", message);
-			break;
-		case 5://USER_READY
-			sprintf(msg, "USER_READY\t%s", message);
-			break;
-		case 6://SERVER_FULL
-			sprintf(msg, "SERVER_FULL");
-			break;
-		case 7://GAME_ALREADY_STARTED
-			sprintf(msg, "GAME_ALREADY_STARTED");
-			break;
-		case 8://USER_MINION
-			sprintf(msg, "USER_MINION\t%s", message);
-			break;
-		case 9://USER_STATUS
-			sprintf(msg, "USER_STATUS\t%s", message);
-			break;
-		case 10://USER_ID
-			sprintf(msg, "USER_ID\t%s", message);
-			break;
-		case 11://USER_LIFE
-			sprintf(msg, "USER_LIFE\t%s", message);
-			break;
-		case 12://USER_STATUS_LIFE
-			sprintf(msg, "USER_STATUS_LIFE\t%s", message);
-			break;
-		case 13://USER_NAME
-			sprintf(msg, "USER_NAME\t%s", message);
-			break;
-		default:
-			next = 0;
+	if(incomplete_message){
+		switch(message_type){
+			case 0://ADD_USER
+				sprintf(msg, "ADD_USER\t%s", message);
+				break;
+			case 1://REMOVE_USER
+				sprintf(msg, "REMOVE_USER\t%s", message);
+				break;
+			case 2://ADD_MINION
+				sprintf(msg, "ADD_MINION\t%s", message);
+				break;
+			case 3://BEGIN_GAME
+				sprintf(msg, "BEGIN_GAME");
+				break;
+			case 4://END_GAME
+				sprintf(msg, "END_GAME\t%s", message);
+				break;
+			case 5://USER_READY
+				sprintf(msg, "USER_READY\t%s", message);
+				break;
+			case 6://SERVER_FULL
+				sprintf(msg, "SERVER_FULL");
+				break;
+			case 7://GAME_ALREADY_STARTED
+				sprintf(msg, "GAME_ALREADY_STARTED");
+				break;
+			case 8://USER_MINION
+				sprintf(msg, "USER_MINION\t%s", message);
+				break;
+			case 9://USER_STATUS
+				sprintf(msg, "USER_STATUS\t%s", message);
+				break;
+			case 10://USER_ID
+				sprintf(msg, "USER_ID\t%s", message);
+				break;
+			case 11://USER_LIFE
+				sprintf(msg, "USER_LIFE\t%s", message);
+				break;
+			case 12://USER_STATUS_LIFE
+				sprintf(msg, "USER_STATUS_LIFE\t%s", message);
+				break;
+			case 13://USER_NAME
+				sprintf(msg, "USER_NAME\t%s", message);
+				break;
+			default:
+				next = 0;
+		}
 	}
 
 	if(next){
-		if(SDLNet_TCP_Send(socket,msg,BUFFER_LIMIT) != BUFFER_LIMIT) {
+		if(incomplete_message)
+			sent = SDLNet_TCP_Send(socket,msg,BUFFER_LIMIT);
+		else
+			sent = SDLNet_TCP_Send(socket,message,BUFFER_LIMIT);
+		if(sent != BUFFER_LIMIT) {
 			printf("SDLNet_TCP_Send: %s\n", SDLNet_GetError());
 			// It may be good to disconnect sock because it is likely invalid now.
 			return 0;
@@ -792,10 +799,11 @@ int send_message(char *message, int message_type, TCPsocket socket){
 	return 1;
 }
 
-void handle_message(char *buffer){
+void handle_message(char *buffer, int handle_internal = 0){
+	char buffer[BUFFER_LIMIT];
 	char *pointer = NULL;
 	int i, user_id, temp, life;
-	
+	i = 0;
 	//Client side
 	//Check if game can begin
 	if(strncmp(buffer, "BEGIN_GAME", strlen("BEGIN_GAME")) == 0) {
@@ -832,7 +840,9 @@ void handle_message(char *buffer){
 		adversary->ready_to_play = 0;
 		adversary->name = get_connected_server_name();
 		adversary->minions_sent = NULL;
-
+		
+		//Set pointer back
+		adversary -= temp + 1;
 		comm->adversary = adversary;
 		comm->match->players = temp + 1;
 		
@@ -869,7 +879,10 @@ void handle_message(char *buffer){
 			adversary->name = malloc(sizeof(char) * SERVER_NAME);
 		}
 		strncpy(adversary->name, (const char *) pointer, SERVER_NAME);
-
+		
+		//Set pointer back
+		adversary -= temp + 1;
+		
 		comm->adversary = adversary;
 		comm->match->players = temp + 1;
 		
@@ -914,6 +927,10 @@ void handle_message(char *buffer){
 					}
 				}
 				free(comm->adversary);
+				
+				//Set pointer back
+				adversary -= temp - 1;
+				
 				comm->adversary = adversary;
 				comm->match->players = temp - 1;
 			}
@@ -944,6 +961,9 @@ void handle_message(char *buffer){
 			minions_sent++;
 			pointer+=2;
 		}
+		//Set pointer back
+		//
+				
 		comm->adversary->minions_sent = minions_sent;
 		comm->adversary->pending_minions = temp + comm->adversary->pending_minions;
 		
@@ -1003,7 +1023,9 @@ void handle_message(char *buffer){
 		//Game already started without you.
 		comm->match->error = 2;
 	}
+	//---------------------
 	//Server side
+	//---------------------
 	//Send minion
 	else if(strncmp(buffer, "USER_MINION", strlen("USER_MINION")) == 0) {
 		pointer = strchr(buffer, '\t');
@@ -1017,6 +1039,7 @@ void handle_message(char *buffer){
 				send_message(pointer, 2, sender_socket);
 			}
 		}
+		//If current user is the server. This can be used without change com internal server making the action because will not drop by this else.
 		else {
 		//Update server game
 			SDL_AtomicLock(&lock);
@@ -1050,6 +1073,7 @@ void handle_message(char *buffer){
 		pointer++;
 		user_id = (int)*pointer;
 	
+		sprintf(buffer, "USER_READY\t%s", pointer);
 		temp = 0;
 		for(i=0;i< MAX_CLIENT;i++){
 			if(temp == connected_clients) {
@@ -1058,22 +1082,26 @@ void handle_message(char *buffer){
 			if(clients[i].tcp_socket) {
 				if(clients[i].id != user_id){
 				//Send message to all except who sent
-				send_message(pointer, 9, clients[i].tcp_socket);
+				send_message(buffer, 5, clients[i].tcp_socket, 0);
 				}
 				temp++;
 			}
 		}
 		
-		//Update server game
-		temp = comm->match->players;
-		pointer+=2;
-		
-		for (i = 0; i< temp; i++){
-			if(comm->adversary->id == user_id){
-				comm->adversary->ready_to_play = (int) *pointer;
-				break;
+		//Update server game. Only if action was not from server internal call.
+		if(!handle_internal){
+			temp = comm->match->players;
+			pointer+=2;
+			
+			for (i = 0; i< temp; i++){
+				if(comm->adversary->id == user_id){
+					comm->adversary->ready_to_play = (int) *pointer;
+					break;
+				}
+				comm->adversary++;
 			}
-			comm->adversary++;
+			//Set pointer back
+			comm->adversary -= i;
 		}
 	}
 	//User USER_STATUS_LIFE
@@ -1084,6 +1112,8 @@ void handle_message(char *buffer){
 		pointer +=2;
 		life = (int) *pointer;
 		pointer -= 2;
+		
+		sprintf(buffer, "USER_LIFE\t%s", pointer);
 		temp = 0;
 		for(i=0;i< MAX_CLIENT;i++){
 			if(temp == connected_clients) {
@@ -1092,7 +1122,7 @@ void handle_message(char *buffer){
 			if(clients[i].tcp_socket) {
 				if(clients[i].id != user_id){
 					//Send message to all except who sent
-					send_message(pointer, 11, clients[i].tcp_socket);
+					send_message(buffer, 11, clients[i].tcp_socket, 0);
 				}
 				else {
 					//Update alive status
@@ -1105,15 +1135,19 @@ void handle_message(char *buffer){
 		}
 		
 		//Update server game
-		temp = comm->match->players;
-		pointer+=2;
-		
-		for (i = 0; i< temp; i++){
-			if(comm->adversary->id == user_id){
-				comm->adversary->life = (int) *pointer;
-				break;
+		if(!handle_internal){
+			temp = comm->match->players;
+			pointer+=2;
+			
+			for (i = 0; i< temp; i++){
+				if(comm->adversary->id == user_id){
+					comm->adversary->life = (int) *pointer;
+					break;
+				}
+				comm->adversary++;
 			}
-			comm->adversary++;
+			//Set pointer back
+			comm->adversary -= i;
 		}
 	}
 	//USER_NAME
@@ -1134,8 +1168,11 @@ void handle_message(char *buffer){
 			}
 			comm->adversary++;
 		}
+		//Set pointer back
+		comm->adversary -= i;
 		//Send add user to clients
 		pointer-2;
+		sprintf(buffer, "ADD_USER\t%s", pointer);
 		temp = 0;
 		for(i=0;i< MAX_CLIENT;i++){
 			if(temp == connected_clients) {
@@ -1144,7 +1181,7 @@ void handle_message(char *buffer){
 			if(clients[i].tcp_socket) {
 				if(clients[i].id != user_id){
 					//Send message to all except who sent//ADD_USER
-					send_message(pointer, 0, clients[i].tcp_socket);
+					send_message(buffer, 0, clients[i].tcp_socket, 0);
 				}
 				else {
 					clients[i].has_name = 1;
@@ -1208,6 +1245,85 @@ int handle_message_pool(TCPsocket tcp_socket){
 	return 1;
 }
 
+void process_action(){
+	int i = 0, is_server;
+	char buffer[BUFFER_LIMIT];
+	SpawnMinion *minions = NULL;
+	//Send message ready to play
+	
+	is_server = current_user->is_server;
+
+	//Send message status
+	if(current_user->process->message_status){
+		SDL_AtomicLock(&lock);
+		current_user->process->message_status--;
+		sprintf(buffer, "USER_STATUS\t%c\t%c", (char) current_user->id, (char) current_user->ready_to_play);
+		SDL_AtomicUnlock(&lock);
+			
+		if(is_server){
+			//This use the internal server message handle to process the message without need to send.
+			handle_message(buffer, 1);
+		}
+		else {
+			if(send_message(buffer, 9, server_tcp_socket, 0) == 0){
+				comm->connection_lost = 1;
+			}
+		}
+	}
+	//Send message life
+	if(current_user->process->message_life){
+		SDL_AtomicLock(&lock);
+		current_user->process->message_life--;
+		sprintf(buffer, "USER_STATUS_LIFE\t%c\t%c", (char) current_user->id, (char) current_user->life);
+		SDL_AtomicUnlock(&lock);
+		if(is_server){
+			handle_message(buffer, 1);
+		}
+		else {
+			if(send_message(buffer, 12, server_tcp_socket, 0) == 0){
+				comm->connection_lost = 1;
+			}
+		}
+	}
+	//Send message minion
+	if(current_user->process->message_minion){
+		SDL_AtomicLock(&lock);
+		current_user->process->message_minion--;
+		if(current_user->spawn_amount && current_user->minions){
+			minions = current_user->minions;
+			current_user->minions = NULL;
+			i = current_user->spawn_amount;
+			current_user->spawn_amount = 0;
+		}
+		SDL_AtomicUnlock(&lock);
+		//Process minions.
+		if(minions) {
+			for(int j = 0; j < i; j++){
+				sprintf(buffer, "USER_MINION\t%c\t%c", buffer, (char) *minions->client_id, (char) *minions->amount);
+				for(int z; z < minions->amount;z++) {
+					sprintf(buffer, "%s\t%c", buffer, (char) *minions->type);
+					minions->type++;
+				}
+				//minions->type--;
+				free(minions->type);
+			
+				//Send message to server
+				if(is_server){
+					handle_message(buffer, 1);
+				}
+				else {
+					if(send_message(buffer, 8, server_tcp_socket, 0)){
+						comm->connection_lost = 1;
+						break;
+					}
+				}
+				minions++;
+			}
+			//minions--;
+			free(minions);
+		}
+	}
+}
 
 //Server runner
 ///////////////////////////////////////////////////////////////////////
@@ -1251,11 +1367,11 @@ void run_server(void *data){
 			//Update game status
 			game_status();
 			
-			//if()
-			//comm->server->connection_failed = 1;
-			//Handle game events
+			//process player action.
+			process_action();
 			
 			//Delay server
+			
 		}
 	}
 	
@@ -1270,7 +1386,6 @@ void run_server(void *data){
 	return;
 }
 
-
 void run_client(void *data){
 	char buffer[BUFFER_LIMIT];
 	
@@ -1279,8 +1394,6 @@ void run_client(void *data){
 	
 	game_in_progress = 0;
 	game_ended = 0;
-	
-	
 	
 	if(comm){
 		SDL_AtomicLock(&lock);
@@ -1358,33 +1471,25 @@ void run_client(void *data){
 				comm->server->connection_failed = 1;
 				comm->server->connected = 0;
 			}
-			
 		}
 		
 		while(!terminate_thread){
 			//Running 
-			if(connected && !comm->match->finished){
+			if(connected && !comm->match->finished && !comm->server->connection_failed){
 				printf("Connected\n");
 				
 				//Check if there is response to begin game.
 				//Check tcp messages only.
-				check_messages_tcp();
+				if(!comm->connection_lost){
+					check_messages_tcp();
+				}
 				
 				game_status();
-				
-				//Check if connection was not lost.
-				//Get server 
-				
-				//Send message to server that can start game
-				
-				
-				//Send message to server to send minion
-				
-				//Send message to server that exit game
-				
-				
-				
-				
+
+				//Process player action
+				if(!comm->connection_lost){
+					process_action();
+				}
 			}
 		}
 		//Destroy game communication

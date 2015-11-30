@@ -93,7 +93,7 @@ list_minion *minions;
 //list_projectile *projectiles;     Not used by now
 list_turret *turrets;
 
-int health = 5;
+int health = DEFAULT_PLAYERS_LIFE;
 int gold = 1000;
 int mana = 0;
 float gold_per_second = 1;
@@ -1613,8 +1613,11 @@ int main(int argc, char * argv[]) {
                         break;
                         
                     case MP_TOGGLE_READY:
+						SDL_AtomicLock(&lock);
+						current_user->process->message_status = current_user->process->message_status + 1;
 						current_user->ready_to_play = (current_user->ready_to_play + 1) % 2;
-                        break;
+						SDL_AtomicUnlock(&lock);
+					    break;
                         
                     case MP_LEAVE:
                         //Leave room
@@ -1744,6 +1747,13 @@ int main(int argc, char * argv[]) {
                         if(minion_pos_value == 1){
                             enemy->e->HP = 0;
                             health --;
+							//Update player health if multiplayer
+							if(multiplayer){
+								SDL_AtomicLock(&lock);
+								current_user->process->message_life++;
+								current_user->life = health;
+								SDL_AtomicUnlock(&lock);
+							}
                         }
                         
                         while (shoot && shoot->e) {
@@ -2740,7 +2750,7 @@ void reset_game_data(){
      return false;
      }*/
     
-    health = 5;
+    health = DEFAULT_PLAYERS_LIFE;
     gold = 1000;
     mana = 0;
 }
