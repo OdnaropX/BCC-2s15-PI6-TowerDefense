@@ -1,146 +1,71 @@
 #include "Connection.h"
 
 Host servers[MAX_SERVER];
-TCPsocket tcp;
+Client clients[MAX_CLIENT];
 
 UDPsocket server_udp_socket;       /* Socket descriptor */
 UDPpacket server_udp_package;
-	
-
-TCPsocket server_tcp_socket = NULL;
+TCPsocket server_tcp_socket = NULL;//Used for server side and client side.
 TCPsocket server_ip = NULL;
-	
-SDLNet_SocketSet activity = NULL;//Used to TPC and UDP.
+SDLNet_SocketSet activity = NULL;//Used for TPC and UDP.
 
 Host *main_server = NULL;
 
 int connected_server = -1;
 int connected_clients = 0;
 int game_in_progress = 0;
-char server_name[SERVER_NAME];
+int game_ended = 0;
 
-extern game_comm *comm;
+int current_index_id = 0;
+
+extern User *current_user;
+extern Communication *comm;
 extern int terminate_thread;
 extern SDL_SpinLock lock;
 
 //Allocation Functions
 ///////////////////////////////////////////////////////////////////////
 
-game_comm *init_communication(char *name) {
-	game_comm *game = (game_comm *) malloc(sizeof(game_comm));
+Communication *init_communication() {
+	Communication *game = malloc(sizeof(Communication));
 	
-	game->game_can_start = 0;
-	game->game_finished = 0;
-	game->players_left = 0;
+	//Connection information
 	game->connection_lost = 0;
 	
-	game->server = malloc(sizeof(Server));
-	game->server->searching = 0;
-	game->server->searching_finished = 0;
-	game->server->connecting = 0;
-	game->server->connection_failed = 0;
-	game->server->connected = 0;
-	game->server->choosing = 0;
+	//Match information
+	game->match = calloc(1, sizeof(Match));
+	
+	//Adversary information - Must be allocated when there is some adversary 
+	game->adversary = NULL;
+	
+	//Server information
+	game->server = calloc(1, sizeof(Server));
 	game->server->choosed = -1;
-	game->server->search_result = 0;
-	game->server->avaliable = 0;
-	game->server->host = NULL;
-	
-	game->current_player = malloc(sizeof(player_comm));
-	game->current_player->activity = NULL;
-	//game->current_player->ip;
-	game->current_player->tcp_socket = NULL;
-	game->current_player->exited_game = 0;
-	game->current_player->connection_lost = 0;
-	game->current_player->ready_to_play = 0;
-	
-	
-	game->current_player->info = malloc(sizeof(Player));
-	game->current_player->info->life = DEFAULT_PLAYERS_LIFE;
-	game->current_player->info->winner = 0;
-	game->current_player->info->minions_type_sent = NULL;
+	game->server->host = NULL;//Host must be allocated later.
 
-	if(name){
-		game->current_player->info->name = name;
-	}
-	else {
-		game->current_player->info->name = malloc(sizeof(char) * SERVER_NAME);
-		strncpy(game->current_player->info->name, "Unknown", SERVER_NAME);
-	}
+	//Reset user id
+	current_user->id = 0;
 	
-	game->players = (player_comm *) malloc(sizeof(player_comm) * MAX_CLIENT);
-	for(int i = 0; i < MAX_CLIENT; i++) {
-		//game->players[i] = (player_comm) malloc(sizeof(player_comm));
-		
-		game->players[i].tcp_socket = NULL;
-		//game->players[i]->ip;
-		game->players[i].exited_game = 0;
-		game->players[i].connection_lost = 0;
-		game->players[i].ready_to_play = 0;
-		
-		game->players[i].info = (Player *) malloc(sizeof(Player));
-		game->players[i].info->life = DEFAULT_PLAYERS_LIFE;
-		game->players[i].info->winner = 0;
-		game->players[i].info->minions_type_sent = NULL;
-
-		game->players[i].info->name = malloc(sizeof(char) * SERVER_NAME);
-		strncpy(game->players[i].info->name, "No name", SERVER_NAME);
-
-        game->players[i].activity = NULL;
-	}
 	return game;
-}
-
-void remove_player_info(Player *info, int remove_name){
-	if(info){
-		if(remove_name && info->name){
-			free(info->name);
-			info->name = NULL;
-		}
-		if(info->minions_type_sent){
-			free(info->minions_type_sent);
-			info->minions_type_sent = NULL;
-		}
-		free(info);
-		info = NULL;
-	}
-}
-void remove_player(player_comm *player){
-	if(player){
-		if(player->activity){
-			SDLNet_FreeSocketSet(player->activity);
-			player->activity = NULL;
-		}
-		//player->ip
-		if(player->tcp_socket) {
-			SDLNet_TCP_Close(player->tcp_socket);
-			player->tcp_socket = NULL;
-		}
-		free(player);
-		player = NULL;
-	}
-	
-	return;
 }
 
 void remove_communication(){
 	printf("Removing communication\n");
 	
-	for(int i = 0; i < MAX_CLIENT; i++) {
-		remove_player_info(comm->players[i].info, 1);
+	if(comm->match){
+		free(comm->match);
+		comm->match = NULL;
 	}
-	remove_player(comm->players);
-	printf("After remove player\n");
-	if(comm->players) {
-		free(comm->players);
-		comm->players = NULL;
+	
+	if(comm->adversary){
+		if(comm->adversary->minions_sent){
+			free(comm->adversary->minions_sent);
+			comm->adversary->minions_sent = NULL;
+		}
+		free(comm->adversary);
+		comm->adversary = NULL;
 	}
-	printf("After remove players\n");
-	if(comm->current_player){
-		remove_player_info(comm->current_player->info, 0);
-		remove_player(comm->current_player);
-	}
-	printf("After current\n");
+	
 	if(comm->server){
 		if(comm->server->host){
 			free(comm->server->host);
@@ -149,45 +74,78 @@ void remove_communication(){
 		free(comm->server);
 		comm->server = NULL;
 	}
+	
 	free(comm);
-	//*comm = NULL;
 	comm = NULL;
-	if(comm){
-		printf("not nul\n");
-	}
+	
 	return;
 }
 
-
-void remove_client(game_comm *game_communication, int client){
-	int i;
-	char buffer[2];
+void remove_client(int client){
+	int i, temp;
+	char buffer[3];
 	
-	for(i=0; i <MAX_CLIENT; i++) {
-        if(i != client && game_communication->players[i].tcp_socket) {
-			sprintf(buffer, "%d\0", i);
+	//Send message to remove user to clients	
+	for(i=0; i < MAX_CLIENT; i++) {
+        if(i != client && clients[i].tcp_socket) {
+			sprintf(buffer, "%c", (char) clients[i].id);
 			//Send message to other players that user left.
-			send_message(buffer, 2, game_communication->players[i].tcp_socket);
-            //SDLNet_TCP_Send(slave_thread[thread_id_no].client[j].sock, buffer, strlen(buffer) + 1);
+			send_message(buffer, 1, clients[i].tcp_socket);
         }
     }
 
-    SDLNet_TCP_DelSocket(activity, game_communication->players[client].tcp_socket);
+    SDLNet_TCP_DelSocket(activity, clients[client].tcp_socket);
 
-    if(game_communication->players[client].tcp_socket != NULL)
-        SDLNet_TCP_Close(game_communication->players[client].tcp_socket);
-
-	game_communication->players[client].tcp_socket = NULL;
-	game_communication->players[client].ready_to_play = 0;  
-	if(game_communication->players[client].info->name) {
-		free(game_communication->players[client].info->name);
-		game_communication->players[client].info->name = NULL;
+    if(clients[client].tcp_socket){
+        SDLNet_TCP_Close(clients[client].tcp_socket);
+		clients[client].tcp_socket = NULL;
 	}
 	
+	clients[client].id = 0;
+	clients[client].alive = 0;
+	clients[client].has_name = 0;
+	
+	connected_clients = connected_clients - 1;
+	
 	//Change player status to left.
-	
-	
-	
+	if(game_in_progress && !game_ended){
+		temp = comm->match->players;
+		for (i = 0; i < temp; i++){
+			if(comm->adversary->id == clients[client].id){
+				comm->adversary->playing = 0;
+				break;
+			}
+			comm->adversary++;
+		}
+	}
+	else {
+		//If game not began remove from list.
+		//Realloc
+		if(comm->adversary){
+			temp = comm->match->players;
+			Adversary *adversary = malloc(sizeof (Adversary) * (temp - 1));
+			for (i = 0; i< temp; i++){
+				if(comm->adversary[i].id != clients[client].id) {
+					adversary->id = comm->adversary[i].id;
+					adversary->playing = comm->adversary[i].playing;
+					adversary->ready_to_play = comm->adversary[i].ready_to_play;
+					adversary->name = comm->adversary[i].name;
+					adversary->life = comm->adversary[i].life;
+					adversary->pending_minions = comm->adversary[i].pending_minions;
+					adversary->minions_sent = comm->adversary[i].minions_sent;
+					adversary++;
+				}
+				else {
+					//Free name
+					free(adversary->name);
+					adversary->name = NULL;
+				}
+			}
+			free(comm->adversary);
+			comm->adversary = adversary;
+			comm->match->players = temp - 1;
+		}
+	}
 }
 
 //Update Functions
@@ -291,7 +249,7 @@ int find_servers() {
 	}
 	
 	while(trying){
-		printf("Trying send package: %s\n", (char *) output_package->data);//Cast because data is save as Uint8 *
+		//printf("Trying send package: %s\n", (char *) output_package->data);//Cast because data is save as Uint8 *
 		
 		//sent = SDLNet_UDP_Send(udp_socket, output_package->channel, output_package);
 		sent = SDLNet_UDP_Send(udp_socket, -1, output_package);
@@ -309,17 +267,13 @@ int find_servers() {
 		//Delay to give server chance to respond.
 		SDL_Delay(30);
 		
-		printf("Here\n");
-		while(SDLNet_UDP_Recv(udp_socket, input_package))
-        {
-            if(strncmp((char*)input_package->data, "GRADE_DEFENDER_SERVER", strlen("GRADE_DEFENDER_SERVER")) == 0)
-            {
+		while(SDLNet_UDP_Recv(udp_socket, input_package)){
+            if(strncmp((char*)input_package->data, "GRADE_DEFENDER_SERVER", strlen("GRADE_DEFENDER_SERVER")) == 0){
                 trying = 0;
                 //add to list, checking for duplicates
                 number_found = update_list_servers(input_package);
             }
         }
-		printf("Here 2\n");
 
 		if (number_found != MAX_SERVER) {
 			//Wait at least 100 ms.
@@ -347,7 +301,6 @@ int find_servers() {
 		else {
 			trying = 0;
 		}
-		printf("Here 3\n");
 		attempts++;
 	}
 	printf("Search server done!\n");
@@ -360,6 +313,7 @@ int find_servers() {
 }
 
 int establish_server(IPaddress *ip){
+	time_t t;
 	/* First create TCP socket that will be used to connect	*/
 	
 	//Null is to listen
@@ -387,7 +341,156 @@ int establish_server(IPaddress *ip){
 		return 0;
 	}
 	
+	srand((unsigned) time(&t));
+	current_user->id = rand() % 50;
+	if(current_user->id == 0) {
+		current_user->id = 1;
+	}
+	current_index_id = current_user->id + 1;
+	
 	return 1;
+}
+
+void check_connection_tcp(){
+	TCPsocket socket = NULL; 
+	
+	int sockets = 0;
+	char buffer[BUFFER_LIMIT];
+	int i, j, user_id, temp;
+	
+	//Check pending connection. This is non-blocking
+	socket = SDLNet_TCP_Accept(server_tcp_socket);
+	if(!socket){
+		return;
+	}
+	
+	if(connected_clients == MAX_CLIENT) {
+		//Inform client that connection cannot be made.
+		send_message(NULL, 6, socket);
+		return;
+	}
+	//Check if there is slot avaliable
+	for(i = 0; i < MAX_CLIENT && clients[i].tcp_socket;i++);
+	//Repeat in case some went wrong in if above.
+	if (i == MAX_CLIENT) {
+		//Inform client that connection cannot be made.
+		send_message(NULL, 6, socket);
+		return;
+	}
+
+	//Check if game is in progress
+	if(game_in_progress) {
+		//Informe client that game in progress
+		send_message(NULL, 7, socket);
+		return;
+	}
+
+	//Add client socket to set 
+	sockets = SDLNet_TCP_AddSocket(activity, socket);
+	
+	if(sockets == -1) {
+		fprintf(stderr, "SDLNet_AddSocket: %s\n", SDLNet_GetError());
+		comm->server->connecting = 0;
+		comm->server->connection_failed = 1;
+		return;
+	}
+
+	//Create id
+	user_id = (current_index_id % 255);
+	if(user_id == 0){
+		user_id = 1;
+	} 
+	current_index_id = user_id + 1;
+	
+	//Send id
+	sprintf(buffer, "%c\t%c", (char) user_id, (char) current_user->id);
+	if(send_message(buffer, 10, socket)){
+		//Add to adversary
+		Adversary *adversary = malloc(sizeof (Adversary) * sockets);
+		if(comm->adversary) {
+			temp = comm->match->players;
+			for (j = 0; j < temp; j++){
+				adversary->id = comm->adversary[j].id;
+				adversary->playing = comm->adversary[j].playing;
+				adversary->name = comm->adversary[j].name;
+				adversary->life = comm->adversary[j].life;
+				adversary->ready_to_play = comm->adversary[j].ready_to_play;
+				adversary->pending_minions = comm->adversary[j].pending_minions;
+				adversary->minions_sent = comm->adversary[j].minions_sent;
+				adversary++;		
+			}
+			free(comm->adversary);
+		}
+	
+		adversary->id = user_id;
+		adversary->playing = 1;
+		adversary->pending_minions = 0;
+		adversary->life = DEFAULT_PLAYERS_LIFE;
+		adversary->ready_to_play = 0;
+		adversary->minions_sent = NULL;
+
+		comm->adversary = adversary;
+		comm->match->players = comm->match->players + 1;
+		
+		//Add to client list
+		clients[i].tcp_socket = socket;
+		clients[i].id = user_id;
+		clients[i].alive = 1;
+		
+		temp = 0;
+		//Send other users to this user
+		for(j = 0; j < MAX_CLIENT;j++){
+			if(temp == connected_clients) {
+				break;
+			}
+			if(clients[j].tcp_socket){
+				if(j != i && clients[j].has_name) {
+					sprintf(buffer, "%c\t%s", (char) clients[j].id, clients[j].name);
+					send_message(buffer,0, socket);
+				}
+				temp++;
+			}
+		}
+		connected_clients = sockets;
+	}
+	else {
+		//Close connection
+		SDLNet_TCP_DelSocket(activity, socket);
+		close_socket(socket);
+	}
+	
+	return;
+}
+
+void check_messages_tcp(){
+	int i, temp;
+	
+	if(current_user->is_server){
+		temp = 0;
+		for(i = 0; i < MAX_CLIENT; i++){
+			if(temp == connected_clients || connected_clients == 0){
+				break;
+			}
+			if(clients[i].tcp_socket) {
+				if(handle_message_pool(clients[i].tcp_socket) == 0) {
+					//Remove client
+					remove_client(i);
+				}
+				temp++;
+			}
+		}
+	}
+	else {
+		if(handle_message_pool(server_tcp_socket) == 0){
+			//Close socket
+			close_socket(server_tcp_socket);
+			//Close set
+			close_set(activity);
+			//Terminate thread
+			comm->server->connection_failed = 1;
+		}
+	}
+	return;
 }
 
 void check_messages_udp(){
@@ -410,7 +513,7 @@ void check_messages_udp(){
 			//Send message to client.
 			UDPpacket* output;
 			output = SDLNet_AllocPacket(BUFFER_LIMIT);
-			snprintf(buffer, BUFFER_LIMIT, "%s\t%s", "GRADE_DEFENDER_SERVER", server_name);
+			snprintf(buffer, BUFFER_LIMIT, "%s\t%s", "GRADE_DEFENDER_SERVER", current_user->name);
 			snprintf((char *)output->data, BUFFER_LIMIT, "%s", buffer);
 			output->len = strlen(buffer) + 1;
 			output->address.host = input->address.host;
@@ -423,165 +526,140 @@ void check_messages_udp(){
 	return;
 }
 
-void check_connection_tcp(game_comm *game_communication){
-	TCPsocket socket = NULL; 
-	
-	int sockets = 0;
-	char buffer[BUFFER_LIMIT];
-	int i;
-	
-	//Check pending connection. This is non-blocking
-	socket = SDLNet_TCP_Accept(server_tcp_socket);
-	if(!socket){
-		return;
-	}
-	
-	//Check if there is slot avaliable
-	for(i = 0; i < MAX_CLIENT && game_communication->players[i].tcp_socket;i++);
-	if (i == MAX_CLIENT) {
-		//Inform client that connection cannot be made.
-		send_message("Maximum number of clients connected.", 1, socket);
-		return;
-	}
-	
-	//Update game status
-	game_status_and_clients(game_communication);
-	
-	//Check if game is in progress
-	if(game_in_progress) {
-		//Informe client that game in progress
-		send_message("Game already started without you.", 1, socket);
-		return;
-	}
-	//Now make new connection. This is non-blocking.
-	//Add to client list
-	game_communication->players[i].tcp_socket = socket;
-	
-	//Add client socket to set 
-	sockets = SDLNet_TCP_AddSocket(activity, game_communication->players[i].tcp_socket);
-	if(sockets == -1) {
-		fprintf(stderr, "SDLNet_AddSocket: %s\n", SDLNet_GetError());
-		terminate_server();
-		return;
-	}
-    
-	connected_clients = sockets;
-	//Send message to client informing of connection made with success
-	return;
-}
-
-void check_messages_tcp(game_comm *game_communication){
-	int action, i;
-	int clients_ready = 0;
+void game_status(){
+	int i, j, temp, alive = 0, winner_id = 0;
 	char buffer[BUFFER_LIMIT];
 	
-	i = action = 0;
-	
-	action = SDLNet_CheckSockets(activity, 0);
-	
-	if(action == -1){
-		printf("SDLNet_CheckSockets: %s\n", SDLNet_GetError());
-	}
-	else if(action){
-		for(i = 0; i < MAX_CLIENT; i++){
-			if(game_communication->players[i].tcp_socket != NULL && SDLNet_SocketReady(game_communication->players[i].tcp_socket)){ 
-                clients_ready++;
-
-                if (SDLNet_TCP_Recv(game_communication->players[i].tcp_socket, buffer, BUFFER_LIMIT) > 0){
-                    if(game_in_progress){
-                        handle_message(i, buffer, 0);
-                    }
-                    else{
-                        handle_message(i, buffer, 1);
-                    }
-                    // See if game is ended because everyone has left:
-                    game_status_and_clients(game_communication); 
-                }
-                else {
-                    remove_client(game_communication, i);
-                }
-            }
-		}
-		game_status_and_clients(game_communication); 
+	if(current_user->is_server) {
+		//Check if there is player connected. If not end game.
 		
-		if(action > clients_ready){
-			printf("Warning: SDLNet_CheckSockets() reported %d active sockets,\nbut only %d detected by SDLNet_SocketReady()\n", action, clients_ready);
-		}
-	}
-	return;
-}
-
-void check_messages_tcp_client() {
-	//Get message
-	
-	//Check if there are new users
-	
-	
-	//Check if game can begin
-	
-	
-	//Check if game was ended
-	
-	
-	
-	
-	
-	
-}
-
-
-/**
-Based on Tuxmath (by  Akash Gangil, David Bruce) check game clients function.
-*/
-void game_status_and_clients(game_comm *game_communication){
-	int i;
-
-	if(game_in_progress){
-		int someone_still_playing = 0;
-		for(i = 0; i < MAX_CLIENT; i++){
-			if(game_communication->players[i].tcp_socket != NULL && game_communication->players[i].ready_to_play){
-                someone_still_playing = 1;
-                break;
-            }
-		}
-		
-		if(!someone_still_playing){
-			for(i = 0; i < MAX_CLIENT; i++){
-				//Check if all clients are closed.
-				SDLNet_TCP_Close(game_communication->players[i].tcp_socket);
-				game_communication->players[i].tcp_socket = NULL;
-				game_communication->players[i].ready_to_play = 0;
+		if(game_in_progress){
+			if(connected_clients <= 0){
+				//Everyone left, and game with current_user as winner.
+				comm->match->finished = 1;
+				comm->match->lost = 0;
+				comm->match->winner_id = current_user->id;
 			}
-			game_in_progress = 0;
-			//Finish game
-			finish_game(game_communication);
+			else {
+				//Check if game was finished.
+				if(current_user->life > 0){
+					alive++;
+					winner_id = current_user->id;
+				}
+				temp = 0;
+				for(i = 0; i < MAX_CLIENT;i++){
+					if(temp == connected_clients){
+						break;
+					}
+					if(clients[i].tcp_socket && clients[i].has_name && clients[i].alive){
+						//Send message
+						alive++;
+						winner_id = clients[i].id;
+					}
+				}
+				if(alive == 1){
+					game_ended = 1;
+					//Send message of end game to users.
+					temp = 0;
+					j = connected_clients;
+					for(i = 0; i < MAX_CLIENT;i++){
+						if(temp == j){
+							break;
+						}
+						if(clients[i].tcp_socket && clients[i].has_name && clients[i].alive){
+							//Send message
+							sprintf(buffer, "%c", (char) winner_id);
+							//Send message to other players that user left.
+							send_message(buffer, 4, clients[i].tcp_socket);
+							remove_client(i);
+							temp++;
+						}
+					}
+					
+					//Set winner to server.
+					comm->match->finished = 1;
+					comm->match->winner_id = winner_id;
+					if(winner_id != current_user->id){
+						comm->match->lost = 1;
+					}
+					//Close connection.//Will be closed when thread is killed.
+				}
+			}
+		}
+		else {
+			if(comm->match->players > 0){
+				//Check if game can begin //Check if all users are ready
+				temp = 0;
+				for(i = 0; i < comm->match->players;i++){
+					if(comm->adversary->ready_to_play){
+						temp++;
+					}
+					comm->adversary++;
+				}
+				
+				if(temp == comm->match->players){
+					//This line can add a injust gameplay to server, because it will begin before others. 
+					comm->match->can_start = 1;
+					//Send message to users begin game.
+					temp = 0;
+					for(i = 0; i < MAX_CLIENT;i++){
+						if(temp == connected_clients){
+							break;
+						}
+						if(clients[i].tcp_socket && clients[i].has_name){
+							//Send message
+							if(send_message(NULL, 3, clients[i].tcp_socket)){
+								temp++;
+							}
+							else {
+								remove_client(i);
+							}
+						}
+					}
+					game_in_progress = 1;
+				}
+			}
 		}
 	}
 	else {
-		int someone_connected = 0;
-		int someone_not_ready = 0;
-        for(i = 0; i < MAX_CLIENT; i++){
-            if(game_communication->players[i].tcp_socket != NULL){ 
-                someone_connected = 1;
-                if (!game_communication->players[i].ready_to_play){
-                    someone_not_ready = 1;
-                }
-            }
-        }
-        if(someone_connected && !someone_not_ready){
-			begin_game(game_communication); 
+		//Check server connection.//This is detected by sending an receiving messages.
+		if(comm->server->connection_failed){
+			return;
+		}
+		
+		if(game_in_progress && !comm->match->lost){
+			//Check if game was finish.
+			//Check if player lost. If lost, wait until the game is finished.
+			if(current_user->life <= 0) {
+				comm->match->lost = 1;
+			}
 		}
 	}
+	return;
 }
 
 //Connection Functions
 ///////////////////////////////////////////////////////////////////////
 
 void close_connection(){
-	if (tcp) {
-		SDLNet_TCP_Close(tcp);
-        tcp = NULL;
+	if (server_tcp_socket) {
+		close_socket(server_tcp_socket);
 	}
+	if (activity) {
+		close_set(activity);
+	}
+	return;
+}
+
+void close_socket(TCPsocket tcp_socket){
+	if (tcp_socket) {
+		SDLNet_TCP_Close(tcp_socket);
+        tcp_socket = NULL;
+	}
+	return;
+}
+
+void close_set(SDLNet_SocketSet activity) {
 	if (activity) {
 		SDLNet_FreeSocketSet(activity);
         activity = NULL;
@@ -594,9 +672,9 @@ int connect_to_server(int server_choice){
 		return 0;
 	}
 	
-	tcp = SDLNet_TCP_Open(&servers[server_choice].ip);
+	server_tcp_socket = SDLNet_TCP_Open(&servers[server_choice].ip);
 	
-	if (!tcp){
+	if (!server_tcp_socket){
         printf("SDLNet_TCP_Open: %s\n", SDLNet_GetError());
         return 0;
     }
@@ -608,7 +686,7 @@ int connect_to_server(int server_choice){
     }
 
 	//Add a socket to a socket set that will be watched
-    if(SDLNet_TCP_AddSocket(activity, tcp) == -1){
+    if(SDLNet_TCP_AddSocket(activity, server_tcp_socket) == -1){
         printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
         // perhaps you need to restart the set and make it bigger...
     }
@@ -633,173 +711,598 @@ Host *get_host(){
 	return &servers;
 }
 
-//Server runner
+TCPsocket get_socket_from_user_id(int user_id){
+	int i, temp = 0;
+	
+	for(i = 0; i< MAX_CLIENT; i++){
+		if(temp == connected_clients){
+			break;
+		}
+		if(clients[i].tcp_socket) {
+			if(clients[i].id == user_id){
+				return clients[i].tcp_socket;
+			}
+			temp++;
+		}
+	}
+	return NULL;
+}
+
+//Messages Functions
 ///////////////////////////////////////////////////////////////////////
 
-
 int send_message(char *message, int message_type, TCPsocket socket){
+	char msg[BUFFER_LIMIT];
+	int result, next = 1;
 	
 	switch(message_type){
-		case 0:
+		case 0://ADD_USER
+			sprintf(msg, "ADD_USER\t%s", message);
 			break;
-		case 1:
+		case 1://REMOVE_USER
+			sprintf(msg, "REMOVE_USER\t%s", message);
+			break;
+		case 2://ADD_MINION
+			sprintf(msg, "ADD_MINION\t%s", message);
+			break;
+		case 3://BEGIN_GAME
+			sprintf(msg, "BEGIN_GAME");
+			break;
+		case 4://END_GAME
+			sprintf(msg, "END_GAME\t%s", message);
+			break;
+		case 5://USER_READY
+			sprintf(msg, "USER_READY\t%s", message);
+			break;
+		case 6://SERVER_FULL
+			sprintf(msg, "SERVER_FULL");
+			break;
+		case 7://GAME_ALREADY_STARTED
+			sprintf(msg, "GAME_ALREADY_STARTED");
+			break;
+		case 8://USER_MINION
+			sprintf(msg, "USER_MINION\t%s", message);
+			break;
+		case 9://USER_STATUS
+			sprintf(msg, "USER_STATUS\t%s", message);
+			break;
+		case 10://USER_ID
+			sprintf(msg, "USER_ID\t%s", message);
+			break;
+		case 11://USER_LIFE
+			sprintf(msg, "USER_LIFE\t%s", message);
+			break;
+		case 12://USER_STATUS_LIFE
+			sprintf(msg, "USER_STATUS_LIFE\t%s", message);
+			break;
+		case 13://USER_NAME
+			sprintf(msg, "USER_NAME\t%s", message);
+			break;
+		default:
+			next = 0;
+	}
+
+	if(next){
+		if(SDLNet_TCP_Send(socket,msg,BUFFER_LIMIT) != BUFFER_LIMIT) {
+			printf("SDLNet_TCP_Send: %s\n", SDLNet_GetError());
+			// It may be good to disconnect sock because it is likely invalid now.
+			return 0;
+		}
+	}
+	return 1;
+}
+
+void handle_message(char *buffer){
+	char *pointer = NULL;
+	int i, user_id, temp, life;
+	
+	//Client side
+	//Check if game can begin
+	if(strncmp(buffer, "BEGIN_GAME", strlen("BEGIN_GAME")) == 0) {
+		comm->match->can_start = 1;
+		game_in_progress = 1;
+	}
+	//Check user add
+	else if(strncmp(buffer, "USER_ID", strlen("USER_ID")) == 0){
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		current_user->id = (int) *pointer;
+		//Add server as adversary
+		temp = comm->match->players;
+		Adversary *adversary = malloc(sizeof (Adversary) * (temp + 1));
+		if(comm->adversary) {
+			for (i = 0; i < temp; i++){
+				adversary->id = comm->adversary[i].id;
+				adversary->playing = comm->adversary[i].playing;
+				adversary->name = comm->adversary[i].name;
+				adversary->life = comm->adversary[i].life;
+				adversary->ready_to_play = comm->adversary[i].ready_to_play;
+				adversary->pending_minions = comm->adversary[i].pending_minions;
+				adversary->minions_sent = comm->adversary[i].minions_sent;
+				adversary++;	
+			}
+			free(comm->adversary);
+		}
+		pointer+=2;
 		
-			break;
-		case 2:
-		
-			break;
+		adversary->id = (int) *pointer;
+		adversary->playing = 1;
+		adversary->pending_minions = 0;
+		adversary->life = DEFAULT_PLAYERS_LIFE;
+		adversary->ready_to_play = 0;
+		adversary->name = get_connected_server_name();
+		adversary->minions_sent = NULL;
+
+		comm->adversary = adversary;
+		comm->match->players = temp + 1;
 		
 	}
+	//Check if must add new user
+	else if(strncmp(buffer, "ADD_USER", strlen("ADD_USER")) == 0) {
+		SDL_AtomicLock(&lock);
+		temp = comm->match->players;
+		Adversary *adversary = malloc(sizeof (Adversary) * (temp + 1));
+		if(comm->adversary) {
+			for (i = 0; i < temp; i++){
+				adversary->id = comm->adversary[i].id;
+				adversary->playing = comm->adversary[i].playing;
+				adversary->name = comm->adversary[i].name;
+				adversary->life = comm->adversary[i].life;
+				adversary->ready_to_play = comm->adversary[i].ready_to_play;
+				adversary->pending_minions = comm->adversary[i].pending_minions;
+				adversary->minions_sent = comm->adversary[i].minions_sent;
+				adversary++;		
+			}
+			free(comm->adversary);
+		}
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		adversary->id = (int) *pointer;
+		adversary->playing = 1;
+		adversary->pending_minions = 0;
+		adversary->life = DEFAULT_PLAYERS_LIFE;
+		adversary->ready_to_play = 0;
+		adversary->minions_sent = NULL;
+		pointer = strchr(pointer, '\t');
+		pointer++;
+		if(!adversary->name){
+			adversary->name = malloc(sizeof(char) * SERVER_NAME);
+		}
+		strncpy(adversary->name, (const char *) pointer, SERVER_NAME);
+
+		comm->adversary = adversary;
+		comm->match->players = temp + 1;
+		
+		SDL_AtomicUnlock(&lock);
+	}			
+	//Check if must remove user
+	else if(strncmp(buffer, "REMOVE_USER", strlen("REMOVE_USER")) == 0) {
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		user_id = (int) *pointer;
+		SDL_AtomicLock(&lock);
+		if(game_in_progress){
+			for (i = 0; i < comm->match->players; i++){
+				if(comm->adversary->id == user_id){
+					comm->adversary->playing = 0;
+					break;
+				}
+				comm->adversary++;
+			}
+		}
+		else {
+			//If game not began remove from list.
+			//Realloc
+			if(comm->adversary){
+				temp = comm->match->players;
+				Adversary *adversary = malloc(sizeof (Adversary) * (temp - 1));
+				for (i = 0; i< temp; i++){
+					if(comm->adversary[i].id != user_id) {
+						adversary->id = comm->adversary[i].id;
+						adversary->playing = comm->adversary[i].playing;
+						adversary->ready_to_play = comm->adversary[i].ready_to_play;
+						adversary->name = comm->adversary[i].name;
+						adversary->life = comm->adversary[i].life;
+						adversary->pending_minions = comm->adversary[i].pending_minions;
+						adversary->minions_sent = comm->adversary[i].minions_sent;
+						adversary++;
+					}
+					else {
+						//Free name
+						free(adversary->name);
+						adversary->name = NULL;
+					}
+				}
+				free(comm->adversary);
+				comm->adversary = adversary;
+				comm->match->players = temp - 1;
+			}
+		}
+		SDL_AtomicUnlock(&lock);
+	}			
+	//Check if must add minion
+	else if(strncmp(buffer, "ADD_MINION", strlen("ADD_MINION")) == 0) {
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		user_id = (int) *pointer;
+		pointer+=2;
+		SDL_AtomicLock(&lock);
+		temp = comm->adversary->pending_minions;
+		//Realloc 
+		int *minions_sent = malloc(sizeof(int) * (temp + (int) *pointer));
+		if(comm->adversary->minions_sent){
+			for(i = 0; i < temp; i++){
+				*minions_sent = comm->adversary->minions_sent[i];
+				minions_sent++;
+			}
+			free(comm->adversary->minions_sent);
+		}
+		temp = (int) *pointer;//pointer on qtd
+		pointer+=2;
+		for(i = 0; i < temp; i++){
+			*minions_sent = (int) *pointer;
+			minions_sent++;
+			pointer+=2;
+		}
+		comm->adversary->minions_sent = minions_sent;
+		comm->adversary->pending_minions = temp + comm->adversary->pending_minions;
+		
+		SDL_AtomicUnlock(&lock);
+		
+	}			
+	//Check USER_READY
+	else if(strncmp(buffer, "USER_READY", strlen("USER_READY")) == 0) {
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		user_id = (int) *pointer;
+		pointer+=2;
+		for(i = 0; i < comm->match->players; i++){
+			if(comm->adversary->id == user_id){
+				comm->adversary->ready_to_play = (int) *pointer;
+				break;
+			}
+			comm->adversary++;
+		}
+	}			
+	//Check USER_LIFE
+	else if(strncmp(buffer, "USER_LIFE", strlen("USER_LIFE")) == 0) {
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		user_id = (int) *pointer;
+		pointer+=2;
+		for(i = 0; i < comm->match->players; i++){
+			if(comm->adversary->id == user_id){
+				comm->adversary->life = (int) *pointer;
+				break;
+			}
+			comm->adversary++;
+		}
+	}	
+	//Check if game was ended
+	else if(strncmp(buffer, "END_GAME", strlen("BEGIN_GAME")) == 0) {
+		//comm->match->can_start = 1;
+		comm->match->finished = 1;
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		comm->match->winner_id = (int) *pointer;
+		if(comm->match->winner_id == current_user->id){
+			comm->match->lost = 0;
+		}
+		else {
+			comm->match->lost = 1;
+		}
+		game_in_progress = 0;
+	}
+	//Check SERVER_FULL
+	else if(strncmp(buffer, "SERVER_FULL", strlen("SERVER_FULL")) == 0) {
+		//Maximum number of clients connected.
+		comm->match->error = 1;
+	}
+	//Check GAME_ALREADY_STARTED
+	else if(strncmp(buffer, "GAME_ALREADY_STARTED", strlen("GAME_ALREADY_STARTED")) == 0) {
+		//Game already started without you.
+		comm->match->error = 2;
+	}
+	//Server side
+	//Send minion
+	else if(strncmp(buffer, "USER_MINION", strlen("USER_MINION")) == 0) {
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		user_id = (int)*pointer;
+		if(user_id != current_user->id) {			
+			TCPsocket sender_socket = get_socket_from_user_id(user_id);
+			if(sender_socket){
+				pointer+=2;
+				//Send message
+				send_message(pointer, 2, sender_socket);
+			}
+		}
+		else {
+		//Update server game
+			SDL_AtomicLock(&lock);
+			temp = comm->adversary->pending_minions;
+			//Realloc 
+			int *minions_sent = malloc(sizeof(int) * (temp + (int) *pointer));
+			if(comm->adversary->minions_sent){
+				for(i = 0; i < temp; i++){
+					*minions_sent = comm->adversary->minions_sent[i];
+					minions_sent++;
+				}
+				free(comm->adversary->minions_sent);
+			}
+			temp = (int) *pointer;//pointer on qtd
+			pointer+=2;
+			for(i = 0; i < temp; i++){
+				*minions_sent = (int) *pointer;
+				minions_sent++;
+				pointer+=2;
+			}
+
+			comm->adversary->minions_sent = minions_sent;
+			comm->adversary->pending_minions = temp + comm->adversary->pending_minions;
+			
+			SDL_AtomicUnlock(&lock);
+		}
+	}
+	//User USER_STATUS
+	else if(strncmp(buffer, "USER_STATUS", strlen("USER_STATUS")) == 0) {
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		user_id = (int)*pointer;
+	
+		temp = 0;
+		for(i=0;i< MAX_CLIENT;i++){
+			if(temp == connected_clients) {
+				break;
+			}
+			if(clients[i].tcp_socket) {
+				if(clients[i].id != user_id){
+				//Send message to all except who sent
+				send_message(pointer, 9, clients[i].tcp_socket);
+				}
+				temp++;
+			}
+		}
+		
+		//Update server game
+		temp = comm->match->players;
+		pointer+=2;
+		
+		for (i = 0; i< temp; i++){
+			if(comm->adversary->id == user_id){
+				comm->adversary->ready_to_play = (int) *pointer;
+				break;
+			}
+			comm->adversary++;
+		}
+	}
+	//User USER_STATUS_LIFE
+	else if(strncmp(buffer, "USER_STATUS_LIFE", strlen("USER_STATUS_LIFE")) == 0) {
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		user_id = (int)*pointer;
+		pointer +=2;
+		life = (int) *pointer;
+		pointer -= 2;
+		temp = 0;
+		for(i=0;i< MAX_CLIENT;i++){
+			if(temp == connected_clients) {
+				break;
+			}
+			if(clients[i].tcp_socket) {
+				if(clients[i].id != user_id){
+					//Send message to all except who sent
+					send_message(pointer, 11, clients[i].tcp_socket);
+				}
+				else {
+					//Update alive status
+					if(life <= 0) {
+						clients[i].alive = 0;
+					}					
+				}
+				temp++;
+			}
+		}
+		
+		//Update server game
+		temp = comm->match->players;
+		pointer+=2;
+		
+		for (i = 0; i< temp; i++){
+			if(comm->adversary->id == user_id){
+				comm->adversary->life = (int) *pointer;
+				break;
+			}
+			comm->adversary++;
+		}
+	}
+	//USER_NAME
+	else if(strncmp(buffer, "USER_NAME", strlen("USER_NAME")) == 0) {
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		user_id = (int)*pointer;
+		pointer+=2;
+		char *name = pointer;
+		//Update adversary
+		for(i =0; i< comm->match->players;i++){
+			if(comm->adversary->id == user_id){
+				if(!comm->adversary->name){
+					comm->adversary->name = malloc(sizeof(char) * SERVER_NAME);
+				}
+				strncpy(comm->adversary->name, name, SERVER_NAME);
+				break;
+			}
+			comm->adversary++;
+		}
+		//Send add user to clients
+		pointer-2;
+		temp = 0;
+		for(i=0;i< MAX_CLIENT;i++){
+			if(temp == connected_clients) {
+				break;
+			}
+			if(clients[i].tcp_socket) {
+				if(clients[i].id != user_id){
+					//Send message to all except who sent//ADD_USER
+					send_message(pointer, 0, clients[i].tcp_socket);
+				}
+				else {
+					clients[i].has_name = 1;
+					strncpy(clients[i].name, name, SERVER_NAME);
+				}
+				temp++;
+			}
+		}
+	}
+}
+
+int has_message_tcp(char *buffer, TCPsocket tcp_socket){
+	int amount = 0;
+	
+	amount = SDLNet_CheckSockets(activity, 0);
+	if (amount < 0) {
+		printf("SDLNet_CheckSockets: %s\n", SDLNet_GetError());
+		return -2;
+	}
+	else if (amount > 0) {
+		if(SDLNet_SocketReady(tcp_socket)){
+			if(SDLNet_TCP_Recv(tcp_socket, buffer, BUFFER_LIMIT) > 0){
+				return 1;
+			}
+			else {
+				SDLNet_TCP_DelSocket(activity, tcp_socket);
+				close_socket(tcp_socket);
+				return -1;
+			}
+		}
+		else {
+			SDLNet_TCP_DelSocket(activity, tcp_socket);
+			close_socket(tcp_socket);
+			return -1;
+		}
+	}
+
 	return 0;
 }
 
-void terminate_server(){
-	
-}
-
-
-void begin_game(game_comm * game_communication){
-	int sent, i;
-	
-	for(i = 0; i < MAX_CLIENT; i++){
-        // Only check sockets that aren't null:
-        if(game_communication->players[i].ready_to_play != 1 && game_communication->players[i].tcp_socket != NULL){
-            return;      
-        }
-    }
-	connected_clients = 0;
+int handle_message_pool(TCPsocket tcp_socket){
+	char *buffer = malloc(sizeof(char) * BUFFER_LIMIT);
+	int has = 0;
 	
 	
-	for(i = 0; i < MAX_CLIENT; i++){
-        if(game_communication->players[i].ready_to_play == 1 && game_communication->players[i].tcp_socket != NULL){
-            sent = send_message("START_GAME", 1, game_communication->players[i].tcp_socket);
-			//(SDLNet_TCP_Send(slave_thread[thread_id_no].client[j].sock, buf, NET_BUF_LEN) == NET_BUF_LEN)
-            if(sent) {
-				connected_clients++;
-			}
-            else {
-                remove_client(game_communication, i);
-            }
-        }
-    }
-	if (connected_clients == 0){
-		game_communication->players_left = 1;
-		return;
-	}
-	
-	game_in_progress = 1;
-	
-	//Initialize data
-	
-	
-	//Send info to all clients
-	
-	
-	
-}
-
-void finish_game(game_comm *game_communication){
-	int alive;
-	int i;
-	//Transmit message to all
-	for(i = 0; i < MAX_CLIENT;i++){
-		alive = 0;
-		alive = send_message("GAME_STOPED", 0, game_communication->players[i].tcp_socket);
-		if(!alive){
-			remove_client(game_communication, i);
+	while(1) {
+		has = has_message_tcp(buffer, tcp_socket);
+		if(has == 1){
+			//Message handle with success, give me the next one please.
+			handle_message(buffer);
+		}
+		else if (has == -1){
+			return 0;
+		}
+		else {
+			return 1;
 		}
 	}
-	for(i = 0; i < MAX_CLIENT; i++){
-		if( game_communication->players[i].tcp_socket) {
-			SDLNet_TCP_Close(game_communication->players[i].tcp_socket);
-			 game_communication->players[i].tcp_socket = NULL;
-			  game_communication->players[i].ready_to_play = 0;
-		}
-    }
 	
-	game_in_progress = 0;
+	free(buffer);
+	return 1;
 }
 
 
-
-
-void handle_message(int client_id, char* buffer, int type){
-	
-}
+//Server runner
+///////////////////////////////////////////////////////////////////////
 
 void run_server(void *data){
 	int created_server = 0;
-	//game_comm *game_communication = (game_comm *) data;
-
+	
+	current_user->is_server = 1;
+	game_in_progress = 0;
+	game_ended = 0;
+	
+	
 	//Initial setup 
 	//------------------------------------
 	main_server = malloc(sizeof(Host));
 	
 	created_server = establish_server(&main_server->ip);
+	
 	if(!created_server){
 		printf("Could not create server.\n");
-		terminate_thread = 1;
-	}
-
-	while(!terminate_thread){
-		//Check UDP messages
-		check_messages_udp(comm);
-		//Check connection with client 
-		check_connection_tcp(comm);
-		//Check TCP messages from clients connected. This also connect with a 
-		check_messages_tcp(comm);
-		
-		//Handle game events
-		
-		
-		
-		
-		//Delay server
-		
-		printf("Connected %d\n", connected_clients);
-		
-		
+		comm->server->connecting = 0;
+		comm->server->connection_failed = 1;
 	}
 	
+	while(!terminate_thread){
+		if(created_server && !comm->match->finished && !comm->server->connection_failed){
+			//Dont allow anyone to connect if game is running.
+			if(!game_in_progress) {
+				//Check UDP messages
+				check_messages_udp();
+				//Check connection with client 
+				check_connection_tcp();
+			}
+			
+			//Update game status
+			game_status();
+			
+			//Check TCP messages from clients connected. This also connect with a 
+			check_messages_tcp();
+			
+			//Update game status
+			game_status();
+			
+			//if()
+			//comm->server->connection_failed = 1;
+			//Handle game events
+			
+			//Delay server
+		}
+	}
 	
 	//Free server
 	if(main_server){
 		//Free ip address
-		
 		main_server->ip;
 		free(main_server);
 	}
+	terminate_thread = 0;
+	current_user->is_server = 0;
 	return;
 }
 
 
 void run_client(void *data){
-	//game_comm *game_communication = (game_comm *) data;
+	char buffer[BUFFER_LIMIT];
 	
 	int found = 0;
 	int connected = 0;
-	printf("After %d\n", comm);
-
+	
+	game_in_progress = 0;
+	game_ended = 0;
+	
+	
+	
 	if(comm){
+		SDL_AtomicLock(&lock);
 		//Set searching network
 		comm->server->searching = 1;
-		printf("After server\n");
+		SDL_AtomicUnlock(&lock);
 		//Search server
 		found = find_servers();
 		
-		printf("After find server\n");
 		//Connect or choose server to connect.
 		if(found == 0) {
+			SDL_AtomicLock(&lock);
 			comm->server->searching = 0;
 			comm->server->searching_finished = 1;
 			comm->server->connecting = 0;
 			comm->server->search_result = 0;
 			comm->server->avaliable = 0;
-
+			SDL_AtomicUnlock(&lock);
 			//Not connect.
-			printf("No server found");
 		}
 		else if(found == 1) {
+			SDL_AtomicLock(&lock);
 			comm->server->searching = 0;
 			comm->server->searching_finished = 1;
 			comm->server->connecting = 1;
@@ -807,11 +1310,12 @@ void run_client(void *data){
 			comm->server->avaliable = 1;
 			comm->server->host = malloc(sizeof(Host));
 			comm->server->host = get_host();
-			
+			SDL_AtomicUnlock(&lock);
 			//Connect to this server.
 			connected = connect_to_server(0);
 		}
 		else {
+			SDL_AtomicLock(&lock);
 			comm->server->searching = 0;
 			comm->server->searching_finished = 1;
 			comm->server->connecting = 0;
@@ -820,45 +1324,61 @@ void run_client(void *data){
 			comm->server->host = malloc(sizeof(Host) * found);
 			comm->server->host = get_host();
 			
-			
 			comm->server->choosing = 1;
+			SDL_AtomicUnlock(&lock);
 			
 			//Need to choose server.
 			while(comm->server->choosing && !terminate_thread){
 				//Wait until the user choose a server on main thread.
 				SDL_Delay(SERVER_USER_RESPONSE_DELAY);
 			}
-
+			SDL_AtomicLock(&lock);
 			comm->server->connecting = 1;
-			
+			SDL_AtomicUnlock(&lock);
 			//Connect to selected server.
 			connected = connect_to_server(comm->server->choosed);
 		}
-		printf("After find\n");
 		if(!connected) {
 			printf("Not able to connect with server.\n");
+			SDL_AtomicLock(&lock);
 			comm->server->connecting = 0;
 			comm->server->connection_failed = 1;
+			SDL_AtomicUnlock(&lock);
 		}
 		else {
+			SDL_AtomicLock(&lock);
 			comm->server->connecting = 0;
 			comm->server->connected = 1;
+			SDL_AtomicUnlock(&lock);
+			
+			//Send current name to server
+			sprintf(buffer, "%c\t%s", (char) current_user->id, current_user->name);
+			if(!send_message(buffer,13, server_tcp_socket)){
+				comm->server->connecting = 0;
+				comm->server->connection_failed = 1;
+				comm->server->connected = 0;
+			}
+			
 		}
-		printf("hereq\n");
+		
 		while(!terminate_thread){
 			//Running 
-			if(connected){
+			if(connected && !comm->match->finished){
 				printf("Connected\n");
 				
 				//Check if there is response to begin game.
-				check_messages_tcp_client();
 				//Check tcp messages only.
+				check_messages_tcp();
+				
+				game_status();
 				
 				//Check if connection was not lost.
 				//Get server 
 				
 				//Send message to server that can start game
 				
+				
+				//Send message to server to send minion
 				
 				//Send message to server that exit game
 				
@@ -867,11 +1387,13 @@ void run_client(void *data){
 				
 			}
 		}
-		printf("Destroctor\n");
 		//Destroy game communication
+		SDL_AtomicLock(&lock);
 		remove_communication();
+		SDL_AtomicUnlock(&lock);
 	}
-	printf("After server 2\n");
+	printf("Thread exiting\n");
+	terminate_thread = 0;
 	return;
 }
 
@@ -881,3 +1403,4 @@ void kill_thread(SDL_Thread **thread){
 	SDL_DetachThread(*thread);
 	*thread = NULL;
 }
+

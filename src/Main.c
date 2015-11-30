@@ -34,7 +34,8 @@
 ///////////////////////////////////////////////////////////////////////
 int terminate_thread;
 SDL_SpinLock lock;
-game_comm *comm;
+Communication *comm;
+User *current_user;
 
 
 //SDL stuff
@@ -107,7 +108,7 @@ bool main_init();
 void main_quit();
 
 void get_config_text();
-void get_multiplayer_texts(multiplayer_status current_status, game_comm *servers_data);
+void get_multiplayer_texts(multiplayer_status current_status);
 void set_end_game_status_text(end_game_status end_status);
 void reset_game_data();
 
@@ -158,8 +159,8 @@ int main(int argc, char * argv[]) {
 	select_running_option.game_area.left = OPT_R_A_L_NONE;
 	select_running_option.game_area.right = OPT_R_A_R_NONE;
 	
+	//Game events
 	SDL_Event event;
-    
 	bool game_started = false;
 	bool game_paused = false;
 	bool multiplayer = false;
@@ -188,12 +189,15 @@ int main(int argc, char * argv[]) {
 	bool show_mana_info = false;
 	bool show_life_info = false;
 	
-	
-	
-    
+	//Grid control   
 	int select_grid = 0;
+	int select_grid_option = 0;
 	int click_grid = 0;
 	int max_grid = 17 * 13;
+	
+	int grid_clicked[] = {0,0};
+	int center_clicked[] = {0,0};
+	int original_clicked[] = {0,0};
 	
     // Following parts are only for first interation;
     int monsterSpawner[] = {6, 8, 12, 14, 17, 18, 25, 16, 18, 50};
@@ -203,13 +207,8 @@ int main(int argc, char * argv[]) {
 	int pending_wave_number = 0;
 	int timer_minion = 20;
 	
-	int grid_clicked[] = {0,0};
-	int center_clicked[] = {0,0};
-	int original_clicked[] = {0,0};
-	
-	int select_grid_option = 0;
-	
 	int temp_option;
+	
 	//Thread
 	SDL_Thread *thread = NULL;
 	terminate_thread = 0;
@@ -217,14 +216,7 @@ int main(int argc, char * argv[]) {
 	comm = NULL;
 	
 	//Multiplayer
-	char *player_name = NULL;
-	#ifdef _WIN32
-	player_name = getenv("USERNAME");
-	#else
-	player_name = getlogin();
-	#endif
-	
-	NETWORK network;
+	Network network;
 	network.searching = 0;
 	network.searched = 0;
 	network.connecting = 0;
@@ -232,6 +224,19 @@ int main(int argc, char * argv[]) {
 	network.servers = 0;
 	network.choose_server = 0;
 	network.server_choosed = -1;
+	
+	//Current Player info
+	current_user = calloc(1, sizeof(User));
+	#ifdef _WIN32
+	current_user->name = getenv("USERNAME");
+	#else
+	current_user->name = getlogin();
+	#endif
+	if(!current_user->name) {
+		current_user->name = malloc(sizeof(char) * 7);
+		strncpy(current_user->name, "Unknown", 7);
+	}
+
 	
 	bool ready_to_play = false;
 	
@@ -372,7 +377,7 @@ int main(int argc, char * argv[]) {
                                     }
                                     
                                     else if(comm && comm->server && comm->server->host){
-                                        if(strcmp(player_name, comm->server->host->name)){
+                                        if(current_user->is_server){
                                             printf("Host\n");
                                             
                                             if(select_multiplayer_option == MP_START)
@@ -405,7 +410,7 @@ int main(int argc, char * argv[]) {
                                     }
                                     
                                     else if(comm && comm->server && comm->server->host){
-                                        if(strcmp(player_name, comm->server->host->name)){
+                                        if(current_user->is_server){
                                             printf("Host\n");
                                             
                                             if(select_multiplayer_option == MP_START)
@@ -460,7 +465,7 @@ int main(int argc, char * argv[]) {
                                             multiplayer_option = temp_option;
                                         
                                         else if(comm && comm->server && comm->server->host){
-                                            if(strcmp(player_name, comm->server->host->name)){
+                                            if(current_user->is_server){
                                                 if(temp_option == 0)
                                                     multiplayer_option = MP_START;
                                             }
@@ -489,7 +494,7 @@ int main(int argc, char * argv[]) {
                                         select_multiplayer_option = temp_option;
                                     
                                     else if(comm && comm->server && comm->server->host){
-                                        if(strcmp(player_name, comm->server->host->name)){
+                                        if(current_user->is_server){
                                             if(temp_option == 0)
                                                 multiplayer_option = MP_START;
                                         }
@@ -1441,8 +1446,19 @@ int main(int argc, char * argv[]) {
 				if(comm->server->connection_failed) {
 					network.connection_failed = 1;
 				}
+				
+				
+				
+				
 			}
 			SDL_AtomicUnlock(&lock);
+			//Check if a connection running was failed. This will kill the thread.
+			if(network.connection_failed && thread){
+				//After this the thread will be dead must use network.connection_failed to show message with renderer.
+				kill_thread(&thread);//Kill thread already kill comm.
+				multiplayer_status = MPS_NONE;
+				multiplayer = false;
+			}
 		}
 		
 		//Action Performancer
@@ -1498,21 +1514,39 @@ int main(int argc, char * argv[]) {
                 switch (multiplayer_option) {
                     case MP_CREATE_ROOM:
 						//Check if there is a thread running
-                        
-                        //Create server
-                        multiplayer_status = MPS_WAIT_FOR_PLAYER;
+                        if(thread) {
+							printf("Thread running\n");
+							thread_name = SDL_GetThreadName(thread);
+							if(strcmp(thread_name, "run_server") != 0) {
+								kill_thread(&thread);
+								multiplayer_status = MPS_NONE;
+								multiplayer = false;
+							}
+							else {
+								printf("%d\n", network.connection_failed);
 
-						if (thread == NULL) {
-							terminate_thread = 0;
+							}
+						}
+						else {
+							printf("Thread not running\n");
+							//terminate_thread = 0;
+							//Create server
+							multiplayer_status = MPS_WAIT_FOR_PLAYER;
+	
 							SDL_AtomicLock(&lock);
 							if(!comm) {
-								comm = init_communication(player_name);
+								comm = init_communication();
 							}
 							SDL_AtomicUnlock(&lock);
-
-							thread = SDL_CreateThread((SDL_ThreadFunction) run_server, "run_server", (void *)NULL);
-							if (thread == NULL) {
-								multiplayer_status = MPS_NONE;
+							
+							if (!thread) {
+								thread = SDL_CreateThread((SDL_ThreadFunction) run_server, "run_server", (void *)NULL);
+								if (thread == NULL) {
+									multiplayer_status = MPS_NONE;
+									if(comm)
+										remove_communication();
+								}
+								multiplayer = true;
 							}
 						}
                         break;
@@ -1525,26 +1559,23 @@ int main(int argc, char * argv[]) {
 							if(strcmp(thread_name, "run_client") != 0) {
 								kill_thread(&thread);
 								multiplayer_status = MPS_NONE;
+								multiplayer = false;
 							}
 							else {
+								printf("%d\n", network.connection_failed);
 								//Check if a connection running was failed. This will kill the thread.
-								if(network.connection_failed){
-									//After this the thread will be dead must use network.connection_failed to show message with renderer.
-									kill_thread(&thread);//Kill thread already kill comm.
-									multiplayer_status = MPS_NONE;
-								}
 							}
 						}
 						else {
 							printf("Thread not running\n");
-							terminate_thread = 0;
+							//terminate_thread = 0;
 							multiplayer_status = MPS_SEARCHING_ROOM;
 							//Start thread and network communication.
 							
 							SDL_AtomicLock(&lock);
 							if(!comm) {
 								printf("Initing\n");
-								comm = init_communication(player_name);
+								comm = init_communication();
 								printf("Initing %d\n", comm);
 							}
 							SDL_AtomicUnlock(&lock);
@@ -1553,7 +1584,10 @@ int main(int argc, char * argv[]) {
 								thread = SDL_CreateThread((SDL_ThreadFunction) run_client, "run_client", (void *) NULL);
 								if (thread == NULL) {
 									multiplayer_status = MPS_NONE;
+									if(comm)
+										remove_communication();
 								}
+								multiplayer = true;
 							}
 						}
                         break;
@@ -1579,7 +1613,7 @@ int main(int argc, char * argv[]) {
                         break;
                         
                     case MP_TOGGLE_READY:
-                        comm->current_player->ready_to_play = (comm->current_player->ready_to_play + 1) % 2;
+						current_user->ready_to_play = (current_user->ready_to_play + 1) % 2;
                         break;
                         
                     case MP_LEAVE:
@@ -1603,7 +1637,7 @@ int main(int argc, char * argv[]) {
                 multiplayer_option = MP_NONE;
                 
                 //Get multiplayer menu assets
-                get_multiplayer_texts(MPS_NONE, comm);
+                get_multiplayer_texts(MPS_NONE);
                 
                 break;
                 
@@ -2561,7 +2595,8 @@ void get_config_text(){
 }
 
 //Carrega textos do menu de multiplayer
-void get_multiplayer_texts(multiplayer_status current_status, game_comm *servers_data){
+void get_multiplayer_texts(multiplayer_status current_status){
+	//game_comm *servers_data é global agora e se quiser pegar info do server use comm->server direto nessa função.
     for(int i = 0; i < multiplayer_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;

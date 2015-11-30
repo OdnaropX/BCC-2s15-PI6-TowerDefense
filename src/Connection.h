@@ -6,7 +6,8 @@
 	#include <stdlib.h>
 	#include <stdio.h>
 	#include <strings.h>
-
+	#include <time.h>
+	
 	#ifdef _WIN32 //Load lib for windows or mac.
 		#include <SDL2/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
@@ -30,22 +31,39 @@
 	///////////////////////////////////////////////////////////////////////
 	
 	typedef struct _host Host;
+	typedef struct _client Client;
 	typedef struct _server_status Server;
-	typedef struct _game_communication game_comm;
-	typedef struct _player Player;
-	typedef struct _player_communication player_comm;
+	typedef struct _match Match;
+	typedef struct _adversary Adversary;
+	typedef struct _user User;
+	typedef struct _network Network;
+	typedef struct _game_communication Communication;
 	typedef struct _send_minion send_minion;
-	typedef struct _network NETWORK;
 		
 	struct _game_communication {
-		int game_can_start;//Game can be started or not. Only if all players can start.
-		int game_finished;//Game finished or not.
-		int players_left;//Game finished or not.
 		int connection_lost;//Connection to server lost or not.
-
+		Adversary *adversary;
+		Match *match;
 		Server *server;
-		player_comm *players;//[MAX_CLIENT];//Other players info.
-		player_comm *current_player;
+	};
+	
+	struct _adversary {
+		int id;
+		int playing;
+		int ready_to_play;
+		int life;
+		char *name;
+		int pending_minions;
+		int *minions_sent;
+	};
+	
+	struct _match {
+		int can_start;
+		int finished;
+		int winner_id;
+		int lost;
+		int error;
+		int players;
 	};
 	
 	struct _server_status {
@@ -59,17 +77,14 @@
 		int search_result;
 		int avaliable;
 		Host *host;
-	}; 
-	
-	struct _player_communication {
-		int exited_game;
-		int connection_lost;
+	};
+		
+	struct _user {
+		int id;
+		int is_server;
+		int life;
 		int ready_to_play;
-		SDLNet_SocketSet activity;
-		IPaddress ip;
-		TCPsocket tcp_socket;
-		//int lose_game //this is equal to info->life == 0
-		Player *info;
+		char *name;
 	};
 	
 	struct _host {
@@ -77,12 +92,12 @@
 		char name[SERVER_NAME];
 	};
 	
-	struct _player {
-		char *name;
-		int life;
-		int winner;
-		int *minions_type_sent;
-		//int left_game; Dont need, must update on game side.
+	struct _client {
+		int id;
+		int has_name;
+		int alive;
+		char name[SERVER_NAME];
+		TCPsocket tcp_socket;
 	};
 	
 	struct _send_minion {
@@ -100,16 +115,13 @@
 		char server_name[MAX_SERVER][SERVER_NAME];
 		int choose_server;
 		int server_choosed;
-		
 	};
 	
 	//Allocation Functions
 	///////////////////////////////////////////////////////////////////////
-	game_comm *init_communication(char *name);
-	void remove_player_info(Player *info, int remove_name);
-	void remove_player(player_comm *player);
+	Communication *init_communication();
 	void remove_communication();
-	void remove_client(game_comm *game_communication, int client);
+	void remove_client(int client);
 	
 	//Update Functions
 	///////////////////////////////////////////////////////////////////////
@@ -123,18 +135,31 @@
 	int find_servers();
 	int establish_server(IPaddress *ip);
 	void check_messages_udp();
-	void check_connection_tcp(game_comm *game_communication);
-	void check_messages_tcp(game_comm *game_communication);
-	void game_status_and_clients(game_comm *game_communication);
+	void check_connection_tcp();
+	void check_messages_tcp();
+	void game_status();
 	
 	//Connection Functions
 	///////////////////////////////////////////////////////////////////////
 	void close_connection();
+	void close_socket(TCPsocket tcp_socket);
+	void close_set(SDLNet_SocketSet activity);
 	int connect_to_server(int server_choice);
 	
 	//Get Functions
 	///////////////////////////////////////////////////////////////////////
 	char *get_connected_server_name();
+	char *get_host_name(int i);
+	Host *get_host();
+	TCPsocket get_socket_from_user_id(int user_id);
+	
+	//Messages Functions
+	///////////////////////////////////////////////////////////////////////
+	
+	int send_message(char *message, int message_type, TCPsocket socket);
+	void handle_message(char *buffer);
+	int has_message_tcp(char *buffer, TCPsocket tcp_socket);
+	int handle_message_pool(TCPsocket tcp_socket);
 	
 	//Server runner
 	///////////////////////////////////////////////////////////////////////
@@ -143,11 +168,5 @@
 	void run_client(void *data);
 	
 	void kill_thread(SDL_Thread **thread);
-	
-	int send_message(char *message, int message_type, TCPsocket socket);
-	void terminate_server();
-	void begin_game(game_comm * game_communication);
-	void finish_game(game_comm *game_communication);
-	void handle_message(int client_id, char* buffer, int type);
 	
 #endif
