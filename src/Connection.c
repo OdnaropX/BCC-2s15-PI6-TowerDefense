@@ -90,7 +90,7 @@ void remove_client(int client){
         if(i != client && clients[i].tcp_socket) {
 			sprintf(buffer, "%c", (char) clients[i].id);
 			//Send message to other players that user left.
-			send_message(buffer, 1, clients[i].tcp_socket);
+			send_message(buffer, 1, clients[i].tcp_socket, 1);
         }
     }
 
@@ -366,7 +366,7 @@ void check_connection_tcp(){
 	
 	if(connected_clients == MAX_CLIENT) {
 		//Inform client that connection cannot be made.
-		send_message(NULL, 6, socket);
+		send_message(NULL, 6, socket, 1);
 		return;
 	}
 	//Check if there is slot avaliable
@@ -374,14 +374,14 @@ void check_connection_tcp(){
 	//Repeat in case some went wrong in if above.
 	if (i == MAX_CLIENT) {
 		//Inform client that connection cannot be made.
-		send_message(NULL, 6, socket);
+		send_message(NULL, 6, socket, 1);
 		return;
 	}
 
 	//Check if game is in progress
 	if(game_in_progress) {
 		//Informe client that game in progress
-		send_message(NULL, 7, socket);
+		send_message(NULL, 7, socket, 1);
 		return;
 	}
 
@@ -404,7 +404,7 @@ void check_connection_tcp(){
 	
 	//Send id
 	sprintf(buffer, "%c\t%c", (char) user_id, (char) current_user->id);
-	if(send_message(buffer, 10, socket)){
+	if(send_message(buffer, 10, socket, 1)){
 		//Add to adversary
 		Adversary *adversary = malloc(sizeof (Adversary) * sockets);
 		if(comm->adversary) {
@@ -446,7 +446,7 @@ void check_connection_tcp(){
 			if(clients[j].tcp_socket){
 				if(j != i && clients[j].has_name) {
 					sprintf(buffer, "%c\t%s", (char) clients[j].id, clients[j].name);
-					send_message(buffer,0, socket);
+					send_message(buffer,0, socket, 1);
 				}
 				temp++;
 			}
@@ -570,7 +570,7 @@ void game_status(){
 							//Send message
 							sprintf(buffer, "%c", (char) winner_id);
 							//Send message to other players that user left.
-							send_message(buffer, 4, clients[i].tcp_socket);
+							send_message(buffer, 4, clients[i].tcp_socket, 1);
 							remove_client(i);
 							temp++;
 						}
@@ -608,7 +608,7 @@ void game_status(){
 						}
 						if(clients[i].tcp_socket && clients[i].has_name){
 							//Send message
-							if(send_message(NULL, 3, clients[i].tcp_socket)){
+							if(send_message(NULL, 3, clients[i].tcp_socket, 1)){
 								temp++;
 							}
 							else {
@@ -731,7 +731,8 @@ TCPsocket get_socket_from_user_id(int user_id){
 //Messages Functions
 ///////////////////////////////////////////////////////////////////////
 
-int send_message(char *message, int message_type, TCPsocket socket, int incomplete_message = 1){
+int send_message(char *message, int message_type, TCPsocket socket, int incomplete_message){
+    incomplete_message = 1;
 	char msg[BUFFER_LIMIT];
 	int result, next = 1;
 	int sent;
@@ -799,8 +800,9 @@ int send_message(char *message, int message_type, TCPsocket socket, int incomple
 	return 1;
 }
 
-void handle_message(char *buffer, int handle_internal = 0){
-	char buffer[BUFFER_LIMIT];
+void handle_message(char *buffer, int handle_internal){
+    handle_internal = 0;
+	char intern_buffer[BUFFER_LIMIT];
 	char *pointer = NULL;
 	int i, user_id, temp, life;
 	i = 0;
@@ -1036,7 +1038,7 @@ void handle_message(char *buffer, int handle_internal = 0){
 			if(sender_socket){
 				pointer+=2;
 				//Send message
-				send_message(pointer, 2, sender_socket);
+				send_message(pointer, 2, sender_socket, 1);
 			}
 		}
 		//If current user is the server. This can be used without change com internal server making the action because will not drop by this else.
@@ -1073,7 +1075,7 @@ void handle_message(char *buffer, int handle_internal = 0){
 		pointer++;
 		user_id = (int)*pointer;
 	
-		sprintf(buffer, "USER_READY\t%s", pointer);
+		sprintf(intern_buffer, "USER_READY\t%s", pointer);
 		temp = 0;
 		for(i=0;i< MAX_CLIENT;i++){
 			if(temp == connected_clients) {
@@ -1082,7 +1084,7 @@ void handle_message(char *buffer, int handle_internal = 0){
 			if(clients[i].tcp_socket) {
 				if(clients[i].id != user_id){
 				//Send message to all except who sent
-				send_message(buffer, 5, clients[i].tcp_socket, 0);
+				send_message(intern_buffer, 5, clients[i].tcp_socket, 0);
 				}
 				temp++;
 			}
@@ -1113,7 +1115,7 @@ void handle_message(char *buffer, int handle_internal = 0){
 		life = (int) *pointer;
 		pointer -= 2;
 		
-		sprintf(buffer, "USER_LIFE\t%s", pointer);
+		sprintf(intern_buffer, "USER_LIFE\t%s", pointer);
 		temp = 0;
 		for(i=0;i< MAX_CLIENT;i++){
 			if(temp == connected_clients) {
@@ -1122,7 +1124,7 @@ void handle_message(char *buffer, int handle_internal = 0){
 			if(clients[i].tcp_socket) {
 				if(clients[i].id != user_id){
 					//Send message to all except who sent
-					send_message(buffer, 11, clients[i].tcp_socket, 0);
+					send_message(intern_buffer, 11, clients[i].tcp_socket, 0);
 				}
 				else {
 					//Update alive status
@@ -1172,7 +1174,7 @@ void handle_message(char *buffer, int handle_internal = 0){
 		comm->adversary -= i;
 		//Send add user to clients
 		pointer-2;
-		sprintf(buffer, "ADD_USER\t%s", pointer);
+		sprintf(intern_buffer, "ADD_USER\t%s", pointer);
 		temp = 0;
 		for(i=0;i< MAX_CLIENT;i++){
 			if(temp == connected_clients) {
@@ -1181,7 +1183,7 @@ void handle_message(char *buffer, int handle_internal = 0){
 			if(clients[i].tcp_socket) {
 				if(clients[i].id != user_id){
 					//Send message to all except who sent//ADD_USER
-					send_message(buffer, 0, clients[i].tcp_socket, 0);
+					send_message(intern_buffer, 0, clients[i].tcp_socket, 0);
 				}
 				else {
 					clients[i].has_name = 1;
@@ -1231,7 +1233,7 @@ int handle_message_pool(TCPsocket tcp_socket){
 		has = has_message_tcp(buffer, tcp_socket);
 		if(has == 1){
 			//Message handle with success, give me the next one please.
-			handle_message(buffer);
+			handle_message(buffer, 1);
 		}
 		else if (has == -1){
 			return 0;
@@ -1254,9 +1256,9 @@ void process_action(){
 	is_server = current_user->is_server;
 
 	//Send message status
-	if(current_user->process->message_status){
+	if(current_user->process.message_status){
 		SDL_AtomicLock(&lock);
-		current_user->process->message_status--;
+		current_user->process.message_status--;
 		sprintf(buffer, "USER_STATUS\t%c\t%c", (char) current_user->id, (char) current_user->ready_to_play);
 		SDL_AtomicUnlock(&lock);
 			
@@ -1271,9 +1273,9 @@ void process_action(){
 		}
 	}
 	//Send message life
-	if(current_user->process->message_life){
+	if(current_user->process.message_life){
 		SDL_AtomicLock(&lock);
-		current_user->process->message_life--;
+		current_user->process.message_life--;
 		sprintf(buffer, "USER_STATUS_LIFE\t%c\t%c", (char) current_user->id, (char) current_user->life);
 		SDL_AtomicUnlock(&lock);
 		if(is_server){
@@ -1286,9 +1288,9 @@ void process_action(){
 		}
 	}
 	//Send message minion
-	if(current_user->process->message_minion){
+	if(current_user->process.message_minion){
 		SDL_AtomicLock(&lock);
-		current_user->process->message_minion--;
+		current_user->process.message_minion--;
 		if(current_user->spawn_amount && current_user->minions){
 			minions = current_user->minions;
 			current_user->minions = NULL;
@@ -1299,7 +1301,7 @@ void process_action(){
 		//Process minions.
 		if(minions) {
 			for(int j = 0; j < i; j++){
-				sprintf(buffer, "USER_MINION\t%c\t%c", buffer, (char) *minions->client_id, (char) *minions->amount);
+				sprintf(buffer, "USER_MINION\t%c\t%c", (char) minions->client_id, (char) minions->amount);
 				for(int z; z < minions->amount;z++) {
 					sprintf(buffer, "%s\t%c", buffer, (char) *minions->type);
 					minions->type++;
@@ -1466,7 +1468,7 @@ void run_client(void *data){
 			
 			//Send current name to server
 			sprintf(buffer, "%c\t%s", (char) current_user->id, current_user->name);
-			if(!send_message(buffer,13, server_tcp_socket)){
+			if(!send_message(buffer,13, server_tcp_socket, 1)){
 				comm->server->connecting = 0;
 				comm->server->connection_failed = 1;
 				comm->server->connected = 0;

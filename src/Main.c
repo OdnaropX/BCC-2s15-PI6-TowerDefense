@@ -400,6 +400,15 @@ int main(int argc, char * argv[]) {
                                         }
                                     }
                                     
+                                    if(multiplayer_status == MPS_SEARCHING_ROOM){
+                                        if(select_multiplayer_option == MP_NONE)
+                                            select_multiplayer_option = MP_ROOM_4;
+                                        else if(select_multiplayer_option <= MP_ROOM_4 && select_multiplayer_option >= MP_ROOM_2)
+                                            select_multiplayer_option --;
+                                        else if(select_multiplayer_option == MP_ROOM_1)
+                                            select_multiplayer_option = MP_BACK_TO_MAIN;
+                                    }
+                                    
                                     break;
                                     
                                 case SDLK_DOWN: case SDLK_RIGHT:
@@ -431,6 +440,15 @@ int main(int argc, char * argv[]) {
                                             else if(select_multiplayer_option == MP_LEAVE)
                                                 select_multiplayer_option = MP_BACK_TO_MAIN;
                                         }
+                                    }
+                                    
+                                    if(multiplayer_status == MPS_SEARCHING_ROOM){
+                                        if(select_multiplayer_option == MP_NONE)
+                                            select_multiplayer_option = MP_BACK_TO_MAIN;
+                                        else if(select_multiplayer_option <= MP_ROOM_3 && select_multiplayer_option >= MP_ROOM_1)
+                                            select_multiplayer_option ++;
+                                        else if(select_multiplayer_option == MP_ROOM_4)
+                                            select_multiplayer_option = MP_BACK_TO_MAIN;
                                     }
                                     break;
                                     
@@ -482,7 +500,29 @@ int main(int argc, char * argv[]) {
                                                 multiplayer_option = MP_BACK_TO_MAIN;
                                         }
                                     }
+                                    
+                                    else if(event.motion.x >= 195 && event.motion.x <= 195 + BUTTON_MENU_WIDTH && multiplayer_status == MPS_SEARCHING_ROOM){
+                                        temp_option = (event.motion.y - 300 - BUTTON_MENU_HEIGHT) / BUTTON_MENU_HEIGHT;
+                                        switch(temp_option){
+                                            case 0:
+                                                multiplayer_option = MP_ROOM_1;
+                                                break;
+                                            case 1:
+                                                multiplayer_option = MP_ROOM_2;
+                                                break;
+                                            case 2:
+                                                multiplayer_option = MP_ROOM_3;
+                                                break;
+                                            case 3:
+                                                multiplayer_option = MP_ROOM_4;
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    }
                                 }
+                                
+                                
                             }
                             
                             break;
@@ -497,19 +537,39 @@ int main(int argc, char * argv[]) {
                                     else if(comm && comm->server && comm->server->host){
                                         if(current_user->is_server){
                                             if(temp_option == 0)
-                                                multiplayer_option = MP_START;
+                                                select_multiplayer_option = MP_START;
                                         }
                                         
                                         else{
                                             if(temp_option == 0)
-                                                multiplayer_option = MP_TOGGLE_READY;
+                                                select_multiplayer_option = MP_TOGGLE_READY;
                                         }
                                         
                                         if(temp_option == 1)
-                                            multiplayer_option = MP_LEAVE;
+                                            select_multiplayer_option = MP_LEAVE;
                                         else if(temp_option == 2)
-                                            multiplayer_option = MP_BACK_TO_MAIN;
+                                            select_multiplayer_option = MP_BACK_TO_MAIN;
                                     }
+                                }
+                            }
+                            
+                            else if(event.motion.x >= 195 && event.motion.x <= 195 + BUTTON_MENU_WIDTH && multiplayer_status == MPS_SEARCHING_ROOM){
+                                temp_option = (event.motion.y - 300 - BUTTON_MENU_HEIGHT) / BUTTON_MENU_HEIGHT;
+                                switch(temp_option){
+                                    case 0:
+                                        select_multiplayer_option = MP_ROOM_1;
+                                        break;
+                                    case 1:
+                                        select_multiplayer_option = MP_ROOM_2;
+                                        break;
+                                    case 2:
+                                        select_multiplayer_option = MP_ROOM_3;
+                                        break;
+                                    case 3:
+                                        select_multiplayer_option = MP_ROOM_4;
+                                        break;
+                                    default:
+                                        break;
                                 }
                             }
                             
@@ -1615,7 +1675,7 @@ int main(int argc, char * argv[]) {
                         
                     case MP_TOGGLE_READY:
 						SDL_AtomicLock(&lock);
-						current_user->process->message_status = current_user->process->message_status + 1;
+						current_user->process.message_status = current_user->process.message_status + 1;
 						current_user->ready_to_play = (current_user->ready_to_play + 1) % 2;
 						SDL_AtomicUnlock(&lock);
 					    break;
@@ -1629,6 +1689,18 @@ int main(int argc, char * argv[]) {
                             kill_thread(&thread);
                         }
 
+                        break;
+                        
+                    case MP_ROOM_1:
+                        break;
+                        
+                    case MP_ROOM_2:
+                        break;
+                        
+                    case MP_ROOM_3:
+                        break;
+                        
+                    case MP_ROOM_4:
                         break;
                         
                     case MP_NONE:
@@ -1751,7 +1823,7 @@ int main(int argc, char * argv[]) {
 							//Update player health if multiplayer
 							if(multiplayer){
 								SDL_AtomicLock(&lock);
-								current_user->process->message_life++;
+								current_user->process.message_life++;
 								current_user->life = health;
 								SDL_AtomicUnlock(&lock);
 							}
@@ -2607,96 +2679,197 @@ void get_config_text(){
 
 //Carrega textos do menu de multiplayer
 void get_multiplayer_texts(multiplayer_status current_status){
-	//game_comm *servers_data é global agora e se quiser pegar info do server use comm->server direto nessa função.
     for(int i = 0; i < multiplayer_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
         
         //Setting texts and rects
-        if(i == 0){
-            text = "MULTIPLAYER";
-            rect = (SDL_Rect){265, 0, 750, 150};
-        }
-        
-        else if(i == 1 || i == 2){
-            if(current_status == MPS_NONE)
-                text = "Create Room";
-            else if(current_status == MPS_CAN_START)
-                text = "Start Game";
-            else if(current_status == MPS_ENTERED_ROOM)     //Or not ready
-                text = "Ready!";
+        switch (i) {
+            case 0:
+                text = "MULTIPLAYER";
+                rect = (SDL_Rect){265, 0, 750, 150};
+                break;
+                
+            case 1: case 2:
+                if(current_status == MPS_NONE)
+                    text = "Create Room";
+                else if(current_status == MPS_CAN_START)
+                    text = "Start Game";
+                else if(current_status == MPS_ENTERED_ROOM)     //Or not ready
+                    text = "Ready!";
+                
+                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 3: case 4:
+                if(current_status == MPS_NONE)
+                    text = "Search Room";
+                else if(current_status != MPS_NONE && current_status != MPS_STARTED_GAME && current_status != MPS_SEARCHING_ROOM)
+                    text = "Leave Room";
+                
+                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 5: case 6:
+                text = "Back to Main";
+                
+                rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            //Room hosts
+            case 7: case 8:
+                if(current_status == MPS_SEARCHING_ROOM){
+                    text = get_host_name(0);
+                    
+                    rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
+                
+            case 9: case 10:
+                if(current_status == MPS_SEARCHING_ROOM){
+                    text = get_host_name(1);
+                    
+                    rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
+                
+            case 11: case 12:
+                if(current_status == MPS_SEARCHING_ROOM){
+                    text = get_host_name(2);
+                    
+                    rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
+                
+            case 13: case 14:
+                if(current_status == MPS_SEARCHING_ROOM){
+                    text = get_host_name(3);
+                    
+                    rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
             
-            rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-        }
-        
-        else if(i == 3 || i == 4){
-            if(current_status == MPS_NONE)
-                text = "Search Room";
-            else if(current_status != MPS_NONE && current_status != MPS_STARTED_GAME && current_status != MPS_SEARCHING_ROOM)
-                text = "Leave Room";
+            case 15:
+                text = "Rooms";
+                
+                rect = (SDL_Rect){195, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 16:
+                text = "Players";
+                
+                rect = (SDL_Rect){515, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 17:
+                text = "Ready?";
+                
+                rect = (SDL_Rect){835, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            //Players in room
+            case 18:
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 0){
+                    text = comm->adversary[0].name;
+                    
+                    rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
+                
+            case 19:
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 1){
+                    text = comm->adversary[1].name;
+                    
+                    rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
+                
+            case 20:
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 2){
+                    text = comm->adversary[2].name;
+                    
+                    rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
+                
+            case 21:
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 3){
+                    text = comm->adversary[3].name;
+                    
+                    rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
+                
+            //Ready?
+            case 22:
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 0){
+                    if(comm->adversary[0].ready_to_play)
+                        text = "Yes";
+                    else
+                        text = "No";
+                    
+                    rect = (SDL_Rect){835, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+
+                break;
+                
+            case 23:
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 1){
+                    if(comm->adversary[1].ready_to_play)
+                        text = "Yes";
+                    else
+                        text = "No";
+                    
+                    rect = (SDL_Rect){835, 300 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
+                
+            case 24:
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 2){
+                    if(comm->adversary[2].ready_to_play)
+                        text = "Yes";
+                    else
+                        text = "No";
+                    
+                    rect = (SDL_Rect){835, 300 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
+                
+            case 25:
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 3){
+                    if(comm->adversary[3].ready_to_play)
+                        text = "Yes";
+                    else
+                        text = "No";
+                    
+                    rect = (SDL_Rect){835, 300 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
             
-            rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-        }
-        
-        else if(i == 5 || i == 6){
-            text = "Back to Main";
-            
-            rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-        }
-        
-        //Room hosts
-        else if(i >= 7 && i <= 14){
-//            if(current_status != MPS_SEARCHING_ROOM)
-        }
-        
-        else if(i == 15){
-            text = "Rooms";
-            
-            rect = (SDL_Rect){195, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-        }
-        
-        else if(i == 16){
-            text = "Players";
-            
-            rect = (SDL_Rect){515, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-        }
-        
-        else if(i == 17){
-            text = "Ready?";
-            
-            rect = (SDL_Rect){835, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-        }
-        
-        //Players in room
-        else if(i >= 18 && i <= 21){
-            
-        }
-        
-        //Ready?
-        else if(i >= 22 && i <= 25){
-            
-        }
-        
-        //Status
-        else{
-            if(current_status == MPS_NONE)
-                text = NULL;
-            else if(current_status == MPS_WAIT_FOR_PLAYER)
-                text = "Waiting for players...";
-            else if(current_status == MPS_SEARCHING_ROOM)
-                text = "Searching rooms...";
-            else if(current_status == MPS_WAIT_READY)
-                text = "Everyone must be ready to start";
-            else if(current_status == MPS_CAN_START)
-                text = "Everyone ready!";
-            
-            rect = (SDL_Rect){390, 150, BUTTON_MENU_WIDTH * 2, BUTTON_MENU_HEIGHT};
+            //status
+            case 26:
+                if(current_status == MPS_NONE)
+                    text = NULL;
+                else if(current_status == MPS_WAIT_FOR_PLAYER)
+                    text = "Waiting for players...";
+                else if(current_status == MPS_SEARCHING_ROOM)
+                    text = "Searching rooms...";
+                else if(current_status == MPS_WAIT_READY)
+                    text = "Everyone must be ready to start";
+                else if(current_status == MPS_CAN_START)
+                    text = "Everyone ready!";
+                
+                rect = (SDL_Rect){390, 150, BUTTON_MENU_WIDTH * 2, BUTTON_MENU_HEIGHT};
+                break;
+                
+            default:
+                break;
         }
         
         //Creating textures
         if(text){
             SDL_Surface *surface;
-            if(i%2 == 0 && i > 0)
+            if(i%2 == 0 && i > 0 && i <= 14)
                 surface = TTF_RenderText_Solid(font, text, red);
             else
                 surface = TTF_RenderText_Solid(font, text, black);
@@ -2720,7 +2893,6 @@ void get_multiplayer_texts(multiplayer_status current_status){
         
         else
             multiplayer_menu_assets[i] = NULL;
-        
     }
 }
 
