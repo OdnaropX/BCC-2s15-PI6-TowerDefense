@@ -1609,6 +1609,10 @@ int main(int argc, char * argv[]) {
 					minions->client_id = comm->adversary[player_adversary % comm->match->players].id;//Mod in case players amount changed.
 					minions->type = malloc(sizeof(int));
 					*minions->type = send_minion;
+					if(current_user->minions){
+						free(current_user->minions);
+					}
+					current_user->minions = minions;
 				}
 				SDL_AtomicUnlock(&lock);
 				send_minion = 0;
@@ -1907,8 +1911,7 @@ int main(int argc, char * argv[]) {
                                 gold_per_second += get_minion_bonus(avaliable_minions, add_minion);
                             }
                         }
-                        
-                        
+
 						//Reset minion
 						add_minion = 0;
 					}
@@ -2001,7 +2004,31 @@ int main(int argc, char * argv[]) {
                         game_started = false;
                     }
                 }
-                
+				if(multiplayer){
+					for(i = 0;i< comm->match->players;i++){
+						for(int j = 0; j < (*comm->adversary).pending_minions;j++){
+							if(*(*comm->adversary)->minions_sent > 0){
+								//Add minion
+								new_minion = init_minion(avaliable_minions, *(*comm->adversary)->minions_sent);     //minion_id not used
+								if(new_minion != NULL){
+									add_minion_to_list(minions, new_minion);
+									new_minion->node->xPos = 150;
+									new_minion->node->yPos = 600;
+								}
+							}
+							(*comm->adversary)->minions_sent++;
+						}
+						//Free minions_sent
+						if((*comm->adversary)->minions_sent){
+							free((*comm->adversary)->minions_sent);
+							(*comm->adversary)->minions_sent = NULL;
+						}
+						(*comm->adversary)->pending_minions = 0;
+						comm->adversary++;
+					}
+					//Reset adversary position
+					comm->adversary -= i;
+				}
                 break;
 
 			case GAME_PAUSED:
@@ -3002,6 +3029,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
 
 //Reseta listas, e dados do jogo
 void reset_game_data(){
+	int i;
     //Free lists
     if(minions)
         free_list_minion(minions);
@@ -3030,6 +3058,28 @@ void reset_game_data(){
     health = DEFAULT_PLAYERS_LIFE;
     gold = 1000;
     mana = 0;
+	
+	//Reset current user data used on network.
+	current_user->id = 0;
+	current_user->is_server = 0;
+	current_user->life = health;
+	current_user->ready_to_play = 0;
+	current_user->process.message_status = 0;
+	current_user->process.message_life = 0;
+	current_user->process.message_minion = 0;
+	if(current_user->minions){
+		for(i = 0; i<current_user->spawn_amount; i++){
+			if((*current_user->minions).type) {
+				free((*current_user->minions).type);
+				(*current_user->minions).type = NULL;
+			}
+			current_user->minions++;
+		}
+		current_user->minions-=i;
+		free(current_user->minions);
+		current_user->minions = NULL;
+	}
+	current_user->spawn_amount = 0;
 }
 
 void set_end_game_status_text(end_game_status end_status){
