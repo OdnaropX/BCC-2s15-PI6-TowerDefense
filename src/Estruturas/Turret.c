@@ -242,6 +242,12 @@ int get_tower_avaliable(list_turret_avaliable *list) {
 	return avaliable;
 }
 
+int get_turret_price(list_turret_avaliable *list, int turretID){
+    turret_avaliable * available = get_turret_from_avaliable_list(list, turretID);
+    
+    return available->cost;
+}
+
 turret_avaliable *get_turret_from_avaliable_list(list_turret_avaliable *list, int type){
 	list_turret_avaliable *temp_list;
 	

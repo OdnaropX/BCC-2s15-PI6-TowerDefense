@@ -78,6 +78,8 @@
 	///////////////////////////////////////////////////////////////////////
 	
 	int get_minion_avaliable(list_minion_avaliable *list);
+    int get_minion_price(list_minion_avaliable *list, int turretID);
+    int get_minion_bonus(list_minion_avaliable *list, int turretID);
 	minion_avaliable *get_minion_from_avaliable_list(list_minion_avaliable *list, int type);
 	
 #endif

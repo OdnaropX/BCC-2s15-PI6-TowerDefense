@@ -67,6 +67,7 @@
 	///////////////////////////////////////////////////////////////////////
 	
 	int get_tower_avaliable(list_turret_avaliable *list);
+    int get_turret_price(list_turret_avaliable *list, int turretID);
 	turret_avaliable *get_turret_from_avaliable_list(list_turret_avaliable *list, int type);
 	
 #endif
