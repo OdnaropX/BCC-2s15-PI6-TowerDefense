@@ -5,7 +5,7 @@
 	///////////////////////////////////////////////////////////////////////
 	
 	typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE, END_GAME, GAME_MULTIPLAY_SERVER, MINIONS_INFO, MULTIPLAYER_CHOOSE_ROOM, MULTIPLAYER_ROOM} screen;
-	typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA} TAB;
+	typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA, ADVERSARY_MENU} TAB;
 	typedef enum _main_options {OPT_PLAY, OPT_MULTIPLAYER, OPT_CONFIG, OPT_SCORE, OPT_EXIT, OPT_CREDIT, OPT_NONE} main_options;
 	typedef enum _pause_options {OPT_P_RESUME, OPT_P_CONFIG, OPT_P_SCORE, OPT_P_EXIT, OPT_P_MAIN, OPT_P_CREDITS, OPT_P_NONE} pause_options;
 	typedef enum _config_options{AUDIO_SFX, AUDIO_MUSIC, LANGUAGE, BACK, NONE} config_options;
@@ -24,20 +24,29 @@
 	//Structs
 	///////////////////////////////////////////////////////////////////////
 	
-	typedef struct _select_game_running_inner GAME_AREA_OPTIONS;
-	typedef struct _select_game_running GAME_RUNNING_OPTIONS;
+	typedef struct _select_game_running_inner Game_Area_Options;
+	typedef struct _select_game_running Game_Running_Options;
+	typedef struct _select_multiplayer Multiplayer_Options;
 	
 	struct _select_game_running_inner {
 		RUNNING_AREA_LEFT_OPTIONS left;
 		RUNNING_AREA_RIGHT_OPTIONS right;
 	};
 	
+	struct _select_multiplayer {
+		int players;
+		int current_player;
+	};
+	
 	struct _select_game_running {
 		TAB current_tab;
 		RUNNING_TOP_OPTIONS top;
 		RUNNING_LEFT_OPTIONS left;
-		GAME_AREA_OPTIONS game_area;
+		Game_Area_Options game_area;
+		Multiplayer_Options multiplay;
 	};
+	
+	
 	
 	
 #endif
