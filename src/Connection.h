@@ -19,7 +19,7 @@
 	
 	//Constants
 	///////////////////////////////////////////////////////////////////////
-	#define DEFAULT_PORT 4242
+	#define DEFAULT_PORT 7777
 	#define DEFAULT_PLAYERS_LIFE 10
 	#define BUFFER_LIMIT 512
 	#define SERVER_NAME 150

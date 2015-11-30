@@ -314,10 +314,10 @@ int find_servers() {
 
 int establish_server(IPaddress *ip){
 	time_t t;
+    int port = DEFAULT_PORT;
 	/* First create TCP socket that will be used to connect	*/
-	
 	//Null is to listen
-	if(SDLNet_ResolveHost(ip, NULL, DEFAULT_PORT) < 0){
+	if(SDLNet_ResolveHost (ip, NULL, port) < 0){
 		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
 		return 0;
 	}
