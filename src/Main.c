@@ -177,7 +177,8 @@ int main(int argc, char * argv[]) {
 	//Game area control
     bool selected_left = false;//Right click equals to tower and left to minions.
 	int add_tower = 0;
-	int add_minion = 0;
+	int add_minion = 0;//Game add the minion.
+	int send_minion = 0;//User send the minion.
 	
 	int current_position[] = {0,0};
 	
