@@ -1230,8 +1230,7 @@ int handle_message_pool(TCPsocket tcp_socket){
 		has = has_message_tcp(buffer, tcp_socket);
 		if(has == 1){
 			//Message handle with success, give me the next one please.
-			handle_message(buffer, 0);
-		}
+			handle_message(buffer, 0);		}
 		else if (has == -1){
 			return 0;
 		}

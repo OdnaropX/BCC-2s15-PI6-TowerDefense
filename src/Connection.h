@@ -79,7 +79,6 @@
 		int avaliable;
 		Host *host;
 	};
-	
 		
 	struct _send_minion {
 		int client_id;
@@ -103,7 +102,6 @@
 		Action process;
 		SpawnMinion *minions;
 	};
-	
 	
 	struct _host {
 		IPaddress ip;
