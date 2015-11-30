@@ -920,18 +920,24 @@ void handle_message(char *buffer, int handle_internal){
 						adversary++;
 					}
 					else {
+						if(adversary->minions_sent){
+							free(adversary->minions_sent);
+							adversary->minions_sent = NULL;
+						}
 						//Free name
-						free(adversary->name);
-						adversary->name = NULL;
+						if(adversary->name){
+							free(adversary->name);
+							adversary->name = NULL;
+						}
 					}
 				}
 				free(comm->adversary);
 				
 				//Set pointer back
-				adversary -= temp - 1;
+				adversary -= (i - 1);
 				
 				comm->adversary = adversary;
-				comm->match->players = temp - 1;
+				comm->match->players = (i - 1);
 			}
 		}
 		SDL_AtomicUnlock(&lock);
@@ -942,32 +948,52 @@ void handle_message(char *buffer, int handle_internal){
 		pointer++;
 		user_id = (int) *pointer;
 		pointer+=2;
+		temp = (int) *pointer; //qtd.
 		SDL_AtomicLock(&lock);
-		temp = comm->adversary->pending_minions;
-		//Realloc 
-		int *minions_sent = malloc(sizeof(int) * (temp + (int) *pointer));
-		if(comm->adversary->minions_sent){
-			for(i = 0; i < temp; i++){
-				*minions_sent = comm->adversary->minions_sent[i];
-				minions_sent++;
+		//Check if user 
+		for(i = 0; i < comm->match->players;i++){
+			if(comm->adversary->id == user_id){
+				int *minions_to_send = NULL;
+				if(comm->adversary->pending_minions > 0 && comm->adversary->minions_sent){
+					//Realloc
+					minions_to_send = malloc(sizeof(int) * (comm->adversary->pending_minions + temp));
+					for(int z = 0;z < comm->adversary->pending_minions;z++){
+						*minions_to_send = comm->adversary->minions_sent[z];
+						minions_to_send++;
+					}
+					pointer+=2;//Now pointer point to first type.
+					//Add new ones.
+					for(int z = 0; z < temp;z++){
+						*minions_to_send = (int) *pointer;
+						minions_to_send++;
+						pointer+=2;
+					}
+					comm->adversary->pending_minions = temp + comm->adversary->pending_minions;
+				}
+				else {
+					//Allocate new minions
+					minions_to_send = malloc(sizeof(int) * (temp));
+					pointer+=2;//Now pointer point to first type.
+					for(int z = 0; z < temp;z++){
+						*minions_to_send = (int) *pointer;
+						minions_to_send++;
+						pointer+=2;
+					}
+					comm->adversary->pending_minions = temp;
+				}
+				//Reset pointer location
+				minions_to_send -= comm->adversary->pending_minions;
+				if(comm->adversary->minions_sent){
+					free(comm->adversary->minions_sent);
+				}
+				comm->adversary->minions_sent = minions_to_send;
+				break;
 			}
-			free(comm->adversary->minions_sent);
-		}
-		temp = (int) *pointer;//pointer on qtd
-		pointer+=2;
-		for(i = 0; i < temp; i++){
-			*minions_sent = (int) *pointer;
-			minions_sent++;
-			pointer+=2;
+			comm->adversary++;
 		}
 		//Set pointer back
-		//
-				
-		comm->adversary->minions_sent = minions_sent;
-		comm->adversary->pending_minions = temp + comm->adversary->pending_minions;
-		
+		comm->adversary -= i;
 		SDL_AtomicUnlock(&lock);
-		
 	}			
 	//Check USER_READY
 	else if(strncmp(buffer, "USER_READY", strlen("USER_READY")) == 0) {
