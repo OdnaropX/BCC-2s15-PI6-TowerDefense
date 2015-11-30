@@ -378,11 +378,13 @@ int main(int argc, char * argv[]) {
                                     if(multiplayer_status == MPS_NONE){
                                         if(select_multiplayer_option == MP_CREATE_ROOM)
                                             select_multiplayer_option = MP_BACK_TO_MAIN;
+                                        else if(select_multiplayer_option == MP_NONE)
+                                            select_multiplayer_option = MP_BACK_TO_MAIN;
                                         else
                                             select_multiplayer_option --;
                                     }
                                     
-                                    else if(comm && comm->server && comm->server->host){
+                                    else if(comm){
                                         if(current_user->is_server){
                                             printf("Host\n");
                                             
@@ -420,11 +422,13 @@ int main(int argc, char * argv[]) {
                                     if(multiplayer_status == MPS_NONE){
                                         if(select_multiplayer_option == MP_BACK_TO_MAIN)
                                             select_multiplayer_option = MP_CREATE_ROOM;
+                                        else if(select_multiplayer_option == MP_NONE)
+                                            select_multiplayer_option = MP_CREATE_ROOM;
                                         else
                                             select_multiplayer_option ++;
                                     }
                                     
-                                    else if(comm && comm->server && comm->server->host){
+                                    else if(comm){
                                         if(current_user->is_server){
                                             printf("Host\n");
                                             
@@ -488,7 +492,7 @@ int main(int argc, char * argv[]) {
                                         if(multiplayer_status == MPS_NONE)
                                             multiplayer_option = temp_option;
                                         
-                                        else if(comm && comm->server && comm->server->host){
+                                        else if(comm){
                                             if(current_user->is_server){
                                                 if(temp_option == 0)
                                                     multiplayer_option = MP_START;
@@ -539,7 +543,7 @@ int main(int argc, char * argv[]) {
                                     if(multiplayer_status == MPS_NONE)
                                         select_multiplayer_option = temp_option;
                                     
-                                    else if(comm && comm->server && comm->server->host){
+                                    else if(comm){
                                         if(current_user->is_server){
                                             if(temp_option == 0)
                                                 select_multiplayer_option = MP_START;
@@ -1704,7 +1708,6 @@ int main(int argc, char * argv[]) {
 							}
 							else {
 								printf("%d\n", network.connection_failed);
-
 							}
 						}
 						else {

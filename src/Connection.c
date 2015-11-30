@@ -708,7 +708,7 @@ char *get_host_name(int i){
 }
 
 Host *get_host(){
-	return &servers;
+	return servers;
 }
 
 TCPsocket get_socket_from_user_id(int user_id){
@@ -1261,7 +1261,7 @@ int handle_message_pool(TCPsocket tcp_socket){
 			return 0;
 		}
 		else {
-			return 1;
+            break;
 		}
 	}
 	
@@ -1323,7 +1323,7 @@ void process_action(){
 		//Process minions.
 		if(minions) {
 			for(int j = 0; j < i; j++){
-				sprintf(buffer, "USER_MINION\t%c\t%c", buffer, (char) (*minions).client_id, (char) (*minions).amount);
+				sprintf(buffer, "USER_MINION\t%c\t%c", (char) (*minions).client_id, (char) (*minions).amount);
 				for(int z; z < (*minions).amount;z++) {
 					sprintf(buffer, "%s\t%c", buffer, (char) *(*minions).type);
 					(*minions).type++;
@@ -1402,7 +1402,6 @@ void run_server(void *data){
 	//Free server
 	if(main_server){
 		//Free ip address
-		main_server->ip;
 		free(main_server);
 	}
 	terminate_thread = 0;
