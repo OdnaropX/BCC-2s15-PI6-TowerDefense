@@ -976,6 +976,8 @@ void handle_message(char *buffer, int handle_internal){
 			}
 			free(comm->adversary);
 		}
+        
+        //--BUFFER DOESN'T HAVE '\t'!!!!
 		pointer = strchr(buffer, '\t');
 		pointer++;
 		
@@ -990,7 +992,9 @@ void handle_message(char *buffer, int handle_internal){
 		pointer++;
 		if(!adversary[i].name){
 			adversary[i].name = malloc(sizeof(char) * SERVER_NAME);
+            printf("adversary[i].name alloc\n");
 		}
+        
 		strncpy(adversary[i].name, (const char *) pointer, SERVER_NAME);
 		
 		comm->adversary = adversary;

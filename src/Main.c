@@ -1839,7 +1839,7 @@ int main(int argc, char * argv[]) {
                 multiplayer_option = MP_NONE;
                 
                 //Get multiplayer menu assets
-                get_multiplayer_texts(MPS_NONE);
+                get_multiplayer_texts(multiplayer_status);
                 
                 break;
                 
@@ -2314,7 +2314,7 @@ bool main_init(){
                 break;
                 
             case 9: case 10:
-                text = "Credits/Quick Ref.";
+                text = "Credits";
                 rect = (SDL_Rect){30, 450 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
@@ -2390,7 +2390,7 @@ bool main_init(){
                 break;
                 
             case 11: case 12:
-                text = "Credits/Quick Ref.";
+                text = "Credits";
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
@@ -2438,7 +2438,7 @@ bool main_init(){
         
         switch (i) {
             case 0:
-                text = "Credits/Quick Ref.";
+                text = "Credits";
                 rect = (SDL_Rect){265, 0, 750, 150};
                 break;
                 
@@ -3003,7 +3003,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
         }
         
         //Creating textures
-        if(text){
+        if(text && strlen(text) > 0){
             SDL_Surface *surface;
             if(i%2 == 0 && i > 0 && i <= 14)
                 surface = TTF_RenderText_Solid(font, text, red);
