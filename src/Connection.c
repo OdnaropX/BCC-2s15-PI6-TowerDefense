@@ -147,7 +147,6 @@ void remove_client(int client){
 					adversary->minions_sent = comm->adversary[i].minions_sent;
 				}
 				else {
-<<<<<<< HEAD
 					if(adversary->minions_sent){
 						free(adversary->minions_sent);
 						adversary->minions_sent = NULL;
@@ -157,10 +156,7 @@ void remove_client(int client){
 						free(adversary->name);
 						adversary->name = NULL;
 					}
-=======
-					//Free name
-					free(adversary->name);
->>>>>>> 4b00cc2f950d883e8c70e6b6c33e5fc30223dcbf
+
 				}
 				adversary++;
 			}
@@ -395,18 +391,12 @@ int find_servers() {
 
 int establish_server(IPaddress *ip){
 	time_t t;
-<<<<<<< HEAD
-	
-=======
->>>>>>> 4b00cc2f950d883e8c70e6b6c33e5fc30223dcbf
+
 	/* First create TCP socket that will be used to connect	*/
 	
 	//Null is to listen
-<<<<<<< HEAD
 	if(SDLNet_ResolveHost(ip, NULL, DEFAULT_PORT_TCP) < 0){
-=======
-	if(SDLNet_ResolveHost (ip, NULL, DEFAULT_PORT) < 0){
->>>>>>> 4b00cc2f950d883e8c70e6b6c33e5fc30223dcbf
+
 		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
 		return 0;
 	}
@@ -614,14 +604,10 @@ void check_messages_udp(){
 			output->len = (int)strlen(buffer) + 1;
 			output->address.host = input->address.host;
             output->address.port = input->address.port;
-<<<<<<< HEAD
 			sent = SDLNet_UDP_Send(server_udp_socket, -1, output);
 			if (sent){
 				printf("Package from server was sent\n");
 			}
-=======
-			/*sent =*/ SDLNet_UDP_Send(server_udp_socket, -1, output);
->>>>>>> 4b00cc2f950d883e8c70e6b6c33e5fc30223dcbf
             SDLNet_FreePacket(output);
 		}
 	}
@@ -923,12 +909,9 @@ int send_message(char *message, int message_type, TCPsocket socket, int incomple
 
 void handle_message(char *buffer, int handle_internal){
 	char *pointer = NULL;
-<<<<<<< HEAD
 	int i, user_id, temp, life, connected;
 	i = 0;
-=======
-	int i, user_id, temp, life;
->>>>>>> 4b00cc2f950d883e8c70e6b6c33e5fc30223dcbf
+
 	//Client side
 	//Check if game can begin
 	if(strncmp(buffer, "BEGIN_GAME", strlen("BEGIN_GAME")) == 0) {
