@@ -69,7 +69,7 @@ void remove_communication(){
 		}
 		
 		if(comm->server){
-			printf("Here %d]n\n", comm->server->avaliable);
+			//printf("Here %d]n\n", comm->server->avaliable);
 			if(comm->server->host && comm->server->avaliable){
 				free(comm->server->host);
 				comm->server->host = NULL;
@@ -97,7 +97,7 @@ void remove_client(int client){
 		}
 		if(clients[i].tcp_socket){
 			if(i != client) {
-				sprintf(buffer, "%c", (char) clients[i].id);
+				snprintf(buffer, BUFFER_LIMIT, "%c", (char) clients[i].id);
 				//Send message to other players that user left.
 				send_message(buffer, 1, clients[i].tcp_socket, 1);
 			}
@@ -229,8 +229,8 @@ int update_list_servers(UDPpacket* package){
 		}
 		servers[i].ip.host = package->address.host;
 		servers[i].ip.port = port_number;
-		printf("Server name: |%s|\n", servers[i].name);
-		printf("Server port: |%d|\n", servers[i].ip.port);
+		//printf("Server name: |%s|\n", servers[i].name);
+		//printf("Server port: |%d|\n", servers[i].ip.port);
 		return 1;
 	}	
 	return 0;
@@ -289,7 +289,7 @@ int find_servers() {
 	
     output_package->address.host = ip.host;
     output_package->address.port = ip.port;
-    sprintf((char*) output_package->data, "GRADE_DEFENDER_CLIENT");
+    snprintf((char*) output_package->data, BUFFER_LIMIT, "GRADE_DEFENDER_CLIENT");
     output_package->len = strlen("GRADE_DEFENDER_CLIENT") + 1;
 
 	//Package for localhost. This will be used on internal tests.
@@ -299,7 +299,7 @@ int find_servers() {
 	
     output_package_local->address.host = ip.host;
     output_package_local->address.port = ip.port;
-    sprintf((char*) output_package_local->data, "GRADE_DEFENDER_CLIENT");
+    snprintf((char*) output_package_local->data, BUFFER_LIMIT, "GRADE_DEFENDER_CLIENT");
     output_package_local->len = strlen("GRADE_DEFENDER_CLIENT") + 1;
 	
 	//Reset ip host
@@ -308,7 +308,7 @@ int find_servers() {
 	}
 	
 	while(trying){
-		printf("Trying send package: %s\n", (char *) output_package->data);//Cast because data is save as Uint8 *
+		//printf("Trying send package: %s\n", (char *) output_package->data);//Cast because data is save as Uint8 *
 		
 		//sent = SDLNet_UDP_Send(udp_socket, output_package->channel, output_package);
 		sent = SDLNet_UDP_Send(udp_socket, -1, output_package);
@@ -465,7 +465,7 @@ void check_connection_tcp(){
 	sockets = SDLNet_TCP_AddSocket(activity, socket);
 	
 	if(sockets == -1) {
-		fprintf(stderr, "SDLNet_AddSocket: %s\n", SDLNet_GetError());
+		printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
 		comm->server->connecting = 0;
 		comm->server->connection_failed = 1;
 		return;
@@ -479,7 +479,7 @@ void check_connection_tcp(){
 	current_index_id = user_id + 1;
 	
 	//Send id
-	sprintf(buffer, "%c\t%c", (char) user_id, (char) current_user->id);
+	snprintf(buffer, BUFFER_LIMIT, "%c\t%c", (char) user_id, (char) current_user->id);
 	if(send_message(buffer, 10, socket, 1)){
 		temp = 0;
 		//Send other users to this user
@@ -490,7 +490,7 @@ void check_connection_tcp(){
 			}
 			if(clients[j].tcp_socket){
 				if(j != i && clients[j].has_name) {
-					sprintf(buffer, "%c\t%s", (char) clients[j].id, clients[j].name);
+					snprintf(buffer, BUFFER_LIMIT, "%c\t%s", (char) clients[j].id, clients[j].name);
 					if(!send_message(buffer,0, socket, 1)){
 						//Connection failed.
 						return;
@@ -1362,6 +1362,7 @@ void handle_message(char *buffer, int handle_internal){
 		//Update adversary
 		for(i =0; i < comm->match->players; i++){
 			if(comm->adversary[i].id == user_id){
+				comm->adversary[i].name = realloc(comm->adversary[i].name, sizeof(char) * BUFFER_LIMIT);
 				if(!comm->adversary[i].name){
 					comm->adversary[i].name = malloc(sizeof(char) * SERVER_NAME);
 				}
