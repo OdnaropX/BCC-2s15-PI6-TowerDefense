@@ -178,6 +178,8 @@
 	
 	//Server runner
 	///////////////////////////////////////////////////////////////////////
+	void thread_check_messages_udp(void *data);
+	
 	void run_server(void *data);
 
 	void run_client(void *data);

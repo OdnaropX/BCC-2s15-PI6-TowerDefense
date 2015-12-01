@@ -24,6 +24,10 @@ extern int terminate_thread;
 extern SDL_SpinLock comm_lock;
 extern SDL_SpinLock user_lock;
 
+int terminate_thread_udp = 0;
+int thread_upd_closed = 0;
+SDL_Thread *thread_udp = NULL;
+
 //Allocation Functions
 ///////////////////////////////////////////////////////////////////////
 
@@ -932,7 +936,7 @@ void handle_message(char *buffer, int handle_internal){
 		//Send user name to server.
 		char *buffer_name = malloc(sizeof(char) * BUFFER_LIMIT);
 		//Send current name to server
-		sprintf(buffer_name, "%c\t%s", (char) current_user->id, current_user->name);
+		snprintf(buffer_name, BUFFER_LIMIT, "%c\t%s", (char) current_user->id, current_user->name);
 			if(!send_message(buffer_name,13, server_tcp_socket, 1)){
 				comm->server->connecting = 0;
 				comm->server->connection_failed = 1;
@@ -1271,7 +1275,7 @@ void handle_message(char *buffer, int handle_internal){
 		pointer++;
 		user_id = (int)*pointer;
 	
-		sprintf(buffer, "USER_READY\t%s", pointer);
+		snprintf(buffer, BUFFER_LIMIT, "USER_READY\t%s", pointer);
 		temp = 0;
 		connected = connected_clients;
 		for(i=0;i< MAX_CLIENT;i++){
@@ -1313,7 +1317,7 @@ void handle_message(char *buffer, int handle_internal){
 		life = (int) *pointer;
 		pointer -= 2;
 		
-		sprintf(buffer, "USER_LIFE\t%s", pointer);
+		snprintf(buffer, BUFFER_LIMIT, "USER_LIFE\t%s", pointer);
 		temp = 0;
 		connected = connected_clients;
 		for(i=0;i< MAX_CLIENT;i++){
@@ -1372,7 +1376,7 @@ void handle_message(char *buffer, int handle_internal){
 		}
 		//Send add user to clients
 		pointer-=2;
-		sprintf(buffer, "ADD_USER\t%s", pointer);
+		snprintf(buffer, BUFFER_LIMIT, "ADD_USER\t%s", pointer);
 		temp = 0;
 		for(i = 0; i < MAX_CLIENT; i++){
 			if(temp == connected_clients) {
@@ -1460,7 +1464,7 @@ void process_action(){
 	if(current_user->process.message_status){
 		SDL_AtomicLock(&comm_lock);
 		current_user->process.message_status--;
-		sprintf(buffer, "USER_STATUS\t%c\t%c", (char) current_user->id, (char) current_user->ready_to_play);
+		snprintf(buffer, BUFFER_LIMIT, "USER_STATUS\t%c\t%c", (char) current_user->id, (char) current_user->ready_to_play);
 		SDL_AtomicUnlock(&comm_lock);
 			
 		if(is_server){
@@ -1477,7 +1481,7 @@ void process_action(){
 	if(current_user->process.message_life){
 		SDL_AtomicLock(&comm_lock);
 		current_user->process.message_life--;
-		sprintf(buffer, "USER_STATUS_LIFE\t%c\t%c", (char) current_user->id, (char) current_user->life);
+		snprintf(buffer, BUFFER_LIMIT, "USER_STATUS_LIFE\t%c\t%c", (char) current_user->id, (char) current_user->life);
 		SDL_AtomicUnlock(&comm_lock);
 		if(is_server){
 			handle_message(buffer, 1);
@@ -1502,9 +1506,9 @@ void process_action(){
 		//Process minions.
 		if(minions) {
 			for(int j = 0; j < i; j++){
-				sprintf(buffer, "USER_MINION\t%c\t%c\t%c", (char) current_user->id, (char) minions[j].client_id, (char) minions[j].amount);
+				snprintf(buffer, BUFFER_LIMIT, "USER_MINION\t%c\t%c\t%c", (char) current_user->id, (char) minions[j].client_id, (char) minions[j].amount);
 				for(int z = 0; z < minions[j].amount;z++) {
-					sprintf(buffer, "%s\t%c", buffer, (char) minions[j].type[z]);
+					snprintf(buffer, BUFFER_LIMIT, "%s\t%c", buffer, (char) minions[j].type[z]);
 				}
 				free(minions[j].type);
 			
@@ -1527,6 +1531,20 @@ void process_action(){
 //Server runner
 ///////////////////////////////////////////////////////////////////////
 
+void thread_check_messages_udp(void *data){
+	while(!terminate_thread_udp){
+		if(!game_in_progress && !comm->server->connection_failed){
+			//Check UDP messages
+			check_messages_udp();
+		}
+		else {
+			terminate_thread_udp = 1;
+		}
+	}
+	thread_upd_closed = 1;
+	return;
+}
+
 void run_server(void *data){
 	int created_server = 0;
 	
@@ -1545,6 +1563,24 @@ void run_server(void *data){
 		printf("Could not create server.\n");
 		comm->server->connecting = 0;
 		comm->server->connection_failed = 1;
+		terminate_thread_udp = 1;
+	}
+	else {
+		terminate_thread_udp = 0;
+	}
+	
+	thread_udp = NULL;
+	
+	if(created_server && !comm->match->finished && !comm->server->connection_failed){
+		//Create thread to UDP.
+		thread_udp = SDL_CreateThread((SDL_ThreadFunction) thread_check_messages_udp, "udp", (void *)NULL);
+		if (!thread_udp) {
+			printf("UDP thread not created\n");
+			thread_upd_closed = 1;
+		}
+		else {
+			thread_upd_closed = 0;
+		}
 	}
 	
 	while(!terminate_thread){
@@ -1552,7 +1588,7 @@ void run_server(void *data){
 			//Dont allow anyone to connect if game is running.
 			if(!game_in_progress) {
 				//Check UDP messages
-				check_messages_udp();
+				//check_messages_udp();
 				//Check connection with client 
 				check_connection_tcp();
 			}
@@ -1573,6 +1609,14 @@ void run_server(void *data){
 			
 		}
 	}
+	
+	terminate_thread_udp = 1;
+	//Close thread
+	while(!thread_upd_closed){
+		printf("Not finised thread udp\n");
+	}
+
+	SDL_DetachThread(thread_udp);
 	//Close clients connection
 	close_clients();
 	//Close TCP connection.
@@ -1581,7 +1625,7 @@ void run_server(void *data){
 	//Free server
 	if(main_server){
 		//Free ip address
-		main_server->ip;
+		//main_server->ip;
 		free(main_server);
 	}
 	terminate_thread = 0;
@@ -1589,9 +1633,7 @@ void run_server(void *data){
 	return;
 }
 
-void run_client(void *data){
-	char buffer[BUFFER_LIMIT];
-	
+void run_client(void *data){	
 	int found = 0;
 	int connected = 0;
 	
