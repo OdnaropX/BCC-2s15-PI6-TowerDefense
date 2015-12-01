@@ -244,7 +244,7 @@ int main(int argc, char * argv[]) {
 	}
 
 	
-	bool ready_to_play = false;
+	int ready_to_play = 0;
 	
 	//FPS and timer
     int t1, t2;
@@ -1458,6 +1458,7 @@ int main(int argc, char * argv[]) {
 			
 			//Game timer.
 			if(game_started && !game_paused) {
+				printf("Game started\n");
 				//One second timer
 				timer_count++;
 					
@@ -1468,6 +1469,7 @@ int main(int argc, char * argv[]) {
 					
 				//Wave spawning. Only to single player.
 				if(pending_wave_number > 0 && !multiplayer) {
+					printf("Minion\n");
 					add_minion = (add_minion + 1) % get_minion_avaliable(avaliable_minions);
 					pending_wave_number--;
 				}
@@ -1782,9 +1784,15 @@ int main(int argc, char * argv[]) {
                         break;
                         
                     case MP_START:
-                        ready_to_play = true;
+                        ready_to_play = 1;
                         multiplayer_status = MPS_STARTED_GAME;
-                        break;
+						
+						SDL_AtomicLock(&lock);
+						current_user->process.message_status = current_user->process.message_status + 1;
+						current_user->ready_to_play = 1;
+						SDL_AtomicUnlock(&lock);
+                        
+						break;
                         
                     case MP_TOGGLE_READY:
 						SDL_AtomicLock(&lock);
@@ -1905,6 +1913,7 @@ int main(int argc, char * argv[]) {
 					}
                     
 					if (add_minion > 0){
+						printf("Add minions\n");
 						//Add minion
                         int price = get_minion_price(avaliable_minions, add_tower);
                         if(gold > price){
@@ -3066,26 +3075,28 @@ void reset_game_data(){
     mana = 0;
 	
 	//Reset current user data used on network.
-	current_user->id = 0;
-	current_user->is_server = 0;
-	current_user->life = health;
-	current_user->ready_to_play = 0;
-	current_user->process.message_status = 0;
-	current_user->process.message_life = 0;
-	current_user->process.message_minion = 0;
-	if(current_user->minions){
-		for(i = 0; i<current_user->spawn_amount; i++){
-			if((*current_user->minions).type) {
-				free((*current_user->minions).type);
-				(*current_user->minions).type = NULL;
+	if(current_user){
+		current_user->id = 0;
+		current_user->is_server = 0;
+		current_user->life = health;
+		current_user->ready_to_play = 0;
+		current_user->process.message_status = 0;
+		current_user->process.message_life = 0;
+		current_user->process.message_minion = 0;
+		if(current_user->minions){
+			for(i = 0; i<current_user->spawn_amount; i++){
+				if((*current_user->minions).type) {
+					free((*current_user->minions).type);
+					(*current_user->minions).type = NULL;
+				}
+				current_user->minions++;
 			}
-			current_user->minions++;
+			current_user->minions-=i;
+			free(current_user->minions);
+			current_user->minions = NULL;
 		}
-		current_user->minions-=i;
-		free(current_user->minions);
-		current_user->minions = NULL;
+		current_user->spawn_amount = 0;
 	}
-	current_user->spawn_amount = 0;
 }
 
 void set_end_game_status_text(end_game_status end_status){

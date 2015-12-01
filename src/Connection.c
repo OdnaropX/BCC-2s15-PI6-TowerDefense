@@ -82,16 +82,24 @@ void remove_communication(){
 }
 
 void remove_client(int client){
-	int i, temp;
+	int i, temp, connected;
 	char buffer[3];
 	
 	//Send message to remove user to clients	
+	temp = 0;
+	connected = connected_clients;
 	for(i=0; i < MAX_CLIENT; i++) {
-        if(i != client && clients[i].tcp_socket) {
-			sprintf(buffer, "%c", (char) clients[i].id);
-			//Send message to other players that user left.
-			send_message(buffer, 1, clients[i].tcp_socket, 1);
-        }
+		if(temp == connected){
+			break;
+		}
+		if(clients[i].tcp_socket){
+			if(i != client) {
+				sprintf(buffer, "%c", (char) clients[i].id);
+				//Send message to other players that user left.
+				send_message(buffer, 1, clients[i].tcp_socket, 1);
+			}
+			temp++;
+		}
     }
 
     SDLNet_TCP_DelSocket(activity, clients[client].tcp_socket);
@@ -117,11 +125,13 @@ void remove_client(int client){
 			}
 			comm->adversary++;
 		}
+		//Reset location.
+		comm->adversary-=i;
 	}
 	else {
 		//If game not began remove from list.
 		//Realloc
-		if(comm->adversary){
+		if(comm->match->players > 0){
 			temp = comm->match->players;
 			Adversary *adversary = malloc(sizeof (Adversary) * (temp - 1));
 			for (i = 0; i< temp; i++){
@@ -133,15 +143,25 @@ void remove_client(int client){
 					adversary->life = comm->adversary[i].life;
 					adversary->pending_minions = comm->adversary[i].pending_minions;
 					adversary->minions_sent = comm->adversary[i].minions_sent;
-					adversary++;
 				}
 				else {
-					//Free name
-					free(adversary->name);
-					adversary->name = NULL;
+					if(adversary->minions_sent){
+						free(adversary->minions_sent);
+						adversary->minions_sent = NULL;
+					}
+					if(adversary->name){
+						//Free name
+						free(adversary->name);
+						adversary->name = NULL;
+					}
 				}
+				adversary++;
 			}
-			free(comm->adversary);
+			//Reset location.
+			adversary -= i;
+			if(comm->adversary){
+				free(comm->adversary);
+			}
 			comm->adversary = adversary;
 			comm->match->players = temp - 1;
 		}
@@ -356,7 +376,7 @@ void check_connection_tcp(){
 	
 	int sockets = 0;
 	char buffer[BUFFER_LIMIT];
-	int i, j, user_id, temp;
+	int i, j, user_id, temp, connected;
 	
 	//Check pending connection. This is non-blocking
 	socket = SDLNet_TCP_Accept(server_tcp_socket);
@@ -405,6 +425,26 @@ void check_connection_tcp(){
 	//Send id
 	sprintf(buffer, "%c\t%c", (char) user_id, (char) current_user->id);
 	if(send_message(buffer, 10, socket, 1)){
+		
+		temp = 0;
+		//Send other users to this user
+		connected = connected_clients;
+		for(j = 0; j < MAX_CLIENT;j++){
+			if(temp == connected) {
+				break;
+			}
+			if(clients[j].tcp_socket){
+				if(j != i && clients[j].has_name) {
+					sprintf(buffer, "%c\t%s", (char) clients[j].id, clients[j].name);
+					if(!send_message(buffer,0, socket, 1)){
+						//Connection failed.
+						return;
+					}
+				}
+				temp++;
+			}
+		}
+		
 		//Add to adversary
 		Adversary *adversary = malloc(sizeof (Adversary) * sockets);
 		if(comm->adversary) {
@@ -436,21 +476,6 @@ void check_connection_tcp(){
 		clients[i].tcp_socket = socket;
 		clients[i].id = user_id;
 		clients[i].alive = 1;
-		
-		temp = 0;
-		//Send other users to this user
-		for(j = 0; j < MAX_CLIENT;j++){
-			if(temp == connected_clients) {
-				break;
-			}
-			if(clients[j].tcp_socket){
-				if(j != i && clients[j].has_name) {
-					sprintf(buffer, "%c\t%s", (char) clients[j].id, clients[j].name);
-					send_message(buffer,0, socket, 1);
-				}
-				temp++;
-			}
-		}
 		connected_clients = sockets;
 	}
 	else {
@@ -711,7 +736,7 @@ Host *get_host(){
 	return &servers;
 }
 
-TCPsocket get_socket_from_user_id(int user_id){
+TCPsocket get_socket_from_user_id(int user_id, int *index){
 	int i, temp = 0;
 	
 	for(i = 0; i< MAX_CLIENT; i++){
@@ -720,6 +745,7 @@ TCPsocket get_socket_from_user_id(int user_id){
 		}
 		if(clients[i].tcp_socket) {
 			if(clients[i].id == user_id){
+				*index = i;
 				return clients[i].tcp_socket;
 			}
 			temp++;
@@ -1056,12 +1082,17 @@ void handle_message(char *buffer, int handle_internal){
 		pointer = strchr(buffer, '\t');
 		pointer++;
 		user_id = (int)*pointer;
+		temp = 0;
 		if(user_id != current_user->id) {			
-			TCPsocket sender_socket = get_socket_from_user_id(user_id);
+			TCPsocket sender_socket = get_socket_from_user_id(user_id, &temp);
 			if(sender_socket){
 				pointer+=2;
 				//Send message
-				send_message(pointer, 2, sender_socket, 1);
+				if(!send_message(pointer, 2, sender_socket, 1)){
+					//--Remove client if message not send
+					//Get index for socket
+					remove_client(temp);
+				}
 			}
 		}
 		//If current user is the server. This can be used without change com internal server making the action because will not drop by this else.
@@ -1100,14 +1131,18 @@ void handle_message(char *buffer, int handle_internal){
 	
 		sprintf(buffer, "USER_READY\t%s", pointer);
 		temp = 0;
+		connected = connected_clients;
 		for(i=0;i< MAX_CLIENT;i++){
-			if(temp == connected_clients) {
+			if(temp == connected) {
 				break;
 			}
 			if(clients[i].tcp_socket) {
 				if(clients[i].id != user_id){
 				//Send message to all except who sent
-				send_message(buffer, 5, clients[i].tcp_socket, 0);
+				if(!send_message(buffer, 5, clients[i].tcp_socket, 0)){
+					//Remove client
+					remove_client(i);
+					}
 				}
 				temp++;
 			}
@@ -1140,14 +1175,18 @@ void handle_message(char *buffer, int handle_internal){
 		
 		sprintf(buffer, "USER_LIFE\t%s", pointer);
 		temp = 0;
+		connected = connected_clients;
 		for(i=0;i< MAX_CLIENT;i++){
-			if(temp == connected_clients) {
+			if(temp == connected) {
 				break;
 			}
 			if(clients[i].tcp_socket) {
 				if(clients[i].id != user_id){
 					//Send message to all except who sent
-					send_message(buffer, 11, clients[i].tcp_socket, 0);
+					if(!send_message(buffer, 11, clients[i].tcp_socket, 0)) {
+						//Remove client
+						remove_client(i);
+					}
 				}
 				else {
 					//Update alive status
@@ -1206,7 +1245,9 @@ void handle_message(char *buffer, int handle_internal){
 			if(clients[i].tcp_socket) {
 				if(clients[i].id != user_id){
 					//Send message to all except who sent//ADD_USER
-					send_message(buffer, 0, clients[i].tcp_socket, 0);
+					if(!send_message(buffer, 0, clients[i].tcp_socket, 0)){
+						remove_client(i);
+					}
 				}
 				else {
 					clients[i].has_name = 1;
@@ -1289,7 +1330,7 @@ void process_action(){
 			handle_message(buffer, 1);
 		}
 		else {
-			if(send_message(buffer, 9, server_tcp_socket, 0) == 0){
+			if(!send_message(buffer, 9, server_tcp_socket, 0)){
 				comm->connection_lost = 1;
 			}
 		}
