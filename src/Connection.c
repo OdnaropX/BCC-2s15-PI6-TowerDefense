@@ -22,6 +22,7 @@ extern User *current_user;
 extern Communication *comm;
 extern int terminate_thread;
 extern SDL_SpinLock lock;
+extern SDL_SpinLock user_lock;
 
 //Allocation Functions
 ///////////////////////////////////////////////////////////////////////
@@ -334,10 +335,10 @@ int find_servers() {
 
 int establish_server(IPaddress *ip){
 	time_t t;
+    int port = DEFAULT_PORT;
 	/* First create TCP socket that will be used to connect	*/
-	
 	//Null is to listen
-	if(SDLNet_ResolveHost(ip, NULL, DEFAULT_PORT) < 0){
+	if(SDLNet_ResolveHost (ip, NULL, port) < 0){
 		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
 		return 0;
 	}
@@ -827,7 +828,7 @@ int send_message(char *message, int message_type, TCPsocket socket, int incomple
 
 void handle_message(char *buffer, int handle_internal){
 	char *pointer = NULL;
-	int i, user_id, temp, life;
+	int i, user_id, temp, life, connected;
 	i = 0;
 	//Client side
 	//Check if game can begin
@@ -1572,5 +1573,6 @@ void kill_thread(SDL_Thread **thread){
 	terminate_thread = 1;
 	SDL_DetachThread(*thread);
 	*thread = NULL;
+	return;
 }
 

@@ -34,6 +34,7 @@
 ///////////////////////////////////////////////////////////////////////
 int terminate_thread;
 SDL_SpinLock lock;
+SDL_SpinLock user_lock;
 Communication *comm;
 User *current_user;
 
@@ -1093,7 +1094,7 @@ int main(int argc, char * argv[]) {
 							//Move mouse selector over multiplayer users
                             if(event.motion.x >= 1030 && event.motion.x <= 1030 + BUTTON_MENU_WIDTH){
                                 temp_option = (event.motion.y - 350) / BUTTON_MENU_HEIGHT;
-                                if(temp_option <= comm->match->players - 2)
+                                if(temp_option <= MAX_CLIENT - 2)
                                     select_running_option.multiplay.current_player = temp_option;
                             }
 							
@@ -1190,7 +1191,7 @@ int main(int argc, char * argv[]) {
                                 //Click mouse selector over multiplayer users
                                 if(event.motion.x >= 1030 && event.motion.x <= 1030 + BUTTON_MENU_WIDTH){
                                     temp_option = (event.motion.y - 350) / BUTTON_MENU_HEIGHT;
-                                    if(temp_option <= comm->match->players - 2)
+                                    if(temp_option <= MAX_CLIENT - 2)
                                         player_adversary = temp_option;
                                 }							}
 							break;
@@ -1569,6 +1570,12 @@ int main(int argc, char * argv[]) {
 			
 			//Set minions to send.
 			if(send_minion > 0) {
+                int price = get_minion_price(avaliable_minions, add_tower);
+                if(gold >= price){
+                    gold -= price;
+                    gold_per_second += get_minion_bonus(avaliable_minions, send_minion);
+                }
+                
 				SDL_AtomicLock(&lock);
 				if(current_user->minions && current_user->spawn_amount){
 					int adversary_found = 0;
@@ -1892,8 +1899,6 @@ int main(int argc, char * argv[]) {
 						//Add tower
                         int price = get_turret_price(avaliable_turrets, add_tower);
                         if(gold > price){
-							//
-							
                             //Check if position already has tower
                             if(occupyGrid(current_position[0], current_position[1])){
                                 //Check if turret == Snorlax
@@ -1925,8 +1930,7 @@ int main(int argc, char * argv[]) {
                                 gold -= price;
                                 gold_per_second += get_minion_bonus(avaliable_minions, add_minion);
                             }
-                        }
-
+						}
 						//Reset minion
 						add_minion = 0;
 					}
@@ -2157,9 +2161,6 @@ int main(int argc, char * argv[]) {
                 
             case GAME_RUNNING:
 				select_running_option.current_tab = running_option.current_tab;
-				//active_clicked
-				//select_grid
-				//selected_left
 				
                 draw_screen_game_running(main_Surface, map_Surface, minions, turrets);
                 

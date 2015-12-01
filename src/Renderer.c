@@ -190,9 +190,9 @@ void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SD
     int sel = 0;
     
     for(int i = 0; i < count; i++){
-        sel = (selected_adversary * 2) + 2;
+        sel = (selected_adversary * 2) + 3;
         
-        if(i%2 == 0 || i > 2 || i == sel)
+        if(i%2 == 0 || i < 2 || i == sel)
             SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
     }
 }

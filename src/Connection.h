@@ -19,7 +19,7 @@
 	
 	//Constants
 	///////////////////////////////////////////////////////////////////////
-	#define DEFAULT_PORT 4242
+	#define DEFAULT_PORT 7777
 	#define DEFAULT_PLAYERS_LIFE 10
 	#define BUFFER_LIMIT 512
 	#define SERVER_NAME 150
@@ -161,7 +161,7 @@
 	char *get_connected_server_name();
 	char *get_host_name(int i);
 	Host *get_host();
-	TCPsocket get_socket_from_user_id(int user_id);
+	TCPsocket get_socket_from_user_id(int user_id, int *index);
 	
 	//Messages Functions
 	///////////////////////////////////////////////////////////////////////
