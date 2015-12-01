@@ -503,10 +503,11 @@ int main(int argc, char * argv[]) {
                                                 multiplayer_option = MP_BACK_TO_MAIN;
                                         }
                                     }
+                                }
                                     
-                                    else if(event.motion.x >= 195 && event.motion.x <= 195 + BUTTON_MENU_WIDTH && multiplayer_status == MPS_SEARCHING_ROOM){
-                                        temp_option = (event.motion.y - 300 - BUTTON_MENU_HEIGHT) / BUTTON_MENU_HEIGHT;
-                                        switch(temp_option){
+                                else if(event.motion.x >= 195 && event.motion.x <= 195 + BUTTON_MENU_WIDTH && multiplayer_status == MPS_SEARCHING_ROOM){
+                                    temp_option = (event.motion.y - 300 - BUTTON_MENU_HEIGHT) / BUTTON_MENU_HEIGHT;
+                                    switch(temp_option){
                                             case 0:
                                                 multiplayer_option = MP_ROOM_1;
                                                 break;
@@ -522,7 +523,6 @@ int main(int argc, char * argv[]) {
                                             default:
                                                 break;
                                         }
-                                    }
                                 }
                                 
                                 
@@ -1740,6 +1740,7 @@ int main(int argc, char * argv[]) {
                         break;
                         
                     case MP_SEARCH_ROOM:
+                        multiplayer_status = MPS_SEARCHING_ROOM;
 						//Check if there is a thread in progress and is run_client
 						if(thread) {
 							printf("Thread running\n");
@@ -1758,7 +1759,6 @@ int main(int argc, char * argv[]) {
 						else {
 							printf("Thread not running\n");
 							//terminate_thread = 0;
-							multiplayer_status = MPS_SEARCHING_ROOM;
 							//Start thread and network communication.
 							
 							SDL_AtomicLock(&comm_lock);
@@ -1827,15 +1827,37 @@ int main(int argc, char * argv[]) {
                         break;
                         
                     case MP_ROOM_1:
+                        printf("MP_ROOM_1\n");
+                        comm->server->choosing = 0;
+                        comm->server->choosed = 0;
+                        
+                        printf("Connecting...\n");
+                        
+                        if(connect_to_server(0))
+                            multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
                     case MP_ROOM_2:
+                        comm->server->choosing = 0;
+                        comm->server->choosed = 1;
+                        
+                        if(connect_to_server(1))
+                            multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
-                    case MP_ROOM_3:
+                    case MP_ROOM_3:comm->server->choosing = 0;
+                        comm->server->choosed = 2;
+                        
+                        if(connect_to_server(2))
+                            multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
                     case MP_ROOM_4:
+                        comm->server->choosing = 0;
+                        comm->server->choosed = 3;
+                        
+                        if(connect_to_server(3))
+                            multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
                     case MP_NONE:
@@ -2918,7 +2940,8 @@ void get_multiplayer_texts(multiplayer_status current_status){
             //Players in room
             case 18:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 0){
-                    text = comm->adversary[0].name;
+                    if(comm->adversary[0].name)
+                        text = comm->adversary[0].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
@@ -2926,7 +2949,8 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 
             case 19:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 1){
-                    text = comm->adversary[1].name;
+                    if(comm->adversary[1].name)
+                        text = comm->adversary[1].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
@@ -2934,7 +2958,8 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 
             case 20:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 2){
-                    text = comm->adversary[2].name;
+                    if(comm->adversary[2].name)
+                        text = comm->adversary[2].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
@@ -2942,7 +2967,8 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 
             case 21:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 3){
-                    text = comm->adversary[3].name;
+                    if(comm->adversary[3].name)
+                        text = comm->adversary[3].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
@@ -2956,7 +2982,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
                     else
                         text = "No";
                     
-                    rect = (SDL_Rect){835, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                    rect = (SDL_Rect){945, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
                 }
 
                 break;
@@ -2968,7 +2994,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
                     else
                         text = "No";
                     
-                    rect = (SDL_Rect){835, 300 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                    rect = (SDL_Rect){945, 300 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
                 }
                 break;
                 
@@ -2979,7 +3005,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
                     else
                         text = "No";
                     
-                    rect = (SDL_Rect){835, 300 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                    rect = (SDL_Rect){945, 300 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
                 }
                 break;
                 
@@ -2990,7 +3016,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
                     else
                         text = "No";
                     
-                    rect = (SDL_Rect){835, 300 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                    rect = (SDL_Rect){945, 300 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
                 }
                 break;
             
@@ -3014,7 +3040,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 text = "";
                 break;
         }
-        printf("%d\n", i);
+        
         //Creating textures
         if(text && strlen(text) > 0){
             SDL_Surface *surface;
@@ -3162,7 +3188,7 @@ void get_multiplayer_game_names(){
                         text = comm->adversary[0].name;
                 }
                 
-                rect = (SDL_Rect){1030, 350, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                rect = (SDL_Rect){1030, 350, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 4: case 5:
@@ -3173,7 +3199,7 @@ void get_multiplayer_game_names(){
                         text = comm->adversary[1].name;
                 }
                 
-                rect = (SDL_Rect){1030, 350 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                rect = (SDL_Rect){1090, 350 + BUTTON_MENU_HEIGHT * 2, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 6: case 7:
@@ -3184,7 +3210,7 @@ void get_multiplayer_game_names(){
                         text = comm->adversary[2].name;
                 }
                 
-                rect = (SDL_Rect){1030, 350 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                rect = (SDL_Rect){1090, 350 + BUTTON_MENU_HEIGHT * 4, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             default:

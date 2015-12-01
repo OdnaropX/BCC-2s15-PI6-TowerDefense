@@ -1030,7 +1030,7 @@ void handle_message(char *buffer, int handle_internal){
 			
 			comm->adversary[temp].minions_sent = NULL;
 			comm->adversary[temp].name = get_connected_server_name();
-			comm->adversary[temp].name = realloc(comm->adversary[temp].name, sizeof(char) * SERVER_NAME);
+			//comm->adversary[temp].name = realloc(comm->adversary[temp].name, sizeof(char) * SERVER_NAME);
 			
 			if(!comm->adversary[temp].name){
 				comm->adversary[temp].name = malloc(sizeof(char) * SERVER_NAME);
@@ -1376,10 +1376,12 @@ void handle_message(char *buffer, int handle_internal){
 		user_id = (int)*pointer;
 		pointer+=2;
 		char *name = pointer;
+        
 		//Update adversary
 		SDL_AtomicLock(&comm_lock);
 		for(i =0; i < comm->match->players; i++){
 			if(comm->adversary[i].id == user_id){
+                comm->adversary[i].name = NULL;
 				comm->adversary[i].name = realloc(comm->adversary[i].name, sizeof(char) * BUFFER_LIMIT);
 				if(!comm->adversary[i].name){
 					comm->adversary[i].name = malloc(sizeof(char) * SERVER_NAME);
