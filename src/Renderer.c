@@ -311,10 +311,12 @@ void draw_screen_multiplayer_menu(SDL_Renderer *renderer, SDL_Texture **assets, 
                 break;
         }
         
-        if((i == 0 || i == sel || i % 2 == 1 || i > 14) && assets[i])
+        if((i == 0 || i == sel || i % 2 == 1 || i > 14) && assets[i]){
             SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
-		if(assets[i])
-			SDL_DestroyTexture(assets[i]);
+		}
+        if (assets[i]) {
+            SDL_DestroyTexture(assets[i]);
+        }
     }
     
 }

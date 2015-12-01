@@ -1796,6 +1796,7 @@ int main(int argc, char * argv[]) {
                         
                     case MP_START:
                         ready_to_play = 1;
+
                         multiplayer_status = MPS_STARTED_GAME;
 						
 						SDL_AtomicLock(&lock);
