@@ -338,15 +338,6 @@ int find_servers() {
 			//sent = SDLNet_UDP_Send(udp_socket, output_package_local->channel, output_package_local);
 			sent = SDLNet_UDP_Send(udp_socket, -1, output_package_local);
 			if (!sent) {
-<<<<<<< HEAD
-				printf("Something really, really, I mean really wrong happened and Localhost was not accessed.\nThis was not suppost to happen.\n");
-				SDLNet_FreePacket(output_package); 
-				SDLNet_FreePacket(output_package_local); 
-				SDLNet_FreePacket(input_package); 
-				SDLNet_UDP_Close(udp_socket);
-=======
-				printf("Something really, really, I mean really wrong happened and Localhost was not accessed.\nThis was not supposed to happen.\n");
->>>>>>> 4b00cc2f950d883e8c70e6b6c33e5fc30223dcbf
 				return 0;
 			}	
 		}
