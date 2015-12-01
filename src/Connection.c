@@ -651,7 +651,7 @@ void game_status(){
 						}
 						if(clients[i].tcp_socket && clients[i].has_name && clients[i].alive){
 							//Send message
-							sprintf(buffer, "%c", (char) winner_id);
+							snprintf(buffer, BUFFER_LIMIT, "%c", (char) winner_id);
 							//Send message to other players that user left.
 							send_message(buffer, 4, clients[i].tcp_socket, 1);
 							remove_client(i);
@@ -848,46 +848,46 @@ int send_message(char *message, int message_type, TCPsocket socket, int incomple
 	if(incomplete_message){
 		switch(message_type){
 			case 0://ADD_USER
-				sprintf(msg, "ADD_USER\t%s", message);
+				snprintf(msg, BUFFER_LIMIT, "ADD_USER\t%s", message);
 				break;
 			case 1://REMOVE_USER
-				sprintf(msg, "REMOVE_USER\t%s", message);
+				snprintf(msg, BUFFER_LIMIT, "REMOVE_USER\t%s", message);
 				break;
 			case 2://ADD_MINION
-				sprintf(msg, "ADD_MINION\t%s", message);
+				snprintf(msg, BUFFER_LIMIT, "ADD_MINION\t%s", message);
 				break;
 			case 3://BEGIN_GAME
-				sprintf(msg, "BEGIN_GAME");
+				snprintf(msg, BUFFER_LIMIT, "BEGIN_GAME");
 				break;
 			case 4://END_GAME
-				sprintf(msg, "END_GAME\t%s", message);
+				snprintf(msg, BUFFER_LIMIT, "END_GAME\t%s", message);
 				break;
 			case 5://USER_READY
-				sprintf(msg, "USER_READY\t%s", message);
+				snprintf(msg, BUFFER_LIMIT, "USER_READY\t%s", message);
 				break;
 			case 6://SERVER_FULL
-				sprintf(msg, "SERVER_FULL");
+				snprintf(msg, BUFFER_LIMIT, "SERVER_FULL");
 				break;
 			case 7://GAME_ALREADY_STARTED
-				sprintf(msg, "GAME_ALREADY_STARTED");
+				snprintf(msg, BUFFER_LIMIT, "GAME_ALREADY_STARTED");
 				break;
 			case 8://USER_MINION
-				sprintf(msg, "USER_MINION\t%s", message);
+				snprintf(msg, BUFFER_LIMIT, "USER_MINION\t%s", message);
 				break;
 			case 9://USER_STATUS
-				sprintf(msg, "USER_STATUS\t%s", message);
+				snprintf(msg, BUFFER_LIMIT, "USER_STATUS\t%s", message);
 				break;
 			case 10://USER_ID
-				sprintf(msg, "USER_ID\t%s", message);
+				snprintf(msg, BUFFER_LIMIT, "USER_ID\t%s", message);
 				break;
 			case 11://USER_LIFE
-				sprintf(msg, "USER_LIFE\t%s", message);
+				snprintf(msg, BUFFER_LIMIT, "USER_LIFE\t%s", message);
 				break;
 			case 12://USER_STATUS_LIFE
-				sprintf(msg, "USER_STATUS_LIFE\t%s", message);
+				snprintf(msg, BUFFER_LIMIT, "USER_STATUS_LIFE\t%s", message);
 				break;
 			case 13://USER_NAME
-				sprintf(msg, "USER_NAME\t%s", message);
+				snprintf(msg, BUFFER_LIMIT, "USER_NAME\t%s", message);
 				break;
 			default:
 				next = 0;
