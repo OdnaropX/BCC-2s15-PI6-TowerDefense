@@ -4,7 +4,7 @@
 	//Enum
 	///////////////////////////////////////////////////////////////////////
 	
-	typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE, END_GAME, GAME_MULTIPLAY_SERVER, MINIONS_INFO} screen;
+	typedef enum _screens {MAIN, CONFIG, GAME_RUNNING, GAME_PAUSED, CREDITS, SCORE, END_GAME, GAME_MULTIPLAY_SERVER, MINIONS_INFO, MULTIPLAYER_CHOOSE_ROOM, MULTIPLAYER_ROOM} screen;
 	typedef enum _tab_location{TOP_MENU, LEFT_MENU, BOTTOM_MENU, GAME_AREA, ADVERSARY_MENU} TAB;
 	typedef enum _main_options {OPT_PLAY, OPT_MULTIPLAYER, OPT_CONFIG, OPT_SCORE, OPT_EXIT, OPT_CREDIT, OPT_NONE} main_options;
 	typedef enum _pause_options {OPT_P_RESUME, OPT_P_CONFIG, OPT_P_SCORE, OPT_P_EXIT, OPT_P_MAIN, OPT_P_CREDITS, OPT_P_NONE} pause_options;

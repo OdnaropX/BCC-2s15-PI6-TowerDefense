@@ -385,9 +385,9 @@ int find_servers() {
 int establish_server(IPaddress *ip){
 	time_t t;
 	/* First create TCP socket that will be used to connect	*/
-	
 	//Null is to listen
 	if(SDLNet_ResolveHost(ip, NULL, DEFAULT_PORT_TCP) < 0){
+
 		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
 		return 0;
 	}
@@ -817,7 +817,7 @@ char *get_host_name(int i){
 }
 
 Host *get_host(){
-	return servers;
+	return &servers;
 }
 
 TCPsocket get_socket_from_user_id(int user_id, int *index){
@@ -1387,7 +1387,7 @@ int handle_message_pool(TCPsocket tcp_socket){
 			return 0;
 		}
 		else {
-            break;
+			return 1;
 		}
 	}
 	
@@ -1528,6 +1528,7 @@ void run_server(void *data){
 	//Free server
 	if(main_server){
 		//Free ip address
+		main_server->ip;
 		free(main_server);
 	}
 	terminate_thread = 0;

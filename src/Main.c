@@ -71,7 +71,7 @@ SDL_Rect game_interface_rects[game_interface_assets_count];
 SDL_Texture *pause_interface_assets[pause_interface_assets_count];
 SDL_Rect pause_interface_rects[pause_interface_assets_count];
 
-//Credits screen order: title, text(4 lines), back(+sel)
+//Credits screen order: title, text(4 lines), text(6 lines), back(+sel)
 SDL_Texture *credits_menu_assets[credits_menu_assets_count];
 SDL_Rect credits_menu_rects[credits_menu_assets_count];
 
@@ -387,8 +387,6 @@ int main(int argc, char * argv[]) {
                                     
                                     else if(comm){
                                         if(current_user->is_server){
-                                            printf("Host\n");
-                                            
                                             if(select_multiplayer_option == MP_START)
                                                 select_multiplayer_option = MP_BACK_TO_MAIN;
                                             else if(select_multiplayer_option == MP_BACK_TO_MAIN)
@@ -398,7 +396,6 @@ int main(int argc, char * argv[]) {
                                         }
                                         
                                         else{
-                                            printf("Client\n");
                                             if(select_multiplayer_option == MP_TOGGLE_READY)
                                                 select_multiplayer_option = MP_BACK_TO_MAIN;
                                             else if(select_multiplayer_option == MP_BACK_TO_MAIN)
@@ -431,8 +428,6 @@ int main(int argc, char * argv[]) {
                                     
                                     else if(comm){
                                         if(current_user->is_server){
-                                            printf("Host\n");
-                                            
                                             if(select_multiplayer_option == MP_START)
                                                 select_multiplayer_option = MP_LEAVE;
                                             else if(select_multiplayer_option == MP_BACK_TO_MAIN)
@@ -442,7 +437,6 @@ int main(int argc, char * argv[]) {
                                         }
                                         
                                         else{
-                                            printf("Client\n");
                                             if(select_multiplayer_option == MP_TOGGLE_READY)
                                                 select_multiplayer_option = MP_LEAVE;
                                             else if(select_multiplayer_option == MP_BACK_TO_MAIN)
@@ -2320,7 +2314,7 @@ bool main_init(){
                 break;
                 
             case 9: case 10:
-                text = "Credits";
+                text = "Credits/Quick Ref.";
                 rect = (SDL_Rect){30, 450 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
@@ -2396,7 +2390,7 @@ bool main_init(){
                 break;
                 
             case 11: case 12:
-                text = "Credits";
+                text = "Credits/Quick Ref.";
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
@@ -2444,28 +2438,28 @@ bool main_init(){
         
         switch (i) {
             case 0:
-                text = "Credits";
+                text = "Credits/Quick Ref.";
                 rect = (SDL_Rect){265, 0, 750, 150};
                 break;
                 
             case 1:
                 text = "Made by:";
-                rect = (SDL_Rect){640 - BUTTON_MENU_WIDTH, 360 - BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT * 2};
+                rect = (SDL_Rect){195, 360 - BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 2:
                 text = "    Danilo Makoto Ikuta";
-                rect = (SDL_Rect){640 - BUTTON_MENU_WIDTH, 360 - BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH * 2, BUTTON_MENU_HEIGHT * 2};
+                rect = (SDL_Rect){195, 360 - BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 3:
                 text = "    Gabriel Fontenelle";
-                rect = (SDL_Rect){640 - BUTTON_MENU_WIDTH, 360, BUTTON_MENU_WIDTH * 2, BUTTON_MENU_HEIGHT * 2};
+                rect = (SDL_Rect){195, 360, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 4:
                 text = "    Gabriel Nopper";
-                rect = (SDL_Rect){640 - BUTTON_MENU_WIDTH, 360 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH * 2, BUTTON_MENU_HEIGHT * 2};
+                rect = (SDL_Rect){195, 360 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 5: case 6:
