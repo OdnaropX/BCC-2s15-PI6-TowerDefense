@@ -1698,9 +1698,10 @@ int main(int argc, char * argv[]) {
                     case MP_CREATE_ROOM:
 						//Check if there is a thread running
                         if(thread) {
-							printf("Thread running\n");
+							printf("Thread alreay running!\n");
 							thread_name = SDL_GetThreadName(thread);
 							if(strcmp(thread_name, "run_server") != 0) {
+								printf("Killing client thread\n");
 								kill_thread(&thread);
 								multiplayer_status = MPS_NONE;
 								multiplayer = false;
@@ -1711,18 +1712,20 @@ int main(int argc, char * argv[]) {
 							}
 						}
 						else {
-							printf("Thread not running\n");
+							printf("Thread not running!\n");
 							//terminate_thread = 0;
 							//Create server
 							multiplayer_status = MPS_WAIT_FOR_PLAYER;
 	
 							SDL_AtomicLock(&lock);
 							if(!comm) {
+								printf("Initing\n");
 								comm = init_communication();
+								printf("Initing %d\n", comm);
 							}
 							SDL_AtomicUnlock(&lock);
 							
-							if (!thread) {
+							if (!thread && comm) {
 								thread = SDL_CreateThread((SDL_ThreadFunction) run_server, "run_server", (void *)NULL);
 								if (thread == NULL) {
 									multiplayer_status = MPS_NONE;
@@ -1740,13 +1743,14 @@ int main(int argc, char * argv[]) {
 							printf("Thread running\n");
 							thread_name = SDL_GetThreadName(thread);
 							if(strcmp(thread_name, "run_client") != 0) {
+								printf("Killing server thread\n");
 								kill_thread(&thread);
 								multiplayer_status = MPS_NONE;
 								multiplayer = false;
 							}
 							else {
-								printf("%d\n", network.connection_failed);
 								//Check if a connection running was failed. This will kill the thread.
+								printf("%d\n", network.connection_failed);
 							}
 						}
 						else {
@@ -1763,7 +1767,7 @@ int main(int argc, char * argv[]) {
 							}
 							SDL_AtomicUnlock(&lock);
 							
-							if(!thread){
+							if(!thread && comm){
 								thread = SDL_CreateThread((SDL_ThreadFunction) run_client, "run_client", (void *) NULL);
 								if (thread == NULL) {
 									multiplayer_status = MPS_NONE;
@@ -1920,16 +1924,11 @@ int main(int argc, char * argv[]) {
 					if (add_minion > 0){
 						printf("Add minions\n");
 						//Add minion
-                        int price = get_minion_price(avaliable_minions, add_tower);
-                        if(gold > price){
-                            new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
-                            if(new_minion != NULL){
-                                add_minion_to_list(minions, new_minion);
-                                new_minion->node->xPos = 150;
-                                new_minion->node->yPos = 600;
-                                gold -= price;
-                                gold_per_second += get_minion_bonus(avaliable_minions, add_minion);
-                            }
+						new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
+                        if(new_minion != NULL){
+							add_minion_to_list(minions, new_minion);
+                            new_minion->node->xPos = 150;
+                            new_minion->node->yPos = 600;
 						}
 						//Reset minion
 						add_minion = 0;

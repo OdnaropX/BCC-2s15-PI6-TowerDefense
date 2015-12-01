@@ -176,40 +176,71 @@ void remove_client(int client){
 int update_list_servers(UDPpacket* package){
 	int already_add = 0;
 	char *name = NULL;
-	int i;
+	char *prt = NULL;
+	char port[SERVER_NAME];
+	int i, use_default = 0;
+	uint16_t port_number = 0;
 	
 	printf("Updating servers\n");
 	
 	//Check if already on list.
 	for(i=0; i < MAX_SERVER && servers[i].ip.host != 0;i++) {
+		//printf("Update %d\n", servers[i].ip.host);
 		if(package->address.host == servers[i].ip.host){
-			already_add = 1;
-			break;
+			//printf("Here already\n");
+			return 1;
 		}
 	}
 	
-	if(!already_add && i < MAX_SERVER) {
-		servers[i].ip.host = package->address.host;
-		servers[i].ip.port = package->address.port;
-		
+	if(i < MAX_SERVER) {
+		//printf("PORT: |%d|\n",package->address.port);
 		name = strchr((char*)package->data, '\t');//Data is Uint8, so need cast.
+		//printf("Message: |%s|\n", name);
 		if(++name) {
 			 strncpy(servers[i].name, name, SERVER_NAME);
-			 //Remove \t
+			 //printf("Server name: |%s|\n", servers[i].name);
+			 
+			 name = strchr(servers[i].name, '\t');
+			 
+			 if(++name) {
+				 strncpy(port, name, SERVER_NAME);
+			 }
+			 else {
+				 use_default = 1;
+			 }
+			 
 			 name = strchr(servers[i].name, '\t');
 			 if(name) {
 				  *name = '\0';
 			 }
-			 //Remove \n
 			 name = strchr(servers[i].name, '\n');
 			 if(name) {
 				  *name = '\0';
 			 }
+			 
+			 prt = strchr(port, '\n');
+			 if(prt) {
+				  *prt = '\0';
+			 }
+			 
+			 use_default = !str_to_uint16(port, &port_number);
 		}
+		else {
+			return 0;
+		}
+		
+		if(use_default){
+			port_number = (uint16_t) DEFAULT_PORT_TCP;
+		}
+		servers[i].ip.host = package->address.host;
+		servers[i].ip.port = port_number;
+		printf("Server name: |%s|\n", servers[i].name);
+		printf("Server port: |%d|\n", servers[i].ip.port);
 		//Add this to next list number.
 		i++;
-	}
-	return i;
+		return 1;
+	}	
+	return 0;
 }
 
 //Check Functions
@@ -318,10 +349,13 @@ int find_servers() {
             if(strncmp((char*)input_package->data, "GRADE_DEFENDER_SERVER", strlen("GRADE_DEFENDER_SERVER")) == 0){
                 trying = 0;
                 //add to list, checking for duplicates
-                number_found = update_list_servers(input_package);
+                update_list_servers(input_package);
             }
         }
 
+		for(number_found = 0; number_found < MAX_SERVER && servers[number_found].ip.host != 0;number_found++);
+		printf("Found: %d\n", number_found);
+		
 		if (number_found != MAX_SERVER) {
 			//Wait at least 100 ms.
 			t2 = SDL_GetTicks();
@@ -515,7 +549,6 @@ void check_connection_tcp(){
 		SDLNet_TCP_DelSocket(activity, socket);
 		close_socket(socket);
 	}
-	
 	return;
 }
 
@@ -1522,6 +1555,7 @@ void run_client(void *data){
 		SDL_AtomicUnlock(&lock);
 		//Search server
 		found = find_servers();
+		printf("Servers found: %d\n",found);
 		
 		//Connect or choose server to connect.
 		if(found == 0) {
@@ -1545,6 +1579,7 @@ void run_client(void *data){
 			comm->server->host = get_host();
 			SDL_AtomicUnlock(&lock);
 			//Connect to this server.
+			printf("Only one found!\n");
 			connected = connect_to_server(0);
 		}
 		else {
@@ -1628,5 +1663,19 @@ void kill_thread(SDL_Thread **thread){
 	SDL_DetachThread(*thread);
 	*thread = NULL;
 	return;
+}
+
+/**
+This function was copied from deltheil on 
+http://stackoverflow.com/questions/20019786/safe-and-portable-way-to-convert-a-char-to-uint16-t
+*/
+int str_to_uint16(const char *str, uint16_t *res){
+	char *end;
+	errno = 0;
+	intmax_t val = strtoimax(str, &end, 10);
+	if (errno == ERANGE || val < 0 || val > UINT16_MAX || end == str || *end != '\0')
+		return 0;
+	*res = (uint16_t) val;
+	return 1;
 }
 

@@ -7,7 +7,10 @@
 	#include <stdio.h>
 	#include <strings.h>
 	#include <time.h>
-	
+	#include <inttypes.h>
+	#include <errno.h>
+
+
 	#ifdef _WIN32 //Load lib for windows or mac.
 		#include <SDL2/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
@@ -181,5 +184,5 @@
 	void run_client(void *data);
 	
 	void kill_thread(SDL_Thread **thread);
-	
+	int str_to_uint16(const char *str, uint16_t *res);
 #endif
