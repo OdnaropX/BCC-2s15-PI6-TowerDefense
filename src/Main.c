@@ -260,8 +260,9 @@ int main(int argc, char * argv[]) {
     while(!quit){
         //FPS Handling
         t2 = SDL_GetTicks() - t1;
-        if(t2 < delay)
+        if(t2 < delay){
             SDL_Delay(delay - t2);
+        }
         
         t1 = SDL_GetTicks();
 
@@ -1788,7 +1789,7 @@ int main(int argc, char * argv[]) {
                         break;
                         
                     case MP_START:
-                        ready_to_play = 1;
+                        // ready_to_play = 1;
 
                         multiplayer_status = MPS_STARTED_GAME;
 						

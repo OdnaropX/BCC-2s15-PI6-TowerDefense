@@ -201,7 +201,7 @@ int update_list_servers(UDPpacket* package){
 				 strncpy(port, name, SERVER_NAME);
 			 }
 			 else {
-				 use_default = 1;
+				 //use_default = 1;
 			 }
 			 
 			 name = strchr(servers[i].name, '\t');
@@ -912,7 +912,7 @@ void handle_message(char *buffer, int handle_internal){
 	printf("Handling message\n");
 	char *pointer = NULL;
 	int i, j, user_id, user_from, temp, life, connected;
-	i = 0;
+	//i = 0;
 
 	//Client side
 	//Check if game can begin
@@ -1105,7 +1105,7 @@ void handle_message(char *buffer, int handle_internal){
 		printf("Handling ADD_MINION\n");
 		pointer = strchr(buffer, '\t');
 		pointer++;
-		user_from = (int) *pointer;
+		//user_from = (int) *pointer;
 		pointer+=2;
 		user_id = (int) *pointer;
 		pointer+=2;
@@ -1439,9 +1439,11 @@ int handle_message_pool(TCPsocket tcp_socket){
 			handle_message(buffer, 0);
 		}
 		else if (has == -1){
+            free(buffer);
 			return 0;
 		}
 		else {
+            free(buffer);
 			return 1;
 		}
 	}
