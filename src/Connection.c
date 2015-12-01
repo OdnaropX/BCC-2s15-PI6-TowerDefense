@@ -1359,9 +1359,11 @@ void handle_message(char *buffer, int handle_internal){
 		user_id = (int)*pointer;
 		pointer+=2;
 		char *name = pointer;
+        
 		//Update adversary
 		for(i =0; i < comm->match->players; i++){
 			if(comm->adversary[i].id == user_id){
+                comm->adversary[i].name = NULL;
 				comm->adversary[i].name = realloc(comm->adversary[i].name, sizeof(char) * BUFFER_LIMIT);
 				if(!comm->adversary[i].name){
 					comm->adversary[i].name = malloc(sizeof(char) * SERVER_NAME);
