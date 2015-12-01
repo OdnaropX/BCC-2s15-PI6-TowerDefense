@@ -53,32 +53,33 @@ Communication *init_communication() {
 void remove_communication(){
 	printf("Removing communication\n");
 	
-	if(comm->match){
-		free(comm->match);
-		comm->match = NULL;
-	}
-	
-	if(comm->adversary){
-		if(comm->adversary->minions_sent){
-			free(comm->adversary->minions_sent);
-			comm->adversary->minions_sent = NULL;
+	if(comm){
+		if(comm->match){
+			free(comm->match);
+			comm->match = NULL;
 		}
-		free(comm->adversary);
-		comm->adversary = NULL;
-	}
-	
-	if(comm->server){
-		if(comm->server->host){
-			free(comm->server->host);
-			comm->server->host = NULL;
+		
+		if(comm->adversary){
+			if(comm->adversary->minions_sent){
+				free(comm->adversary->minions_sent);
+				comm->adversary->minions_sent = NULL;
+			}
+			free(comm->adversary);
+			comm->adversary = NULL;
 		}
-		free(comm->server);
-		comm->server = NULL;
+		
+		if(comm->server){
+			if(comm->server->host){
+				free(comm->server->host);
+				comm->server->host = NULL;
+			}
+			free(comm->server);
+			comm->server = NULL;
+		}
+		
+		free(comm);
+		comm = NULL;
 	}
-	
-	free(comm);
-	comm = NULL;
-	
 	return;
 }
 
@@ -177,6 +178,8 @@ int update_list_servers(UDPpacket* package){
 	char *name = NULL;
 	int i;
 	
+	printf("Updating servers\n");
+	
 	//Check if already on list.
 	for(i=0; i < MAX_SERVER && servers[i].ip.host != 0;i++) {
 		if(package->address.host == servers[i].ip.host){
@@ -235,8 +238,7 @@ int find_servers() {
 	int attempts = 0;
 	int sent = 0;
     int i = 0;
-	int t1, t2;
-	t1 = 0;
+	int t1 = 0, t2, ignore_local = 0;
 	
 	//Port 0 because cannot open UDP socket to server if server is the same machine, so 0 is auto assigned.
 	udp_socket = establish_udp(0);
@@ -251,14 +253,21 @@ int find_servers() {
 	
 	//Mount package. 255.255.255.255 will broadcast to the entire LAN.
 	//IP address is detect by the resolver from SDL.
-    SDLNet_ResolveHost(&ip, "255.255.255.255", DEFAULT_PORT);
+    if(SDLNet_ResolveHost(&ip, "255.255.255.255", DEFAULT_PORT_UDP) != 0) {
+		printf("Could not resolve server name\n");
+		return 0;
+	}
+	
     output_package->address.host = ip.host;
     output_package->address.port = ip.port;
     sprintf((char*) output_package->data, "GRADE_DEFENDER_CLIENT");
     output_package->len = strlen("GRADE_DEFENDER_CLIENT") + 1;
 
 	//Package for localhost. This will be used on internal tests.
-    SDLNet_ResolveHost(&ip, "255.255.255.255", DEFAULT_PORT);
+    if(SDLNet_ResolveHost(&ip, "localhost", DEFAULT_PORT_UDP) != 0) {
+		ignore_local = 1;
+	}
+	
     output_package_local->address.host = ip.host;
     output_package_local->address.port = ip.port;
     sprintf((char*) output_package_local->data, "GRADE_DEFENDER_CLIENT");
@@ -270,23 +279,26 @@ int find_servers() {
 	}
 	
 	while(trying){
-		//printf("Trying send package: %s\n", (char *) output_package->data);//Cast because data is save as Uint8 *
+		printf("Trying send package: %s\n", (char *) output_package->data);//Cast because data is save as Uint8 *
 		
 		//sent = SDLNet_UDP_Send(udp_socket, output_package->channel, output_package);
 		sent = SDLNet_UDP_Send(udp_socket, -1, output_package);
 		if (!sent) {
 			printf("Broadcast failed!\nTrying Localhost...\n");
 			
+			if(ignore_local) {
+				printf("Something really, really, I mean really wrong happened and Localhost was not accessed.\nThis was not suppost to happen.\n");
+				return 0;
+			}
 			//sent = SDLNet_UDP_Send(udp_socket, output_package_local->channel, output_package_local);
 			sent = SDLNet_UDP_Send(udp_socket, -1, output_package_local);
-			
 			if (!sent) {
 				printf("Something really, really, I mean really wrong happened and Localhost was not accessed.\nThis was not suppost to happen.\n");
 				return 0;
 			}	
 		}
 		//Delay to give server chance to respond.
-		SDL_Delay(30);
+		SDL_Delay(CONNECTION_DELAY);
 		
 		while(SDLNet_UDP_Recv(udp_socket, input_package)){
             if(strncmp((char*)input_package->data, "GRADE_DEFENDER_SERVER", strlen("GRADE_DEFENDER_SERVER")) == 0){
@@ -335,7 +347,7 @@ int find_servers() {
 
 int establish_server(IPaddress *ip){
 	time_t t;
-    int port = DEFAULT_PORT;
+    int port = DEFAULT_PORT_UDP;
 	/* First create TCP socket that will be used to connect	*/
 	//Null is to listen
 	if(SDLNet_ResolveHost (ip, NULL, port) < 0){
@@ -357,7 +369,7 @@ int establish_server(IPaddress *ip){
 	}
 	
 	//Start UDP socket to listen for clients.
-	server_udp_socket = establish_udp(DEFAULT_PORT);
+	server_udp_socket = establish_udp(DEFAULT_PORT_UDP);
 	if (!server_udp_socket){
 		return 0;
 	}
@@ -1365,13 +1377,12 @@ void process_action(){
 		//Process minions.
 		if(minions) {
 			for(int j = 0; j < i; j++){
-				sprintf(buffer, "USER_MINION\t%c\t%c", buffer, (char) (*minions).client_id, (char) (*minions).amount);
-				for(int z; z < (*minions).amount;z++) {
-					sprintf(buffer, "%s\t%c", buffer, (char) *(*minions).type);
-					(*minions).type++;
+				sprintf(buffer, "USER_MINION\t%c\t%c", buffer, (char) minions[j].client_id, (char) minions[j].amount);
+				for(int z = 0; z < minions[j].amount;z++) {
+					sprintf(buffer, "%s\t%c", buffer, (char) minions[j].type[z]);
 				}
 				//minions->type--;
-				free((*minions).type);
+				free(minions[j].type);
 			
 				//Send message to server
 				if(is_server){
@@ -1383,7 +1394,6 @@ void process_action(){
 						break;
 					}
 				}
-				minions++;
 			}
 			//minions--;
 			free(minions);

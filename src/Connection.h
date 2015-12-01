@@ -19,8 +19,10 @@
 	
 	//Constants
 	///////////////////////////////////////////////////////////////////////
-	#define DEFAULT_PORT 7777
+	#define DEFAULT_PORT_UDP 7777
+	#define DEFAULT_PORT_TCP 7776
 	#define DEFAULT_PLAYERS_LIFE 10
+	#define CONNECTION_DELAY 50
 	#define BUFFER_LIMIT 512
 	#define SERVER_NAME 150
 	#define MAX_SERVER 4//Change to get from config file.
