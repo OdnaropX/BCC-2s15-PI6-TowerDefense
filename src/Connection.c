@@ -170,7 +170,6 @@ void remove_client(int client){
 ///////////////////////////////////////////////////////////////////////
 	
 int update_list_servers(UDPpacket* package){
-	int already_add = 0;
 	char *name = NULL;
 	char *prt = NULL;
 	char port[SERVER_NAME];
@@ -944,31 +943,6 @@ void handle_message(char *buffer, int handle_internal){
 
 		//Add server as adversary
 		temp = comm->match->players;
-		/* //Remove after test.
-		Adversary *adversary = malloc(sizeof (Adversary) * (temp + 1));
-		if(comm->adversary) {
-			for (i = 0; i < temp; i++){
-				adversary[i].id = comm->adversary[i].id;
-				adversary[i].playing = comm->adversary[i].playing;
-				adversary[i].name = comm->adversary[i].name;
-				adversary[i].life = comm->adversary[i].life;
-				adversary[i].ready_to_play = comm->adversary[i].ready_to_play;
-				adversary[i].pending_minions = comm->adversary[i].pending_minions;
-				adversary[i].minions_sent = comm->adversary[i].minions_sent;
-			}
-			free(comm->adversary);
-		}
-		pointer+=2;
-		
-		adversary[i].id = (int) *pointer;
-		adversary[i].playing = 1;
-		adversary[i].pending_minions = 0;
-		adversary[i].life = DEFAULT_PLAYERS_LIFE;
-		adversary[i].ready_to_play = 0;
-		adversary[i].name = get_connected_server_name();
-		adversary[i].minions_sent = NULL;
-		comm->adversary = adversary;
-		*/
 		
 		comm->adversary = realloc(comm->adversary, sizeof (Adversary) * (temp + 1));
 		if(comm->adversary){
@@ -980,7 +954,7 @@ void handle_message(char *buffer, int handle_internal){
 			comm->adversary[temp].name = get_connected_server_name();
 			comm->adversary[temp].minions_sent = NULL;
 			comm->match->players = temp + 1;
-			printf("Successfully realloced\n");
+			printf("Successfully realloced adversary\n");
 		}
 		else {
 			printf("Error on realloc comm->adversary\n");
@@ -992,7 +966,44 @@ void handle_message(char *buffer, int handle_internal){
 	else if(strncmp(buffer, "ADD_USER", strlen("ADD_USER")) == 0) {
 		printf("Handling ADD_USER\n");
 		SDL_AtomicLock(&comm_lock);
+		
+		//Add user as adversary
 		temp = comm->match->players;
+		
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		user_id = (int) *pointer;
+		
+		pointer = strchr(pointer, '\t');
+		pointer++;//This now is name.
+		
+		//Realloc adversary
+		
+		comm->adversary = realloc(comm->adversary, sizeof (Adversary) * (temp + 1));
+		if(comm->adversary){
+			comm->adversary[temp].id = user_id;
+			comm->adversary[temp].playing = 1;
+			comm->adversary[temp].pending_minions = 0;
+			comm->adversary[temp].life = DEFAULT_PLAYERS_LIFE;
+			comm->adversary[temp].ready_to_play = 0;
+			
+			comm->adversary[temp].minions_sent = NULL;
+			comm->adversary[temp].name = get_connected_server_name();
+			comm->adversary[temp].name = realloc(comm->adversary[temp].name, sizeof(char) * SERVER_NAME);
+			
+			if(!comm->adversary[temp].name){
+				comm->adversary[temp].name = malloc(sizeof(char) * SERVER_NAME);
+			}
+			strncpy(comm->adversary[temp].name, (const char *) pointer, SERVER_NAME);
+		
+			comm->match->players = temp + 1;
+			printf("Successfully realloced adversary\n");
+		}
+		else {
+			printf("Error on realloc comm->adversary\n");
+		}
+		
+		/* //Remove after test.
 		Adversary *adversary = malloc(sizeof (Adversary) * (temp + 1));
 		printf("Adversary %d\n", temp);
 		if(temp) {
@@ -1029,7 +1040,9 @@ void handle_message(char *buffer, int handle_internal){
 		strncpy(adversary[i].name, (const char *) pointer, SERVER_NAME);
 		
 		comm->adversary = adversary;
+		
 		comm->match->players = temp + 1;
+		*/
 		
 		SDL_AtomicUnlock(&comm_lock);
 	}			
@@ -1221,26 +1234,30 @@ void handle_message(char *buffer, int handle_internal){
 			SDL_AtomicLock(&comm_lock);
 			for(i = 0; i < comm->match->players; i++){
 				if(comm->adversary[i].id == user_from){
-					temp = comm->adversary[i].pending_minions;
 					j = 0;
 					//Realloc 
-					int *minions_sent = malloc(sizeof(int) * (temp + (int) *pointer));
+					int *minions_sent = malloc(sizeof(int) * (comm->adversary[i].pending_minions + (int) *pointer));
 					if(comm->adversary[i].minions_sent){
-						for(j; j < temp; j++){
+						for(j; j < comm->adversary[i].pending_minions; j++){
 							minions_sent[j] = comm->adversary[j].minions_sent[j];
 						}
 						free(comm->adversary[i].minions_sent);
 					}
-					temp = (int) *pointer;//pointer on qtd
-					pointer+=2;
-					for(j; j < temp; j++){
-						minions_sent[j] = (int) *pointer;
+					//Realloc 
+					comm->adversary[i].minions_sent = realloc(comm->adversary[i].minions_sent, sizeof(int) * (comm->adversary[i].pending_minions + (int) *pointer));
+					if(comm->adversary[i].minions_sent){
+						temp = (int) *pointer;//pointer on qtd
 						pointer+=2;
+						for(j; j < temp + comm->adversary[i].pending_minions; j++){
+							minions_sent[j] = (int) *pointer;
+							pointer+=2;
+						}
+						printf("Successfully realloced comm->adversary[i].minions_sent\n");
 					}
-
-					comm->adversary[i].minions_sent = minions_sent;
+					else {
+						printf("Error on realloc comm->adversary[i].minions_sent\n");
+					}
 					comm->adversary[i].pending_minions = temp + comm->adversary[i].pending_minions;
-					
 					break;
 				}
 			}
