@@ -581,7 +581,7 @@ void check_messages_tcp(){
 }
 
 void check_messages_udp(){
-	int received = 0;
+	int sent, received = 0;
 	char buffer[BUFFER_LIMIT];
 	
 	UDPpacket* input = NULL;
