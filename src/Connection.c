@@ -1629,15 +1629,20 @@ void run_server(void *data){
 				check_connection_tcp();
 			}
 			
+			printf("Begin game status\n");
 			//Update game status
 			game_status();
 			
+			printf("Begin message handler\n");
 			//Check TCP messages from clients connected. This also connect with a 
 			check_messages_tcp();
 			
+			
+			printf("Begin game status again\n");
 			//Update game status
 			game_status();
 			
+			printf("Begin to process user action\n");
 			//process player action.
 			process_action();
 			
