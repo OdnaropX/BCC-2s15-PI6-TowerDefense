@@ -122,14 +122,11 @@ void remove_client(int client){
 	if(game_in_progress && !game_ended){
 		temp = comm->match->players;
 		for (i = 0; i < temp; i++){
-			if(comm->adversary->id == clients[client].id){
-				comm->adversary->playing = 0;
+			if(comm->adversary[i].id == clients[client].id){
+				comm->adversary[i].playing = 0;
 				break;
 			}
-			comm->adversary++;
 		}
-		//Reset location.
-		comm->adversary-=i;
 	}
 	else {
 		//If game not began remove from list.
@@ -139,30 +136,27 @@ void remove_client(int client){
 			Adversary *adversary = malloc(sizeof (Adversary) * (temp - 1));
 			for (i = 0; i< temp; i++){
 				if(comm->adversary[i].id != clients[client].id) {
-					adversary->id = comm->adversary[i].id;
-					adversary->playing = comm->adversary[i].playing;
-					adversary->ready_to_play = comm->adversary[i].ready_to_play;
-					adversary->name = comm->adversary[i].name;
-					adversary->life = comm->adversary[i].life;
-					adversary->pending_minions = comm->adversary[i].pending_minions;
-					adversary->minions_sent = comm->adversary[i].minions_sent;
+					adversary[i].id = comm->adversary[i].id;
+					adversary[i].playing = comm->adversary[i].playing;
+					adversary[i].ready_to_play = comm->adversary[i].ready_to_play;
+					adversary[i].name = comm->adversary[i].name;
+					adversary[i].life = comm->adversary[i].life;
+					adversary[i].pending_minions = comm->adversary[i].pending_minions;
+					adversary[i].minions_sent = comm->adversary[i].minions_sent;
 				}
 				else {
-					if(adversary->minions_sent){
-						free(adversary->minions_sent);
-						adversary->minions_sent = NULL;
+					if(adversary[i].minions_sent){
+						free(adversary[i].minions_sent);
+						adversary[i].minions_sent = NULL;
 					}
-					if(adversary->name){
+					if(adversary[i].name){
 						//Free name
-						free(adversary->name);
-						adversary->name = NULL;
+						free(adversary[i].name);
+						adversary[i].name = NULL;
 					}
 
 				}
-				adversary++;
 			}
-			//Reset location.
-			adversary -= i;
 			if(comm->adversary){
 				free(comm->adversary);
 			}
@@ -181,7 +175,7 @@ int update_list_servers(UDPpacket* package){
 	char *prt = NULL;
 	char port[SERVER_NAME];
 	int i, use_default = 0;
-	uint16_t port_number = 0;
+	Uint16 port_number = 0;
 	
 	printf("Updating servers\n");
 	
@@ -232,14 +226,12 @@ int update_list_servers(UDPpacket* package){
 		}
 		
 		if(use_default){
-			port_number = (uint16_t) DEFAULT_PORT_TCP;
+			port_number = (Uint16) DEFAULT_PORT_TCP;
 		}
 		servers[i].ip.host = package->address.host;
 		servers[i].ip.port = port_number;
 		printf("Server name: |%s|\n", servers[i].name);
 		printf("Server port: |%d|\n", servers[i].ip.port);
-		//Add this to next list number.
-		i++;
 		return 1;
 	}	
 	return 0;
@@ -350,7 +342,7 @@ int find_servers() {
             }
         }
 
-		for(number_found = 0; number_found < MAX_SERVER && servers[number_found].ip.host != 0;number_found++);
+		for(number_found = 0; number_found < MAX_SERVER && servers[number_found].ip.host != 0; number_found++);
 		printf("Found: %d\n", number_found);
 		
 		if (number_found != MAX_SERVER) {
@@ -392,7 +384,6 @@ int find_servers() {
 
 int establish_server(IPaddress *ip){
 	time_t t;
-	uint8_t *parts;
 	/* First create TCP socket that will be used to connect	*/
 	
 	//Null is to listen
@@ -456,6 +447,7 @@ void check_connection_tcp(){
 	}
 	//Check if there is slot avaliable
 	for(i = 0; i < MAX_CLIENT && clients[i].tcp_socket;i++);
+	
 	//Repeat in case some went wrong in if above.
 	if (i == MAX_CLIENT) {
 		//Inform client that connection cannot be made.
@@ -602,7 +594,7 @@ void check_messages_udp(){
 			//Send message to client.
 			UDPpacket* output;
 			output = SDLNet_AllocPacket(BUFFER_LIMIT);
-			snprintf(buffer, BUFFER_LIMIT, "%s\t%s\t%d\t%d", "GRADE_DEFENDER_SERVER", current_user->name, DEFAULT_PORT_TCP);
+			snprintf(buffer, BUFFER_LIMIT, "%s\t%s\t%d", "GRADE_DEFENDER_SERVER", current_user->name, DEFAULT_PORT_TCP);
 			snprintf((char *)output->data, BUFFER_LIMIT, "%s", buffer);
 			output->len = (int)strlen(buffer) + 1;
 			output->address.host = input->address.host;
@@ -683,10 +675,9 @@ void game_status(){
 				//Check if game can begin //Check if all users are ready
 				temp = 0;
 				for(i = 0; i < comm->match->players;i++){
-					if(comm->adversary->ready_to_play){
+					if(comm->adversary[i].ready_to_play){
 						temp++;
 					}
-					comm->adversary++;
 				}
 				
 				if(temp == comm->match->players){
@@ -920,7 +911,7 @@ int send_message(char *message, int message_type, TCPsocket socket, int incomple
 
 void handle_message(char *buffer, int handle_internal){
 	char *pointer = NULL;
-	int i, user_id, temp, life, connected;
+	int i, j, user_id, user_from, temp, life, connected;
 	i = 0;
 
 	//Client side
@@ -939,29 +930,26 @@ void handle_message(char *buffer, int handle_internal){
 		Adversary *adversary = malloc(sizeof (Adversary) * (temp + 1));
 		if(comm->adversary) {
 			for (i = 0; i < temp; i++){
-				adversary->id = comm->adversary[i].id;
-				adversary->playing = comm->adversary[i].playing;
-				adversary->name = comm->adversary[i].name;
-				adversary->life = comm->adversary[i].life;
-				adversary->ready_to_play = comm->adversary[i].ready_to_play;
-				adversary->pending_minions = comm->adversary[i].pending_minions;
-				adversary->minions_sent = comm->adversary[i].minions_sent;
-				adversary++;	
+				adversary[i].id = comm->adversary[i].id;
+				adversary[i].playing = comm->adversary[i].playing;
+				adversary[i].name = comm->adversary[i].name;
+				adversary[i].life = comm->adversary[i].life;
+				adversary[i].ready_to_play = comm->adversary[i].ready_to_play;
+				adversary[i].pending_minions = comm->adversary[i].pending_minions;
+				adversary[i].minions_sent = comm->adversary[i].minions_sent;
 			}
 			free(comm->adversary);
 		}
 		pointer+=2;
 		
-		adversary->id = (int) *pointer;
-		adversary->playing = 1;
-		adversary->pending_minions = 0;
-		adversary->life = DEFAULT_PLAYERS_LIFE;
-		adversary->ready_to_play = 0;
-		adversary->name = get_connected_server_name();
-		adversary->minions_sent = NULL;
+		adversary[i].id = (int) *pointer;
+		adversary[i].playing = 1;
+		adversary[i].pending_minions = 0;
+		adversary[i].life = DEFAULT_PLAYERS_LIFE;
+		adversary[i].ready_to_play = 0;
+		adversary[i].name = get_connected_server_name();
+		adversary[i].minions_sent = NULL;
 		
-		//Set pointer back
-		adversary -= temp + 1;
 		comm->adversary = adversary;
 		comm->match->players = temp + 1;
 		
@@ -973,34 +961,32 @@ void handle_message(char *buffer, int handle_internal){
 		Adversary *adversary = malloc(sizeof (Adversary) * (temp + 1));
 		if(comm->adversary) {
 			for (i = 0; i < temp; i++){
-				adversary->id = comm->adversary[i].id;
-				adversary->playing = comm->adversary[i].playing;
-				adversary->name = comm->adversary[i].name;
-				adversary->life = comm->adversary[i].life;
-				adversary->ready_to_play = comm->adversary[i].ready_to_play;
-				adversary->pending_minions = comm->adversary[i].pending_minions;
-				adversary->minions_sent = comm->adversary[i].minions_sent;
-				adversary++;		
+				adversary[i].id = comm->adversary[i].id;
+				adversary[i].playing = comm->adversary[i].playing;
+				adversary[i].name = comm->adversary[i].name;
+				adversary[i].life = comm->adversary[i].life;
+				adversary[i].ready_to_play = comm->adversary[i].ready_to_play;
+				adversary[i].pending_minions = comm->adversary[i].pending_minions;
+				adversary[i].minions_sent = comm->adversary[i].minions_sent;	
 			}
 			free(comm->adversary);
 		}
 		pointer = strchr(buffer, '\t');
 		pointer++;
-		adversary->id = (int) *pointer;
-		adversary->playing = 1;
-		adversary->pending_minions = 0;
-		adversary->life = DEFAULT_PLAYERS_LIFE;
-		adversary->ready_to_play = 0;
-		adversary->minions_sent = NULL;
+		
+		adversary[i].id = (int) *pointer;
+		adversary[i].playing = 1;
+		adversary[i].pending_minions = 0;
+		adversary[i].life = DEFAULT_PLAYERS_LIFE;
+		adversary[i].ready_to_play = 0;
+		adversary[i].minions_sent = NULL;
+		
 		pointer = strchr(pointer, '\t');
 		pointer++;
-		if(!adversary->name){
-			adversary->name = malloc(sizeof(char) * SERVER_NAME);
+		if(!adversary[i].name){
+			adversary[i].name = malloc(sizeof(char) * SERVER_NAME);
 		}
-		strncpy(adversary->name, (const char *) pointer, SERVER_NAME);
-		
-		//Set pointer back
-		adversary -= temp + 1;
+		strncpy(adversary[i].name, (const char *) pointer, SERVER_NAME);
 		
 		comm->adversary = adversary;
 		comm->match->players = temp + 1;
@@ -1014,50 +1000,48 @@ void handle_message(char *buffer, int handle_internal){
 		user_id = (int) *pointer;
 		SDL_AtomicLock(&lock);
 		if(game_in_progress){
-			for (i = 0; i < comm->match->players; i++){
-				if(comm->adversary->id == user_id){
-					comm->adversary->playing = 0;
+			temp = comm->match->players;
+			for (i = 0; i < temp; i++){
+				if(comm->adversary[i].id == user_id){
+					comm->adversary[i].playing = 0;
 					break;
 				}
-				comm->adversary++;
 			}
 		}
 		else {
 			//If game not began remove from list.
 			//Realloc
 			if(comm->adversary){
+				j = 0;
 				temp = comm->match->players;
 				Adversary *adversary = malloc(sizeof (Adversary) * (temp - 1));
 				for (i = 0; i< temp; i++){
 					if(comm->adversary[i].id != user_id) {
-						adversary->id = comm->adversary[i].id;
-						adversary->playing = comm->adversary[i].playing;
-						adversary->ready_to_play = comm->adversary[i].ready_to_play;
-						adversary->name = comm->adversary[i].name;
-						adversary->life = comm->adversary[i].life;
-						adversary->pending_minions = comm->adversary[i].pending_minions;
-						adversary->minions_sent = comm->adversary[i].minions_sent;
-						adversary++;
+						adversary[j].id = comm->adversary[i].id;
+						adversary[j].playing = comm->adversary[i].playing;
+						adversary[j].ready_to_play = comm->adversary[i].ready_to_play;
+						adversary[j].name = comm->adversary[i].name;
+						adversary[j].life = comm->adversary[i].life;
+						adversary[j].pending_minions = comm->adversary[i].pending_minions;
+						adversary[j].minions_sent = comm->adversary[i].minions_sent;
+						j++;
 					}
 					else {
-						if(adversary->minions_sent){
-							free(adversary->minions_sent);
-							adversary->minions_sent = NULL;
+						if(adversary[i].minions_sent){
+							free(adversary[i].minions_sent);
+							adversary[i].minions_sent = NULL;
 						}
 						//Free name
-						if(adversary->name){
-							free(adversary->name);
-							adversary->name = NULL;
+						if(adversary[i].name){
+							free(adversary[i].name);
+							adversary[i].name = NULL;
 						}
 					}
 				}
 				free(comm->adversary);
-				
-				//Set pointer back
-				adversary -= (i - 1);
-				
+
 				comm->adversary = adversary;
-				comm->match->players = (i - 1);
+				comm->match->players = (temp - 1);
 			}
 		}
 		SDL_AtomicUnlock(&lock);
@@ -1066,55 +1050,49 @@ void handle_message(char *buffer, int handle_internal){
 	else if(strncmp(buffer, "ADD_MINION", strlen("ADD_MINION")) == 0) {
 		pointer = strchr(buffer, '\t');
 		pointer++;
+		user_from = (int) *pointer;
+		pointer+=2;
 		user_id = (int) *pointer;
 		pointer+=2;
 		temp = (int) *pointer; //qtd.
 		SDL_AtomicLock(&lock);
 		//Check if user 
 		for(i = 0; i < comm->match->players;i++){
-			if(comm->adversary->id == user_id){
+			if(comm->adversary[i].id == user_id){
 				int *minions_to_send = NULL;
-				if(comm->adversary->pending_minions > 0 && comm->adversary->minions_sent){
+				if(comm->adversary[i].pending_minions > 0 && comm->adversary[i].minions_sent){
 					//Realloc
-					minions_to_send = malloc(sizeof(int) * (comm->adversary->pending_minions + temp));
-					for(int z = 0;z < comm->adversary->pending_minions;z++){
-						*minions_to_send = comm->adversary->minions_sent[z];
-						minions_to_send++;
+					minions_to_send = malloc(sizeof(int) * (comm->adversary[i].pending_minions + temp));
+					for(int z = 0; z < comm->adversary[i].pending_minions; z++){
+						minions_to_send[z] = comm->adversary[i].minions_sent[z];
 					}
 					pointer+=2;//Now pointer point to first type.
 					//Add new ones.
 					for(int z = 0; z < temp;z++){
-						*minions_to_send = (int) *pointer;
-						minions_to_send++;
+						minions_to_send[z] = (int) *pointer;
 						pointer+=2;
 					}
-					comm->adversary->pending_minions = temp + comm->adversary->pending_minions;
+					comm->adversary[i].pending_minions = temp + comm->adversary[i].pending_minions;
 				}
 				else {
 					//Allocate new minions
 					minions_to_send = malloc(sizeof(int) * (temp));
 					pointer+=2;//Now pointer point to first type.
 					for(int z = 0; z < temp;z++){
-						*minions_to_send = (int) *pointer;
-						minions_to_send++;
+						minions_to_send[z] = (int) *pointer;
 						pointer+=2;
 					}
-					comm->adversary->pending_minions = temp;
+					comm->adversary[i].pending_minions = temp;
 				}
-				//Reset pointer location
-				minions_to_send -= comm->adversary->pending_minions;
-				if(comm->adversary->minions_sent){
-					free(comm->adversary->minions_sent);
+				if(comm->adversary[i].minions_sent){
+					free(comm->adversary[i].minions_sent);
 				}
-				comm->adversary->minions_sent = minions_to_send;
+				comm->adversary[i].minions_sent = minions_to_send;
 				break;
 			}
-			comm->adversary++;
 		}
-		//Set pointer back
-		comm->adversary -= i;
 		SDL_AtomicUnlock(&lock);
-	}			
+	}	
 	//Check USER_READY
 	else if(strncmp(buffer, "USER_READY", strlen("USER_READY")) == 0) {
 		pointer = strchr(buffer, '\t');
@@ -1122,11 +1100,10 @@ void handle_message(char *buffer, int handle_internal){
 		user_id = (int) *pointer;
 		pointer+=2;
 		for(i = 0; i < comm->match->players; i++){
-			if(comm->adversary->id == user_id){
-				comm->adversary->ready_to_play = (int) *pointer;
+			if(comm->adversary[i].id == user_id){
+				comm->adversary[i].ready_to_play = (int) *pointer;
 				break;
 			}
-			comm->adversary++;
 		}
 	}			
 	//Check USER_LIFE
@@ -1136,11 +1113,10 @@ void handle_message(char *buffer, int handle_internal){
 		user_id = (int) *pointer;
 		pointer+=2;
 		for(i = 0; i < comm->match->players; i++){
-			if(comm->adversary->id == user_id){
-				comm->adversary->life = (int) *pointer;
+			if(comm->adversary[i].id == user_id){
+				comm->adversary[i].life = (int) *pointer;
 				break;
 			}
-			comm->adversary++;
 		}
 	}	
 	//Check if game was ended
@@ -1175,6 +1151,8 @@ void handle_message(char *buffer, int handle_internal){
 	else if(strncmp(buffer, "USER_MINION", strlen("USER_MINION")) == 0) {
 		pointer = strchr(buffer, '\t');
 		pointer++;
+		user_from = (int)*pointer;
+		pointer+=2;
 		user_id = (int)*pointer;
 		temp = 0;
 		if(user_id != current_user->id) {			
@@ -1193,27 +1171,31 @@ void handle_message(char *buffer, int handle_internal){
 		else {
 		//Update server game
 			SDL_AtomicLock(&lock);
-			temp = comm->adversary->pending_minions;
-			//Realloc 
-			int *minions_sent = malloc(sizeof(int) * (temp + (int) *pointer));
-			if(comm->adversary->minions_sent){
-				for(i = 0; i < temp; i++){
-					*minions_sent = comm->adversary->minions_sent[i];
-					minions_sent++;
-				}
-				free(comm->adversary->minions_sent);
-			}
-			temp = (int) *pointer;//pointer on qtd
-			pointer+=2;
-			for(i = 0; i < temp; i++){
-				*minions_sent = (int) *pointer;
-				minions_sent++;
-				pointer+=2;
-			}
+			for(i = 0; i < comm->match->players; i++){
+				if(comm->adversary[i].id == user_from){
+					temp = comm->adversary[i].pending_minions;
+					j = 0;
+					//Realloc 
+					int *minions_sent = malloc(sizeof(int) * (temp + (int) *pointer));
+					if(comm->adversary[i].minions_sent){
+						for(j; j < temp; j++){
+							minions_sent[j] = comm->adversary[j].minions_sent[j];
+						}
+						free(comm->adversary[i].minions_sent);
+					}
+					temp = (int) *pointer;//pointer on qtd
+					pointer+=2;
+					for(j; j < temp; j++){
+						minions_sent[j] = (int) *pointer;
+						pointer+=2;
+					}
 
-			comm->adversary->minions_sent = minions_sent;
-			comm->adversary->pending_minions = temp + comm->adversary->pending_minions;
-			
+					comm->adversary[i].minions_sent = minions_sent;
+					comm->adversary[i].pending_minions = temp + comm->adversary[i].pending_minions;
+					
+					break;
+				}
+			}
 			SDL_AtomicUnlock(&lock);
 		}
 	}
@@ -1248,14 +1230,11 @@ void handle_message(char *buffer, int handle_internal){
 			pointer+=2;
 			
 			for (i = 0; i< temp; i++){
-				if(comm->adversary->id == user_id){
-					comm->adversary->ready_to_play = (int) *pointer;
+				if(comm->adversary[i].id == user_id){
+					comm->adversary[i].ready_to_play = (int) *pointer;
 					break;
 				}
-				comm->adversary++;
 			}
-			//Set pointer back
-			comm->adversary -= i;
 		}
 	}
 	//User USER_STATUS_LIFE
@@ -1298,14 +1277,11 @@ void handle_message(char *buffer, int handle_internal){
 			pointer+=2;
 			
 			for (i = 0; i< temp; i++){
-				if(comm->adversary->id == user_id){
-					comm->adversary->life = (int) *pointer;
+				if(comm->adversary[i].id == user_id){
+					comm->adversary[i].life = (int) *pointer;
 					break;
 				}
-				comm->adversary++;
 			}
-			//Set pointer back
-			comm->adversary -= i;
 		}
 	}
 	//USER_NAME
@@ -1316,23 +1292,20 @@ void handle_message(char *buffer, int handle_internal){
 		pointer+=2;
 		char *name = pointer;
 		//Update adversary
-		for(i =0; i< comm->match->players;i++){
-			if(comm->adversary->id == user_id){
-				if(!comm->adversary->name){
-					comm->adversary->name = malloc(sizeof(char) * SERVER_NAME);
+		for(i =0; i < comm->match->players; i++){
+			if(comm->adversary[i].id == user_id){
+				if(!comm->adversary[i].name){
+					comm->adversary[i].name = malloc(sizeof(char) * SERVER_NAME);
 				}
-				strncpy(comm->adversary->name, name, SERVER_NAME);
+				strncpy(comm->adversary[i].name, name, SERVER_NAME);
 				break;
 			}
-			comm->adversary++;
 		}
-		//Set pointer back
-		comm->adversary -= i;
 		//Send add user to clients
 		pointer-=2;
 		sprintf(buffer, "ADD_USER\t%s", pointer);
 		temp = 0;
-		for(i=0;i< MAX_CLIENT;i++){
+		for(i = 0; i < MAX_CLIENT; i++){
 			if(temp == connected_clients) {
 				break;
 			}
@@ -1391,7 +1364,8 @@ int handle_message_pool(TCPsocket tcp_socket){
 		has = has_message_tcp(buffer, tcp_socket);
 		if(has == 1){
 			//Message handle with success, give me the next one please.
-			handle_message(buffer, 0);		}
+			handle_message(buffer, 0);
+		}
 		else if (has == -1){
 			return 0;
 		}
@@ -1458,11 +1432,10 @@ void process_action(){
 		//Process minions.
 		if(minions) {
 			for(int j = 0; j < i; j++){
-				sprintf(buffer, "USER_MINION\t%c\t%c", buffer, (char) minions[j].client_id, (char) minions[j].amount);
+				sprintf(buffer, "USER_MINION\t%c\t%c\t%c", (char) current_user->id, (char) minions[j].client_id, (char) minions[j].amount);
 				for(int z = 0; z < minions[j].amount;z++) {
 					sprintf(buffer, "%s\t%c", buffer, (char) minions[j].type[z]);
 				}
-				//minions->type--;
 				free(minions[j].type);
 			
 				//Send message to server
@@ -1476,7 +1449,6 @@ void process_action(){
 					}
 				}
 			}
-			//minions--;
 			free(minions);
 		}
 	}
@@ -1681,13 +1653,13 @@ void kill_thread(SDL_Thread **thread){
 This function was copied from deltheil on 
 http://stackoverflow.com/questions/20019786/safe-and-portable-way-to-convert-a-char-to-uint16-t
 */
-int str_to_uint16(const char *str, uint16_t *res){
+int str_to_uint16(const char *str, Uint16 *res){
 	char *end;
 	errno = 0;
 	intmax_t val = strtoimax(str, &end, 10);
 	if (errno == ERANGE || val < 0 || val > UINT16_MAX || end == str || *end != '\0')
 		return 0;
-	*res = (uint16_t) val;
+	*res = (Uint16) val;
 	return 1;
 }
 

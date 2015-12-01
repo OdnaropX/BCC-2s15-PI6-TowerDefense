@@ -13,7 +13,6 @@
 	#ifdef _WIN32 //Load lib for windows or mac.
 		#include <SDL2/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
-		#include <winsock.h>
 	#else
 		#include <SDL2_net/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
