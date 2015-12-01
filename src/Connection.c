@@ -1251,7 +1251,7 @@ void handle_message(char *buffer, int handle_internal){
 					//Realloc 
 					int *minions_sent = malloc(sizeof(int) * (comm->adversary[i].pending_minions + (int) *pointer));
 					if(comm->adversary[i].minions_sent){
-						for(j; j < comm->adversary[i].pending_minions; j++){
+						for(; j < comm->adversary[i].pending_minions; j++){
 							minions_sent[j] = comm->adversary[j].minions_sent[j];
 						}
 						free(comm->adversary[i].minions_sent);
@@ -1261,7 +1261,7 @@ void handle_message(char *buffer, int handle_internal){
 					if(comm->adversary[i].minions_sent){
 						temp = (int) *pointer;//pointer on qtd
 						pointer+=2;
-						for(j; j < temp + comm->adversary[i].pending_minions; j++){
+						for(; j < temp + comm->adversary[i].pending_minions; j++){
 							minions_sent[j] = (int) *pointer;
 							pointer+=2;
 						}
