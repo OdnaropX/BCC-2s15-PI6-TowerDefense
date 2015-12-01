@@ -7,11 +7,12 @@
 	#include <stdio.h>
 	#include <strings.h>
 	#include <time.h>
-	
+	#include <inttypes.h>
+	#include <errno.h>
+
 	#ifdef _WIN32 //Load lib for windows or mac.
 		#include <SDL2/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
-		
 	#else
 		#include <SDL2_net/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
@@ -19,8 +20,10 @@
 	
 	//Constants
 	///////////////////////////////////////////////////////////////////////
-	#define DEFAULT_PORT 4242
+	#define DEFAULT_PORT_UDP 7777
+	#define DEFAULT_PORT_TCP 7776
 	#define DEFAULT_PLAYERS_LIFE 10
+	#define CONNECTION_DELAY 50
 	#define BUFFER_LIMIT 512
 	#define SERVER_NAME 150
 	#define MAX_SERVER 4//Change to get from config file.
@@ -106,6 +109,7 @@
 	struct _host {
 		IPaddress ip;
 		char name[SERVER_NAME];
+		//char ip_name[16];
 	};
 	
 	struct _client {
@@ -152,6 +156,7 @@
 	//Connection Functions
 	///////////////////////////////////////////////////////////////////////
 	void close_connection();
+	void close_clients();
 	void close_socket(TCPsocket tcp_socket);
 	void close_set(SDLNet_SocketSet activity);
 	int connect_to_server(int server_choice);
@@ -161,7 +166,7 @@
 	char *get_connected_server_name();
 	char *get_host_name(int i);
 	Host *get_host();
-	TCPsocket get_socket_from_user_id(int user_id);
+	TCPsocket get_socket_from_user_id(int user_id, int *index);
 	
 	//Messages Functions
 	///////////////////////////////////////////////////////////////////////
@@ -178,5 +183,5 @@
 	void run_client(void *data);
 	
 	void kill_thread(SDL_Thread **thread);
-	
+	int str_to_uint16(const char *str, uint16_t *res);
 #endif

@@ -317,7 +317,6 @@ void draw_screen_multiplayer_menu(SDL_Renderer *renderer, SDL_Texture **assets, 
         if(assets[i])
             SDL_DestroyTexture(assets[i]);
     }
-    
 }
 
 void get_menu_size_tower(int size[], list_turret_avaliable *list, int *per_row){
