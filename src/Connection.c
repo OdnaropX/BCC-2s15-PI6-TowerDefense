@@ -989,7 +989,7 @@ void handle_message(char *buffer, int handle_internal){
 			
 			comm->adversary[temp].minions_sent = NULL;
 			comm->adversary[temp].name = get_connected_server_name();
-			comm->adversary[temp].name = realloc(comm->adversary[temp].name, sizeof(char) * SERVER_NAME);
+			//comm->adversary[temp].name = realloc(comm->adversary[temp].name, sizeof(char) * SERVER_NAME);
 			
 			if(!comm->adversary[temp].name){
 				comm->adversary[temp].name = malloc(sizeof(char) * SERVER_NAME);
