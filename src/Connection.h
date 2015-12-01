@@ -154,6 +154,7 @@
 	//Connection Functions
 	///////////////////////////////////////////////////////////////////////
 	void close_connection();
+	void close_clients();
 	void close_socket(TCPsocket tcp_socket);
 	void close_set(SDLNet_SocketSet activity);
 	int connect_to_server(int server_choice);

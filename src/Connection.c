@@ -243,6 +243,7 @@ int find_servers() {
 	//Port 0 because cannot open UDP socket to server if server is the same machine, so 0 is auto assigned.
 	udp_socket = establish_udp(0);
     if(!udp_socket){
+		printf("Cannot establish UDP socket.");
 		return 0;
 	}
 	
@@ -254,6 +255,10 @@ int find_servers() {
 	//Mount package. 255.255.255.255 will broadcast to the entire LAN.
 	//IP address is detect by the resolver from SDL.
     if(SDLNet_ResolveHost(&ip, "255.255.255.255", DEFAULT_PORT_UDP) != 0) {
+		SDLNet_FreePacket(output_package); 
+		SDLNet_FreePacket(output_package_local); 
+		SDLNet_FreePacket(input_package); 
+		SDLNet_UDP_Close(udp_socket); 
 		printf("Could not resolve server name\n");
 		return 0;
 	}
@@ -288,12 +293,20 @@ int find_servers() {
 			
 			if(ignore_local) {
 				printf("Something really, really, I mean really wrong happened and Localhost was not accessed.\nThis was not suppost to happen.\n");
+				SDLNet_FreePacket(output_package); 
+				SDLNet_FreePacket(output_package_local); 
+				SDLNet_FreePacket(input_package); 
+				SDLNet_UDP_Close(udp_socket); 
 				return 0;
 			}
 			//sent = SDLNet_UDP_Send(udp_socket, output_package_local->channel, output_package_local);
 			sent = SDLNet_UDP_Send(udp_socket, -1, output_package_local);
 			if (!sent) {
 				printf("Something really, really, I mean really wrong happened and Localhost was not accessed.\nThis was not suppost to happen.\n");
+				SDLNet_FreePacket(output_package); 
+				SDLNet_FreePacket(output_package_local); 
+				SDLNet_FreePacket(input_package); 
+				SDLNet_UDP_Close(udp_socket);
 				return 0;
 			}	
 		}
@@ -301,6 +314,7 @@ int find_servers() {
 		SDL_Delay(CONNECTION_DELAY);
 		
 		while(SDLNet_UDP_Recv(udp_socket, input_package)){
+			printf("Receiving Message\n");
             if(strncmp((char*)input_package->data, "GRADE_DEFENDER_SERVER", strlen("GRADE_DEFENDER_SERVER")) == 0){
                 trying = 0;
                 //add to list, checking for duplicates
@@ -347,10 +361,11 @@ int find_servers() {
 
 int establish_server(IPaddress *ip){
 	time_t t;
-    int port = DEFAULT_PORT_UDP;
+	
 	/* First create TCP socket that will be used to connect	*/
+	
 	//Null is to listen
-	if(SDLNet_ResolveHost (ip, NULL, port) < 0){
+	if(SDLNet_ResolveHost(ip, NULL, DEFAULT_PORT_TCP) < 0){
 		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
 		return 0;
 	}
@@ -365,12 +380,15 @@ int establish_server(IPaddress *ip){
 	activity = SDLNet_AllocSocketSet(MAX_CLIENT);
 	if(!activity){
 		printf("SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
+		close_socket(server_tcp_socket);
         return 0;
 	}
 	
 	//Start UDP socket to listen for clients.
 	server_udp_socket = establish_udp(DEFAULT_PORT_UDP);
 	if (!server_udp_socket){
+		close_socket(server_tcp_socket);
+		close_set(activity);
 		return 0;
 	}
 	
@@ -438,7 +456,6 @@ void check_connection_tcp(){
 	//Send id
 	sprintf(buffer, "%c\t%c", (char) user_id, (char) current_user->id);
 	if(send_message(buffer, 10, socket, 1)){
-		
 		temp = 0;
 		//Send other users to this user
 		connected = connected_clients;
@@ -458,29 +475,31 @@ void check_connection_tcp(){
 			}
 		}
 		
+		//Reset j.
+		j = 0;
+		
 		//Add to adversary
 		Adversary *adversary = malloc(sizeof (Adversary) * sockets);
 		if(comm->adversary) {
 			temp = comm->match->players;
 			for (j = 0; j < temp; j++){
-				adversary->id = comm->adversary[j].id;
-				adversary->playing = comm->adversary[j].playing;
-				adversary->name = comm->adversary[j].name;
-				adversary->life = comm->adversary[j].life;
-				adversary->ready_to_play = comm->adversary[j].ready_to_play;
-				adversary->pending_minions = comm->adversary[j].pending_minions;
-				adversary->minions_sent = comm->adversary[j].minions_sent;
-				adversary++;		
+				adversary[j].id = comm->adversary[j].id;
+				adversary[j].playing = comm->adversary[j].playing;
+				adversary[j].name = comm->adversary[j].name;
+				adversary[j].life = comm->adversary[j].life;
+				adversary[j].ready_to_play = comm->adversary[j].ready_to_play;
+				adversary[j].pending_minions = comm->adversary[j].pending_minions;
+				adversary[j].minions_sent = comm->adversary[j].minions_sent;	
 			}
 			free(comm->adversary);
 		}
 	
-		adversary->id = user_id;
-		adversary->playing = 1;
-		adversary->pending_minions = 0;
-		adversary->life = DEFAULT_PLAYERS_LIFE;
-		adversary->ready_to_play = 0;
-		adversary->minions_sent = NULL;
+		adversary[j].id = user_id;
+		adversary[j].playing = 1;
+		adversary[j].pending_minions = 0;
+		adversary[j].life = DEFAULT_PLAYERS_LIFE;
+		adversary[j].ready_to_play = 0;
+		adversary[j].minions_sent = NULL;
 
 		comm->adversary = adversary;
 		comm->match->players = comm->match->players + 1;
@@ -546,17 +565,20 @@ void check_messages_udp(){
 	input = SDLNet_AllocPacket(BUFFER_LIMIT);
 	received = SDLNet_UDP_Recv(server_udp_socket, input);//Message will not be greater than buffer. 
 	
-	if(received > 0 && received <= BUFFER_LIMIT){
+	if(received == 1){
 		if(strncmp((char*)input->data, "GRADE_DEFENDER_CLIENT", strlen("GRADE_DEFENDER_CLIENT")) == 0){
 			//Send message to client.
 			UDPpacket* output;
 			output = SDLNet_AllocPacket(BUFFER_LIMIT);
-			snprintf(buffer, BUFFER_LIMIT, "%s\t%s", "GRADE_DEFENDER_SERVER", current_user->name);
+			snprintf(buffer, BUFFER_LIMIT, "%s\t%s\t%d", "GRADE_DEFENDER_SERVER", current_user->name, DEFAULT_PORT_TCP);
 			snprintf((char *)output->data, BUFFER_LIMIT, "%s", buffer);
 			output->len = strlen(buffer) + 1;
 			output->address.host = input->address.host;
             output->address.port = input->address.port;
 			sent = SDLNet_UDP_Send(server_udp_socket, -1, output);
+			if (sent){
+				printf("Package from server was sent\n");
+			}
             SDLNet_FreePacket(output);
 		}
 	}
@@ -686,6 +708,9 @@ void close_connection(){
 	if (activity) {
 		close_set(activity);
 	}
+	if(server_udp_socket){
+		SDLNet_UDP_Close(server_udp_socket);
+	}
 	return;
 }
 
@@ -701,6 +726,21 @@ void close_set(SDLNet_SocketSet activity) {
 	if (activity) {
 		SDLNet_FreeSocketSet(activity);
         activity = NULL;
+	}
+	return;
+}
+
+void close_clients(){
+	int temp = 0, connected = connected_clients;
+	
+	for(int i = 0 ; i < MAX_CLIENT; i++) {
+		if(temp == connected){
+			break;
+		}
+		if(clients[i].tcp_socket){
+			close_socket(clients[i].tcp_socket);
+			temp++;
+		}
 	}
 	return;
 }
@@ -1450,6 +1490,10 @@ void run_server(void *data){
 			
 		}
 	}
+	//Close clients connection
+	close_clients();
+	//Close TCP connection.
+	close_connection();
 	
 	//Free server
 	if(main_server){
