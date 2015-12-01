@@ -925,6 +925,7 @@ void handle_message(char *buffer, int handle_internal){
 	//Check user add
 	else if(strncmp(buffer, "USER_ID", strlen("USER_ID")) == 0){
 		printf("Handling USER_ID\n");
+        
 		pointer = strchr(buffer, '\t');
 		pointer++;
 		current_user->id = (int) *pointer;
@@ -940,7 +941,7 @@ void handle_message(char *buffer, int handle_internal){
 				printf("Failed\n");
 			}
 		free(buffer_name);
-		
+
 		//Add server as adversary
 		temp = comm->match->players;
 		/* //Remove after test.
@@ -1024,7 +1025,7 @@ void handle_message(char *buffer, int handle_internal){
 			adversary[i].name = malloc(sizeof(char) * SERVER_NAME);
             printf("adversary[i].name alloc\n");
 		}
-        
+
 		strncpy(adversary[i].name, (const char *) pointer, SERVER_NAME);
 		
 		comm->adversary = adversary;
@@ -1650,6 +1651,7 @@ void run_client(void *data){
 			comm->server->connecting = 0;
 			comm->server->connected = 1;
 			SDL_AtomicUnlock(&comm_lock);
+
 		}
 		
 		while(!terminate_thread){
