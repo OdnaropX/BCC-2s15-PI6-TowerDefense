@@ -58,6 +58,7 @@ void remove_communication(){
 	printf("Removing communication\n");
 	
 	if(comm){
+		SDL_AtomicLock(&comm_lock);
 		if(comm->match){
 			free(comm->match);
 			comm->match = NULL;
@@ -84,6 +85,7 @@ void remove_communication(){
 		
 		free(comm);
 		comm = NULL;
+		SDL_AtomicUnlock(&comm_lock);
 	}
 	return;
 }
@@ -124,6 +126,7 @@ void remove_client(int client){
 	
 	//Change player status to left.
 	if(game_in_progress && !game_ended){
+		SDL_AtomicLock(&comm_lock);
 		temp = comm->match->players;
 		for (i = 0; i < temp; i++){
 			if(comm->adversary[i].id == clients[client].id){
@@ -131,8 +134,10 @@ void remove_client(int client){
 				break;
 			}
 		}
+		SDL_AtomicUnlock(&comm_lock);
 	}
 	else {
+		SDL_AtomicLock(&comm_lock);
 		//If game not began remove from list.
 		//Realloc
 		if(comm->match->players > 0){
@@ -167,6 +172,7 @@ void remove_client(int client){
 			comm->adversary = adversary;
 			comm->match->players = temp - 1;
 		}
+		SDL_AtomicUnlock(&comm_lock);
 	}
 }
 
@@ -421,11 +427,13 @@ int establish_server(IPaddress *ip){
 	}
 	
 	srand((unsigned) time(&t));
+	SDL_AtomicLock(&user_lock);
 	current_user->id = rand() % 50;
 	if(current_user->id == 0) {
 		current_user->id = 1;
 	}
 	current_index_id = current_user->id + 1;
+	SDL_AtomicUnlock(&user_lock);
 	
 	return 1;
 }
@@ -470,8 +478,10 @@ void check_connection_tcp(){
 	
 	if(sockets == -1) {
 		printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
+		SDL_AtomicLock(&comm_lock);
 		comm->server->connecting = 0;
 		comm->server->connection_failed = 1;
+		SDL_AtomicUnlock(&comm_lock);
 		return;
 	}
 
@@ -483,7 +493,10 @@ void check_connection_tcp(){
 	current_index_id = user_id + 1;
 	
 	//Send id
+	SDL_AtomicLock(&user_lock);
 	snprintf(buffer, BUFFER_LIMIT, "%c\t%c", (char) user_id, (char) current_user->id);
+	SDL_AtomicLock(&comm_lock);
+	
 	if(send_message(buffer, 10, socket, 1)){
 		temp = 0;
 		//Send other users to this user
@@ -509,6 +522,7 @@ void check_connection_tcp(){
 		
 		//Add to adversary
 		Adversary *adversary = malloc(sizeof (Adversary) * sockets);
+		SDL_AtomicLock(&comm_lock);
 		if(comm->adversary) {
 			temp = comm->match->players;
 			for (j = 0; j < temp; j++){
@@ -532,6 +546,7 @@ void check_connection_tcp(){
 
 		comm->adversary = adversary;
 		comm->match->players = comm->match->players + 1;
+		SDL_AtomicUnlock(&user_lock);
 		
 		//Add to client list
 		clients[i].tcp_socket = socket;
@@ -572,7 +587,9 @@ void check_messages_tcp(){
 			//Close set
 			close_set(activity);
 			//Terminate thread
+			SDL_AtomicLock(&comm_lock);
 			comm->server->connection_failed = 1;
+			SDL_AtomicUnlock(&comm_lock);
 		}
 	}
 	return;
@@ -622,17 +639,22 @@ void game_status(){
 		
 		if(game_in_progress){
 			if(connected_clients <= 0){
+				SDL_AtomicLock(&comm_lock);
 				//Everyone left, and game with current_user as winner.
 				comm->match->finished = 1;
 				comm->match->lost = 0;
 				comm->match->winner_id = current_user->id;
+				SDL_AtomicUnlock(&comm_lock);
 			}
 			else {
 				//Check if game was finished.
+				SDL_AtomicLock(&user_lock);
 				if(current_user->life > 0){
 					alive++;
 					winner_id = current_user->id;
 				}
+				SDL_AtomicUnlock(&user_lock);
+				
 				temp = 0;
 				for(i = 0; i < MAX_CLIENT;i++){
 					if(temp == connected_clients){
@@ -644,6 +666,7 @@ void game_status(){
 						winner_id = clients[i].id;
 					}
 				}
+				
 				if(alive == 1){
 					game_ended = 1;
 					//Send message of end game to users.
@@ -663,17 +686,20 @@ void game_status(){
 						}
 					}
 					
+					SDL_AtomicLock(&comm_lock);
 					//Set winner to server.
 					comm->match->finished = 1;
 					comm->match->winner_id = winner_id;
 					if(winner_id != current_user->id){
 						comm->match->lost = 1;
 					}
+					SDL_AtomicUnlock(&comm_lock);
 					//Close connection.//Will be closed when thread is killed.
 				}
 			}
 		}
 		else {
+			SDL_AtomicLock(&comm_lock);
 			if(comm->match->players > 0){
 				//Check if game can begin //Check if all users are ready
 				temp = 0;
@@ -705,6 +731,7 @@ void game_status(){
 					game_in_progress = 1;
 				}
 			}
+			SDL_AtomicUnlock(&comm_lock);
 		}
 	}
 	else {
@@ -717,7 +744,9 @@ void game_status(){
 			//Check if game was finish.
 			//Check if player lost. If lost, wait until the game is finished.
 			if(current_user->life <= 0) {
+				SDL_AtomicLock(&comm_lock);
 				comm->match->lost = 1;
+				SDL_AtomicUnlock(&comm_lock);
 			}
 		}
 	}
@@ -922,8 +951,10 @@ void handle_message(char *buffer, int handle_internal){
 	//Check if game can begin
 	if(strncmp(buffer, "BEGIN_GAME", strlen("BEGIN_GAME")) == 0) {
 		printf("Handling BEGIN_GAME\n");
+		SDL_AtomicLock(&comm_lock);
 		comm->match->can_start = 1;
 		game_in_progress = 1;
+		SDL_AtomicUnlock(&comm_lock);
 	}
 	//Check user add
 	else if(strncmp(buffer, "USER_ID", strlen("USER_ID")) == 0){
@@ -931,23 +962,29 @@ void handle_message(char *buffer, int handle_internal){
         
 		pointer = strchr(buffer, '\t');
 		pointer++;
+		
+		SDL_AtomicLock(&user_lock);
 		current_user->id = (int) *pointer;
+		SDL_AtomicUnlock(&user_lock);
 		
 		//Send user name to server.
 		char *buffer_name = malloc(sizeof(char) * BUFFER_LIMIT);
 		//Send current name to server
 		snprintf(buffer_name, BUFFER_LIMIT, "%c\t%s", (char) current_user->id, current_user->name);
 			if(!send_message(buffer_name,13, server_tcp_socket, 1)){
+				SDL_AtomicLock(&comm_lock);
 				comm->server->connecting = 0;
 				comm->server->connection_failed = 1;
 				comm->server->connected = 0;
+				SDL_AtomicUnlock(&comm_lock);
 				printf("Failed\n");
 			}
 		free(buffer_name);
 
 		//Add server as adversary
-		temp = comm->match->players;
+		SDL_AtomicLock(&comm_lock);
 		
+		temp = comm->match->players;
 		comm->adversary = realloc(comm->adversary, sizeof (Adversary) * (temp + 1));
 		if(comm->adversary){
 			comm->adversary[temp].id = (int) *pointer;
@@ -963,16 +1000,15 @@ void handle_message(char *buffer, int handle_internal){
 		else {
 			printf("Error on realloc comm->adversary\n");
 		}
+		SDL_AtomicUnlock(&comm_lock);
 		
 		
 	}
 	//Check if must add new user
 	else if(strncmp(buffer, "ADD_USER", strlen("ADD_USER")) == 0) {
 		printf("Handling ADD_USER\n");
-		SDL_AtomicLock(&comm_lock);
 		
 		//Add user as adversary
-		temp = comm->match->players;
 		
 		pointer = strchr(buffer, '\t');
 		pointer++;
@@ -982,7 +1018,8 @@ void handle_message(char *buffer, int handle_internal){
 		pointer++;//This now is name.
 		
 		//Realloc adversary
-		
+		SDL_AtomicLock(&comm_lock);
+		temp = comm->match->players;
 		comm->adversary = realloc(comm->adversary, sizeof (Adversary) * (temp + 1));
 		if(comm->adversary){
 			comm->adversary[temp].id = user_id;
@@ -1007,47 +1044,6 @@ void handle_message(char *buffer, int handle_internal){
 			printf("Error on realloc comm->adversary\n");
 		}
 		
-		/* //Remove after test.
-		Adversary *adversary = malloc(sizeof (Adversary) * (temp + 1));
-		printf("Adversary %d\n", temp);
-		if(temp) {
-			for (i = 0; i < temp; i++){
-				adversary[i].id = comm->adversary[i].id;
-				adversary[i].playing = comm->adversary[i].playing;
-				adversary[i].name = comm->adversary[i].name;
-				adversary[i].life = comm->adversary[i].life;
-				adversary[i].ready_to_play = comm->adversary[i].ready_to_play;
-				adversary[i].pending_minions = comm->adversary[i].pending_minions;
-				adversary[i].minions_sent = comm->adversary[i].minions_sent;	
-			}
-			free(comm->adversary);
-		}
-        
-        //--BUFFER DOESN'T HAVE '\t'!!!!
-		pointer = strchr(buffer, '\t');
-		pointer++;
-		
-		adversary[i].id = (int) *pointer;
-		adversary[i].playing = 1;
-		adversary[i].pending_minions = 0;
-		adversary[i].life = DEFAULT_PLAYERS_LIFE;
-		adversary[i].ready_to_play = 0;
-		adversary[i].minions_sent = NULL;
-		
-		pointer = strchr(pointer, '\t');
-		pointer++;
-		if(!adversary[i].name){
-			adversary[i].name = malloc(sizeof(char) * SERVER_NAME);
-            printf("adversary[i].name alloc\n");
-		}
-
-		strncpy(adversary[i].name, (const char *) pointer, SERVER_NAME);
-		
-		comm->adversary = adversary;
-		
-		comm->match->players = temp + 1;
-		*/
-		
 		SDL_AtomicUnlock(&comm_lock);
 	}			
 	//Check if must remove user
@@ -1056,8 +1052,8 @@ void handle_message(char *buffer, int handle_internal){
 		pointer = strchr(buffer, '\t');
 		pointer++;
 		user_id = (int) *pointer;
-		SDL_AtomicLock(&comm_lock);
 		if(game_in_progress){
+			SDL_AtomicLock(&comm_lock);
 			temp = comm->match->players;
 			for (i = 0; i < temp; i++){
 				if(comm->adversary[i].id == user_id){
@@ -1065,12 +1061,15 @@ void handle_message(char *buffer, int handle_internal){
 					break;
 				}
 			}
+			SDL_AtomicUnlock(&comm_lock);
 		}
 		else {
 			//If game not began remove from list.
 			//Realloc
 			if(comm->adversary){
 				j = 0;
+				
+				SDL_AtomicLock(&comm_lock);
 				temp = comm->match->players;
 				Adversary *adversary = malloc(sizeof (Adversary) * (temp - 1));
 				for (i = 0; i< temp; i++){
@@ -1100,9 +1099,9 @@ void handle_message(char *buffer, int handle_internal){
 
 				comm->adversary = adversary;
 				comm->match->players = (temp - 1);
+				SDL_AtomicUnlock(&comm_lock);
 			}
 		}
-		SDL_AtomicUnlock(&comm_lock);
 	}			
 	//Check if must add minion
 	else if(strncmp(buffer, "ADD_MINION", strlen("ADD_MINION")) == 0) {
@@ -1159,12 +1158,14 @@ void handle_message(char *buffer, int handle_internal){
 		pointer++;
 		user_id = (int) *pointer;
 		pointer+=2;
+		SDL_AtomicLock(&comm_lock);
 		for(i = 0; i < comm->match->players; i++){
 			if(comm->adversary[i].id == user_id){
 				comm->adversary[i].ready_to_play = (int) *pointer;
 				break;
 			}
 		}
+		SDL_AtomicUnlock(&comm_lock);
 	}			
 	//Check USER_LIFE
 	else if(strncmp(buffer, "USER_LIFE", strlen("USER_LIFE")) == 0) {
@@ -1173,12 +1174,14 @@ void handle_message(char *buffer, int handle_internal){
 		pointer++;
 		user_id = (int) *pointer;
 		pointer+=2;
+		SDL_AtomicLock(&comm_lock);
 		for(i = 0; i < comm->match->players; i++){
 			if(comm->adversary[i].id == user_id){
 				comm->adversary[i].life = (int) *pointer;
 				break;
 			}
 		}
+		SDL_AtomicUnlock(&comm_lock);
 	}	
 	//Check if game was ended
 	else if(strncmp(buffer, "END_GAME", strlen("BEGIN_GAME")) == 0) {
@@ -1187,6 +1190,7 @@ void handle_message(char *buffer, int handle_internal){
 		comm->match->finished = 1;
 		pointer = strchr(buffer, '\t');
 		pointer++;
+		SDL_AtomicLock(&comm_lock);
 		comm->match->winner_id = (int) *pointer;
 		if(comm->match->winner_id == current_user->id){
 			comm->match->lost = 0;
@@ -1194,19 +1198,24 @@ void handle_message(char *buffer, int handle_internal){
 		else {
 			comm->match->lost = 1;
 		}
+		SDL_AtomicUnlock(&comm_lock);
 		game_in_progress = 0;
 	}
 	//Check SERVER_FULL
 	else if(strncmp(buffer, "SERVER_FULL", strlen("SERVER_FULL")) == 0) {
 		printf("Handling SERVER_FULL\n");
 		//Maximum number of clients connected.
+		SDL_AtomicLock(&comm_lock);
 		comm->match->error = 1;
+		SDL_AtomicUnlock(&comm_lock);
 	}
 	//Check GAME_ALREADY_STARTED
 	else if(strncmp(buffer, "GAME_ALREADY_STARTED", strlen("GAME_ALREADY_STARTED")) == 0) {
 		printf("Handling GAME_ALREADY_STARTED\n");
 		//Game already started without you.
+		SDL_AtomicLock(&comm_lock);
 		comm->match->error = 2;
+		SDL_AtomicUnlock(&comm_lock);
 	}
 	//---------------------
 	//Server side
@@ -1299,12 +1308,14 @@ void handle_message(char *buffer, int handle_internal){
 			temp = comm->match->players;
 			pointer+=2;
 			
+			SDL_AtomicLock(&comm_lock);
 			for (i = 0; i< temp; i++){
 				if(comm->adversary[i].id == user_id){
 					comm->adversary[i].ready_to_play = (int) *pointer;
 					break;
 				}
 			}
+			SDL_AtomicUnlock(&comm_lock);
 		}
 	}
 	//User USER_STATUS_LIFE
@@ -1344,15 +1355,17 @@ void handle_message(char *buffer, int handle_internal){
 		
 		//Update server game
 		if(!handle_internal){
-			temp = comm->match->players;
 			pointer+=2;
 			
+			SDL_AtomicLock(&comm_lock);
+			temp = comm->match->players;
 			for (i = 0; i< temp; i++){
 				if(comm->adversary[i].id == user_id){
 					comm->adversary[i].life = (int) *pointer;
 					break;
 				}
 			}
+			SDL_AtomicUnlock(&comm_lock);
 		}
 	}
 	//USER_NAME
@@ -1364,6 +1377,7 @@ void handle_message(char *buffer, int handle_internal){
 		pointer+=2;
 		char *name = pointer;
 		//Update adversary
+		SDL_AtomicLock(&comm_lock);
 		for(i =0; i < comm->match->players; i++){
 			if(comm->adversary[i].id == user_id){
 				comm->adversary[i].name = realloc(comm->adversary[i].name, sizeof(char) * BUFFER_LIMIT);
@@ -1374,6 +1388,7 @@ void handle_message(char *buffer, int handle_internal){
 				break;
 			}
 		}
+		SDL_AtomicUnlock(&comm_lock);
 		//Send add user to clients
 		pointer-=2;
 		snprintf(buffer, BUFFER_LIMIT, "ADD_USER\t%s", pointer);
@@ -1433,7 +1448,6 @@ int handle_message_pool(TCPsocket tcp_socket){
 	char *buffer = malloc(sizeof(char) * BUFFER_LIMIT);
 	int has = 0;
 	
-	
 	while(1) {
 		has = has_message_tcp(buffer, tcp_socket);
 		if(has == 1){
@@ -1454,6 +1468,7 @@ int handle_message_pool(TCPsocket tcp_socket){
 
 void process_action(){
 	int i = 0, is_server;
+	int lost_connection = 0;
 	char buffer[BUFFER_LIMIT];
 	SpawnMinion *minions = NULL;
 	//Send message ready to play
@@ -1462,10 +1477,10 @@ void process_action(){
 
 	//Send message status
 	if(current_user->process.message_status){
-		SDL_AtomicLock(&comm_lock);
+		SDL_AtomicLock(&user_lock);
 		current_user->process.message_status--;
 		snprintf(buffer, BUFFER_LIMIT, "USER_STATUS\t%c\t%c", (char) current_user->id, (char) current_user->ready_to_play);
-		SDL_AtomicUnlock(&comm_lock);
+		SDL_AtomicUnlock(&user_lock);
 			
 		if(is_server){
 			//This use the internal server message handle to process the message without need to send.
@@ -1473,28 +1488,32 @@ void process_action(){
 		}
 		else {
 			if(!send_message(buffer, 9, server_tcp_socket, 0)){
+				SDL_AtomicLock(&comm_lock);
 				comm->connection_lost = 1;
+				SDL_AtomicUnlock(&comm_lock);
 			}
 		}
 	}
 	//Send message life
 	if(current_user->process.message_life){
-		SDL_AtomicLock(&comm_lock);
+		SDL_AtomicLock(&user_lock);
 		current_user->process.message_life--;
 		snprintf(buffer, BUFFER_LIMIT, "USER_STATUS_LIFE\t%c\t%c", (char) current_user->id, (char) current_user->life);
-		SDL_AtomicUnlock(&comm_lock);
+		SDL_AtomicUnlock(&user_lock);
 		if(is_server){
 			handle_message(buffer, 1);
 		}
 		else {
 			if(send_message(buffer, 12, server_tcp_socket, 0) == 0){
+				SDL_AtomicLock(&comm_lock);
 				comm->connection_lost = 1;
+				SDL_AtomicUnlock(&comm_lock);
 			}
 		}
 	}
 	//Send message minion
 	if(current_user->process.message_minion){
-		SDL_AtomicLock(&comm_lock);
+		SDL_AtomicLock(&user_lock);
 		current_user->process.message_minion--;
 		if(current_user->spawn_amount && current_user->minions){
 			minions = current_user->minions;
@@ -1502,15 +1521,17 @@ void process_action(){
 			i = current_user->spawn_amount;
 			current_user->spawn_amount = 0;
 		}
-		SDL_AtomicUnlock(&comm_lock);
+		SDL_AtomicUnlock(&user_lock);
 		//Process minions.
 		if(minions) {
 			for(int j = 0; j < i; j++){
+				SDL_AtomicLock(&user_lock);
 				snprintf(buffer, BUFFER_LIMIT, "USER_MINION\t%c\t%c\t%c", (char) current_user->id, (char) minions[j].client_id, (char) minions[j].amount);
 				for(int z = 0; z < minions[j].amount;z++) {
 					snprintf(buffer, BUFFER_LIMIT, "%s\t%c", buffer, (char) minions[j].type[z]);
 				}
 				free(minions[j].type);
+				SDL_AtomicUnlock(&user_lock);
 			
 				//Send message to server
 				if(is_server){
@@ -1518,10 +1539,15 @@ void process_action(){
 				}
 				else {
 					if(send_message(buffer, 8, server_tcp_socket, 0)){
-						comm->connection_lost = 1;
+						lost_connection = 1;
 						break;
 					}
 				}
+			}
+			if(lost_connection){
+				SDL_AtomicLock(&comm_lock);
+				comm->connection_lost = 1;
+				SDL_AtomicUnlock(&comm_lock);
 			}
 			free(minions);
 		}
@@ -1546,7 +1572,7 @@ void thread_check_messages_udp(void *data){
 }
 
 void run_server(void *data){
-	int created_server = 0;
+	int created_server = 0, thread_begin = 0;
 	
 	current_user->is_server = 1;
 	game_in_progress = 0;
@@ -1561,9 +1587,11 @@ void run_server(void *data){
 	
 	if(!created_server){
 		printf("Could not create server.\n");
+		SDL_AtomicLock(&comm_lock);
 		comm->server->connecting = 0;
 		comm->server->connection_failed = 1;
 		terminate_thread_udp = 1;
+		SDL_AtomicUnlock(&comm_lock);
 	}
 	else {
 		terminate_thread_udp = 0;
@@ -1571,7 +1599,11 @@ void run_server(void *data){
 	
 	thread_udp = NULL;
 	
-	if(created_server && !comm->match->finished && !comm->server->connection_failed){
+	SDL_AtomicLock(&comm_lock);
+	thread_begin = created_server && !comm->match->finished && !comm->server->connection_failed;
+	SDL_AtomicUnlock(&comm_lock);
+	
+	if(thread_begin){
 		//Create thread to UDP.
 		thread_udp = SDL_CreateThread((SDL_ThreadFunction) thread_check_messages_udp, "udp", (void *)NULL);
 		if (!thread_udp) {
@@ -1584,7 +1616,11 @@ void run_server(void *data){
 	}
 	
 	while(!terminate_thread){
-		if(created_server && !comm->match->finished && !comm->server->connection_failed){
+		SDL_AtomicLock(&comm_lock);
+		thread_begin = created_server && !comm->match->finished && !comm->server->connection_failed;
+		SDL_AtomicUnlock(&comm_lock);
+		
+		if(thread_begin){
 			//Dont allow anyone to connect if game is running.
 			if(!game_in_progress) {
 				//Check UDP messages
@@ -1611,12 +1647,13 @@ void run_server(void *data){
 	}
 	
 	terminate_thread_udp = 1;
-	//Close thread
+	//Close UDP thread
 	while(!thread_upd_closed){
 		printf("Not finised thread udp\n");
 	}
-
-	SDL_DetachThread(thread_udp);
+	if(thread_udp)
+		SDL_DetachThread(thread_udp);
+	
 	//Close clients connection
 	close_clients();
 	//Close TCP connection.
@@ -1636,6 +1673,7 @@ void run_server(void *data){
 void run_client(void *data){	
 	int found = 0;
 	int connected = 0;
+	int thread_begin = 0;
 	
 	game_in_progress = 0;
 	game_ended = 0;
@@ -1716,13 +1754,15 @@ void run_client(void *data){
 		
 		while(!terminate_thread){
 			//Running 
-			if(connected && !comm->match->finished && !comm->server->connection_failed){
+			SDL_AtomicLock(&comm_lock);
+			thread_begin = connected && !comm->match->finished && !comm->server->connection_failed;
+			SDL_AtomicUnlock(&comm_lock);
+			
+			if(thread_begin){
 				//printf("Connected\n");
-				
 				//Check if there is response to begin game.
 				//Check tcp messages only.
 				if(!comm->connection_lost){
-					//printf("Here\n");
 					check_messages_tcp();
 				}
 				
@@ -1730,15 +1770,12 @@ void run_client(void *data){
 
 				//Process player action
 				if(!comm->connection_lost){
-					//printf("Here2\n");
 					process_action();
 				}
 			}
 		}
 		//Destroy game communication
-		SDL_AtomicLock(&comm_lock);
 		remove_communication();
-		SDL_AtomicUnlock(&comm_lock);
 	}
 	printf("Thread exiting\n");
 	terminate_thread = 0;
