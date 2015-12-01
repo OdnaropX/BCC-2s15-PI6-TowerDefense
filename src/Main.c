@@ -1788,7 +1788,7 @@ int main(int argc, char * argv[]) {
                         break;
                         
                     case MP_START:
-                        ready_to_play = true;
+                        // ready_to_play = true; não utilizado
                         multiplayer_status = MPS_STARTED_GAME;
                         break;
                         
