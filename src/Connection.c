@@ -928,8 +928,22 @@ void handle_message(char *buffer, int handle_internal){
 		pointer = strchr(buffer, '\t');
 		pointer++;
 		current_user->id = (int) *pointer;
+		
+		//Send user name to server.
+		char *buffer_name = malloc(sizeof(char) * BUFFER_LIMIT);
+		//Send current name to server
+		sprintf(buffer_name, "%c\t%s", (char) current_user->id, current_user->name);
+			if(!send_message(buffer_name,13, server_tcp_socket, 1)){
+				comm->server->connecting = 0;
+				comm->server->connection_failed = 1;
+				comm->server->connected = 0;
+				printf("Failed\n");
+			}
+		free(buffer_name);
+		
 		//Add server as adversary
 		temp = comm->match->players;
+		/* //Remove after test.
 		Adversary *adversary = malloc(sizeof (Adversary) * (temp + 1));
 		if(comm->adversary) {
 			for (i = 0; i < temp; i++){
@@ -952,9 +966,25 @@ void handle_message(char *buffer, int handle_internal){
 		adversary[i].ready_to_play = 0;
 		adversary[i].name = get_connected_server_name();
 		adversary[i].minions_sent = NULL;
-		
 		comm->adversary = adversary;
-		comm->match->players = temp + 1;
+		*/
+		
+		comm->adversary = realloc(comm->adversary, sizeof (Adversary) * (temp + 1));
+		if(comm->adversary){
+			comm->adversary[temp].id = (int) *pointer;
+			comm->adversary[temp].playing = 1;
+			comm->adversary[temp].pending_minions = 0;
+			comm->adversary[temp].life = DEFAULT_PLAYERS_LIFE;
+			comm->adversary[temp].ready_to_play = 0;
+			comm->adversary[temp].name = get_connected_server_name();
+			comm->adversary[temp].minions_sent = NULL;
+			comm->match->players = temp + 1;
+			printf("Successfully realloced\n");
+		}
+		else {
+			printf("Error on realloc comm->adversary\n");
+		}
+		
 		
 	}
 	//Check if must add new user
@@ -1620,15 +1650,6 @@ void run_client(void *data){
 			comm->server->connecting = 0;
 			comm->server->connected = 1;
 			SDL_AtomicUnlock(&comm_lock);
-			
-			//Send current name to server
-			sprintf(buffer, "%c\t%s", (char) current_user->id, current_user->name);
-			if(!send_message(buffer,13, server_tcp_socket, 1)){
-				comm->server->connecting = 0;
-				comm->server->connection_failed = 1;
-				comm->server->connected = 0;
-				printf("Failed\n");
-			}
 		}
 		
 		while(!terminate_thread){
@@ -1639,7 +1660,7 @@ void run_client(void *data){
 				//Check if there is response to begin game.
 				//Check tcp messages only.
 				if(!comm->connection_lost){
-					printf("Here\n");
+					//printf("Here\n");
 					check_messages_tcp();
 				}
 				
@@ -1647,7 +1668,7 @@ void run_client(void *data){
 
 				//Process player action
 				if(!comm->connection_lost){
-					printf("Here2\n");
+					//printf("Here2\n");
 					process_action();
 				}
 			}
