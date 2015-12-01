@@ -69,7 +69,7 @@ void remove_communication(){
 		}
 		
 		if(comm->server){
-			if(comm->server->host){
+			if(comm->server->host && comm->server->avaliable){
 				free(comm->server->host);
 				comm->server->host = NULL;
 			}
