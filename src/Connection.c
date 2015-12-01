@@ -23,10 +23,10 @@ extern Communication *comm;
 extern int terminate_thread;
 extern SDL_SpinLock comm_lock;
 extern SDL_SpinLock user_lock;
+extern int terminate_thread_udp;
+extern SDL_Thread *thread_udp;
 
-int terminate_thread_udp = 0;
 int thread_upd_closed = 0;
-SDL_Thread *thread_udp = NULL;
 
 //Allocation Functions
 ///////////////////////////////////////////////////////////////////////
@@ -451,13 +451,20 @@ void check_connection_tcp(){
 		return;
 	}
 	
+	printf("Not returned 1\n");
+	
 	if(connected_clients == MAX_CLIENT) {
 		//Inform client that connection cannot be made.
 		send_message(NULL, 6, socket, 1);
 		return;
 	}
+	
+	printf("Not returned 2\n");
+	
 	//Check if there is slot avaliable
 	for(i = 0; i < MAX_CLIENT && clients[i].tcp_socket;i++);
+	
+	printf("Not returned 3\n");
 	
 	//Repeat in case some went wrong in if above.
 	if (i == MAX_CLIENT) {
@@ -465,6 +472,8 @@ void check_connection_tcp(){
 		send_message(NULL, 6, socket, 1);
 		return;
 	}
+	
+	printf("Not returned 4\n");
 
 	//Check if game is in progress
 	if(game_in_progress) {
@@ -472,9 +481,13 @@ void check_connection_tcp(){
 		send_message(NULL, 7, socket, 1);
 		return;
 	}
+	
+	printf("Not returned 5\n");
 
 	//Add client socket to set 
 	sockets = SDLNet_TCP_AddSocket(activity, socket);
+	
+	printf("Not returned 6\n");
 	
 	if(sockets == -1) {
 		printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
@@ -484,6 +497,8 @@ void check_connection_tcp(){
 		SDL_AtomicUnlock(&comm_lock);
 		return;
 	}
+	
+	printf("Not returned 7\n");
 
 	//Create id
 	user_id = (current_index_id % 255);
@@ -491,6 +506,8 @@ void check_connection_tcp(){
 		user_id = 1;
 	} 
 	current_index_id = user_id + 1;
+	
+	printf("Not returned 8\n");
 	
 	//Send id
 	SDL_AtomicLock(&user_lock);
@@ -522,32 +539,22 @@ void check_connection_tcp(){
 		
 		//Add to adversary
 		Adversary *adversary = malloc(sizeof (Adversary) * sockets);
-		SDL_AtomicLock(&comm_lock);
-		if(comm->adversary) {
-			temp = comm->match->players;
-			for (j = 0; j < temp; j++){
-				adversary[j].id = comm->adversary[j].id;
-				adversary[j].playing = comm->adversary[j].playing;
-				adversary[j].name = comm->adversary[j].name;
-				adversary[j].life = comm->adversary[j].life;
-				adversary[j].ready_to_play = comm->adversary[j].ready_to_play;
-				adversary[j].pending_minions = comm->adversary[j].pending_minions;
-				adversary[j].minions_sent = comm->adversary[j].minions_sent;	
-			}
-			free(comm->adversary);
-		}
-	
-		adversary[j].id = user_id;
-		adversary[j].playing = 1;
-		adversary[j].pending_minions = 0;
-		adversary[j].life = DEFAULT_PLAYERS_LIFE;
-		adversary[j].ready_to_play = 0;
-		adversary[j].minions_sent = NULL;
-
-		comm->adversary = adversary;
-		comm->match->players = comm->match->players + 1;
-		SDL_AtomicUnlock(&user_lock);
 		
+		SDL_AtomicLock(&comm_lock);
+		comm->adversary = realloc(comm->adversary, sizeof (Adversary) * sockets);
+		temp = comm->match->players;
+	
+		comm->adversary[temp].id = user_id;
+		comm->adversary[temp].playing = 1;
+		comm->adversary[temp].pending_minions = 0;
+		comm->adversary[temp].life = DEFAULT_PLAYERS_LIFE;
+		comm->adversary[temp].ready_to_play = 0;
+		comm->adversary[temp].minions_sent = NULL;
+
+		comm->match->players = comm->match->players + 1;
+		SDL_AtomicUnlock(&comm_lock);
+		
+		printf("Not returned 8.1\n");
 		//Add to client list
 		clients[i].tcp_socket = socket;
 		clients[i].id = user_id;
@@ -559,6 +566,7 @@ void check_connection_tcp(){
 		SDLNet_TCP_DelSocket(activity, socket);
 		close_socket(socket);
 	}
+	printf("Not returned 9\n");
 	return;
 }
 
@@ -1628,6 +1636,7 @@ void run_server(void *data){
 				//Check UDP messages
 				//check_messages_udp();
 				//Check connection with client 
+				printf("Begin check TCP\n");
 				check_connection_tcp();
 			}
 			

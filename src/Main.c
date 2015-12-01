@@ -37,6 +37,8 @@ SDL_SpinLock comm_lock;
 SDL_SpinLock user_lock;
 Communication *comm;
 User *current_user;
+int terminate_thread_udp;
+SDL_Thread *thread_udp;
 
 
 //SDL stuff
@@ -219,6 +221,8 @@ int main(int argc, char * argv[]) {
 	terminate_thread = 0;
 	char *thread_name = NULL;
 	comm = NULL;
+	terminate_thread_udp = 0;
+	thread_udp = NULL;
 	
 	//Multiplayer
 	Network network;
