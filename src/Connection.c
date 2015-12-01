@@ -925,9 +925,17 @@ void handle_message(char *buffer, int handle_internal){
 	//Check user add
 	else if(strncmp(buffer, "USER_ID", strlen("USER_ID")) == 0){
 		printf("Handling USER_ID\n");
+        
 		pointer = strchr(buffer, '\t');
 		pointer++;
 		current_user->id = (int) *pointer;
+        sprintf(buffer, "a%c\t%s", (char) (current_user->id + 1), current_user->name);
+        if(!send_message(buffer,13, server_tcp_socket, 1)){
+            comm->server->connecting = 0;
+            comm->server->connection_failed = 1;
+            comm->server->connected = 0;
+            printf("Failed\n");
+        }
 		//Add server as adversary
 		temp = comm->match->players;
 		Adversary *adversary = malloc(sizeof (Adversary) * (temp + 1));
@@ -994,7 +1002,7 @@ void handle_message(char *buffer, int handle_internal){
 			adversary[i].name = malloc(sizeof(char) * SERVER_NAME);
             printf("adversary[i].name alloc\n");
 		}
-        
+
 		strncpy(adversary[i].name, (const char *) pointer, SERVER_NAME);
 		
 		comm->adversary = adversary;
@@ -1620,15 +1628,15 @@ void run_client(void *data){
 			comm->server->connecting = 0;
 			comm->server->connected = 1;
 			SDL_AtomicUnlock(&comm_lock);
-			
+#warning ALAHU
 			//Send current name to server
-			sprintf(buffer, "%c\t%s", (char) current_user->id, current_user->name);
-			if(!send_message(buffer,13, server_tcp_socket, 1)){
-				comm->server->connecting = 0;
-				comm->server->connection_failed = 1;
-				comm->server->connected = 0;
-				printf("Failed\n");
-			}
+			//sprintf(buffer, "a%c\t%s", (char) (current_user->id + 1), current_user->name);
+//			if(!send_message(buffer,13, server_tcp_socket, 1)){
+//				comm->server->connecting = 0;
+//				comm->server->connection_failed = 1;
+//				comm->server->connected = 0;
+//				printf("Failed\n");
+//			}
 		}
 		
 		while(!terminate_thread){

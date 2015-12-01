@@ -2985,7 +2985,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
             //status
             case 26:
                 if(current_status == MPS_NONE)
-                    text = NULL;
+                    text = "";
                 else if(current_status == MPS_WAIT_FOR_PLAYER)
                     text = "Waiting for players...";
                 else if(current_status == MPS_SEARCHING_ROOM)
@@ -2999,9 +2999,10 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 break;
                 
             default:
+                text = "";
                 break;
         }
-        
+        printf("%d\n", i);
         //Creating textures
         if(text && strlen(text) > 0){
             SDL_Surface *surface;
