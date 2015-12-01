@@ -69,6 +69,7 @@ void remove_communication(){
 		}
 		
 		if(comm->server){
+			printf("Here %d]n\n", comm->server->avaliable);
 			if(comm->server->host && comm->server->avaliable){
 				free(comm->server->host);
 				comm->server->host = NULL;
@@ -391,18 +392,20 @@ int find_servers() {
 
 int establish_server(IPaddress *ip){
 	time_t t;
-
+	uint8_t *parts;
 	/* First create TCP socket that will be used to connect	*/
 	
 	//Null is to listen
 	if(SDLNet_ResolveHost(ip, NULL, DEFAULT_PORT_TCP) < 0){
-
 		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
 		return 0;
 	}
+
+	//printf("Server host |%s| port |%d|", inet_ntoa(ip->host), ip->port);
 	
 	//Create TCP socket.
 	server_tcp_socket = SDLNet_TCP_Open(ip);
+	
 	if (!server_tcp_socket){
         printf("SDLNet_TCP_Open: %s\n", SDLNet_GetError());
         return 0;
@@ -599,14 +602,14 @@ void check_messages_udp(){
 			//Send message to client.
 			UDPpacket* output;
 			output = SDLNet_AllocPacket(BUFFER_LIMIT);
-			snprintf(buffer, BUFFER_LIMIT, "%s\t%s\t%d", "GRADE_DEFENDER_SERVER", current_user->name, DEFAULT_PORT_TCP);
+			snprintf(buffer, BUFFER_LIMIT, "%s\t%s\t%d\t%d", "GRADE_DEFENDER_SERVER", current_user->name, DEFAULT_PORT_TCP);
 			snprintf((char *)output->data, BUFFER_LIMIT, "%s", buffer);
 			output->len = (int)strlen(buffer) + 1;
 			output->address.host = input->address.host;
             output->address.port = input->address.port;
 			sent = SDLNet_UDP_Send(server_udp_socket, -1, output);
 			if (sent){
-				printf("Package from server was sent\n");
+				//printf("Package from server was sent\n");
 			}
             SDLNet_FreePacket(output);
 		}
@@ -775,29 +778,37 @@ void close_clients(){
 }
 
 int connect_to_server(int server_choice){
+	IPaddress ip;
+	
 	if(server_choice < 0 || server_choice > MAX_SERVER) {
 		return 0;
 	}
-	
-	server_tcp_socket = SDLNet_TCP_Open(&servers[server_choice].ip);
-	
+	//Fix for ip address.
+	//SDLNet_ResolveHost(&ip, servers[server_choice].ip_name, servers[server_choice].ip.port);
+	SDLNet_ResolveHost(&ip, NULL, servers[server_choice].ip.port);
+
+	ip.host = servers[server_choice].ip.host;
+	server_tcp_socket = SDLNet_TCP_Open(&ip);
+	//ip.port = servers[server_choice].ip.port;
+	//server_tcp_socket = SDLNet_TCP_Open(&servers[server_choice].ip);
 	if (!server_tcp_socket){
         printf("SDLNet_TCP_Open: %s\n", SDLNet_GetError());
         return 0;
     }
-
     activity = SDLNet_AllocSocketSet(1);
     if(!activity){
+		close_socket(server_tcp_socket);
+		close_set(activity);
         printf("SDLNet_AllocSocketSet: %s\n", SDLNet_GetError());
         return 0;
     }
-
 	//Add a socket to a socket set that will be watched
     if(SDLNet_TCP_AddSocket(activity, server_tcp_socket) == -1){
         printf("SDLNet_AddSocket: %s\n", SDLNet_GetError());
         // perhaps you need to restart the set and make it bigger...
+		close_socket(server_tcp_socket);
+		close_set(activity);
     }
-
     // Success - record the index for future reference:
     connected_server = server_choice;
     return 1;
@@ -1611,6 +1622,7 @@ void run_client(void *data){
 			SDL_AtomicUnlock(&lock);
 		}
 		else {
+			printf("Connected\n");
 			SDL_AtomicLock(&lock);
 			comm->server->connecting = 0;
 			comm->server->connected = 1;
@@ -1622,17 +1634,19 @@ void run_client(void *data){
 				comm->server->connecting = 0;
 				comm->server->connection_failed = 1;
 				comm->server->connected = 0;
+				printf("Failed\n");
 			}
 		}
 		
 		while(!terminate_thread){
 			//Running 
 			if(connected && !comm->match->finished && !comm->server->connection_failed){
-				printf("Connected\n");
+				//printf("Connected\n");
 				
 				//Check if there is response to begin game.
 				//Check tcp messages only.
 				if(!comm->connection_lost){
+					printf("Here\n");
 					check_messages_tcp();
 				}
 				
@@ -1640,6 +1654,7 @@ void run_client(void *data){
 
 				//Process player action
 				if(!comm->connection_lost){
+					printf("Here2\n");
 					process_action();
 				}
 			}

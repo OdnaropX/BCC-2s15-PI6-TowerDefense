@@ -10,11 +10,10 @@
 	#include <inttypes.h>
 	#include <errno.h>
 
-
 	#ifdef _WIN32 //Load lib for windows or mac.
 		#include <SDL2/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
-		
+		#include <winsock.h>
 	#else
 		#include <SDL2_net/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
@@ -111,6 +110,7 @@
 	struct _host {
 		IPaddress ip;
 		char name[SERVER_NAME];
+		//char ip_name[16];
 	};
 	
 	struct _client {
