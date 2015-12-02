@@ -1715,6 +1715,7 @@ void run_client(void *data){
 			SDL_AtomicUnlock(&comm_lock);
 			//Not connect.
 		}
+		/*
 		else if(found == 1) {
 			SDL_AtomicLock(&comm_lock);
 			comm->server->searching = 0;
@@ -1728,7 +1729,7 @@ void run_client(void *data){
 			//Connect to this server.
 			printf("Only one found!\n");
 			connected = connect_to_server(0);
-		}
+		}*/
 		else {
 			SDL_AtomicLock(&comm_lock);
 			comm->server->searching = 0;
