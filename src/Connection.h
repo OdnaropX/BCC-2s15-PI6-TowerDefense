@@ -43,6 +43,10 @@
 	typedef struct _network Network;
 	typedef struct _game_communication Communication;
 	typedef struct _send_minion SpawnMinion;
+	typedef struct _thread Thread;
+	typedef struct _threads Threads;
+	typedef struct _locks Locks;
+	typedef struct _share_data ShareData;
 		
 	struct _game_communication {
 		int connection_lost;//Connection to server lost or not.
@@ -129,6 +133,31 @@
 		char server_name[MAX_SERVER][SERVER_NAME];
 		int choose_server;
 		int server_choosed;
+	};
+	
+	struct _threads {
+		Thread udp; 
+		Thread client; 
+		Thread server; 
+		Locks lock;
+		ShareData data;
+	};
+
+	struct _thread {
+		int alive;
+		int terminate;
+		SDL_Thread *pointer;
+		SDL_ThreadPriority priority; //SDL_THREAD_PRIORITY_LOW //SDL_THREAD_PRIORITY_NORMAL//SDL_THREAD_PRIORITY_HIGH
+	}
+	
+	struct _locks {
+		SDL_SpinLock user;
+		SDL_SpinLock comm;
+	};
+	
+	struct _share_data {
+		Communication *comm;
+		User *current_user;
 	};
 	
 	//Allocation Functions

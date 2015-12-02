@@ -21,10 +21,12 @@ int current_index_id = 0;
 extern User *current_user;
 extern Communication *comm;
 extern int terminate_thread;
+
 extern SDL_SpinLock comm_lock;
 extern SDL_SpinLock user_lock;
 extern int terminate_thread_udp;
 extern SDL_Thread *thread_udp;
+extern Threads *thread_control;
 
 int thread_upd_closed = 0;
 
@@ -1820,5 +1822,10 @@ int str_to_uint16(const char *str, Uint16 *res){
 		return 0;
 	*res = (Uint16) val;
 	return 1;
+}
+
+void free_thread_control(){
+	
+	return;
 }
 

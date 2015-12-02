@@ -39,7 +39,7 @@ Communication *comm;
 User *current_user;
 int terminate_thread_udp;
 SDL_Thread *thread_udp;
-
+Threads *thread_control;
 
 //SDL stuff
 SDL_Window *main_Window;
@@ -220,9 +220,13 @@ int main(int argc, char * argv[]) {
 	SDL_Thread *thread = NULL;
 	terminate_thread = 0;
 	char *thread_name = NULL;
-	comm = NULL;
-	terminate_thread_udp = 0;
-	thread_udp = NULL;
+//	comm = NULL;
+//	terminate_thread_udp = 0;
+//	thread_udp = NULL;
+	thread_control = calloc(1, sizeof(Threads));
+	thread_control->udp->priority = SDL_THREAD_PRIORITY_HIGH;//Maybe normal
+	thread_control->client->priority = SDL_THREAD_PRIORITY_LOW;
+	thread_control->server->priority = SDL_THREAD_PRIORITY_LOW;
 	
 	//Multiplayer
 	Network network;
