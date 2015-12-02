@@ -164,6 +164,7 @@ int main(int argc, char * argv[]) {
 	select_running_option.left = OPT_R_L_NONE;
 	select_running_option.game_area.left = OPT_R_A_L_NONE;
 	select_running_option.game_area.right = OPT_R_A_R_NONE;
+    select_running_option.multiplay.current_player = 0;
 	
 	//Game events
 	SDL_Event event;
@@ -1736,7 +1737,6 @@ int main(int argc, char * argv[]) {
 							if(!comm) {
 								printf("Initing\n");
 								comm = init_communication();
-//								printf("Initing %d\n", comm);
 							}
 							SDL_AtomicUnlock(&comm_lock);
 							
@@ -1748,6 +1748,8 @@ int main(int argc, char * argv[]) {
 										remove_communication();
 								}
 								multiplayer = true;
+                                
+                                multiplayer_status = MPS_WAIT_READY;
 							}
 						}
                         break;
@@ -1840,11 +1842,8 @@ int main(int argc, char * argv[]) {
                         break;
                         
                     case MP_ROOM_1:
-                        printf("MP_ROOM_1\n");
                         comm->server->choosing = 0;
                         comm->server->choosed = 0;
-                        
-                        printf("Connecting...\n");
                         
                         if(connect_to_server(0))
                             multiplayer_status = MPS_ENTERED_ROOM;
@@ -2956,7 +2955,6 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 0){
                     if(comm->adversary[0].name)
                         text = comm->adversary[0].name;
-                    
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
                 break;

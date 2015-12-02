@@ -514,7 +514,8 @@ void check_connection_tcp(){
 	//Send id
 	SDL_AtomicLock(&user_lock);
 	snprintf(buffer, BUFFER_LIMIT, "%c\t%c", (char) user_id, (char) current_user->id);
-	SDL_AtomicLock(&comm_lock);
+//	SDL_AtomicLock(&comm_lock);
+    SDL_AtomicUnlock(&user_lock);
 	
 	if(send_message(buffer, 10, socket, 1)){
 		temp = 0;
@@ -540,7 +541,6 @@ void check_connection_tcp(){
 		//j = 0;
 		
 		//Add to adversary
-		
 		SDL_AtomicLock(&comm_lock);
 		comm->adversary = realloc(comm->adversary, sizeof (Adversary) * sockets);
 		temp = comm->match->players;
@@ -555,7 +555,6 @@ void check_connection_tcp(){
 		comm->match->players = comm->match->players + 1;
 		SDL_AtomicUnlock(&comm_lock);
 		
-		printf("Not returned 8.1\n");
 		//Add to client list
 		clients[i].tcp_socket = socket;
 		clients[i].id = user_id;
@@ -567,7 +566,7 @@ void check_connection_tcp(){
 		SDLNet_TCP_DelSocket(activity, socket);
 		close_socket(socket);
 	}
-	printf("Not returned 9\n");
+
 	return;
 }
 
