@@ -87,13 +87,15 @@ int move_bullet(minion *target, projectile *shoot){
 int move_minion(minion *enemy){
     // 1 - Find target center to move.
     int square[2];
+    square[0] = 0;
+    square[1] = 0;
     get_touched_grid_address(enemy->node->xPos, enemy->node->yPos, square);
     int currentX = square[0];
     int currentY = square[1];
     int currentValue = grid[currentX][currentY];
     int targetX = currentX; // possible X
     int targetY = currentY; // possible Y
-    int targetValue = currentValue; // Candidate value
+    //int targetValue = currentValue; // Candidate value
     if(currentX > 0)
         if(grid[currentX - 1][currentY] < currentValue && grid[currentX - 1][currentY] > 0){
             currentValue = grid[currentX - 1][currentY];

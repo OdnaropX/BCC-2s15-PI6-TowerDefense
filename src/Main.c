@@ -37,6 +37,8 @@ SDL_SpinLock comm_lock;
 SDL_SpinLock user_lock;
 Communication *comm;
 User *current_user;
+int terminate_thread_udp;
+SDL_Thread *thread_udp;
 
 
 //SDL stuff
@@ -171,7 +173,7 @@ int main(int argc, char * argv[]) {
 	
 	//Click control
 	bool active_clicked = false;
-    bool run_action = false;
+    //bool run_action = false;
 	bool left_click = true;
 	
     bool return_to_previous_screen = false;     //For scores and credits menus
@@ -219,6 +221,8 @@ int main(int argc, char * argv[]) {
 	terminate_thread = 0;
 	char *thread_name = NULL;
 	comm = NULL;
+	terminate_thread_udp = 0;
+	thread_udp = NULL;
 	
 	//Multiplayer
 	Network network;
@@ -244,7 +248,6 @@ int main(int argc, char * argv[]) {
 		strncpy(current_user->name, "Unknown", 7);
 	}
 
-	
 	int ready_to_play = 0;
 	
 	//FPS and timer
@@ -255,7 +258,7 @@ int main(int argc, char * argv[]) {
 	int frame = 0;
     t1 = SDL_GetTicks();
 	
-	int next = 0;
+	//int next = 0;  //unused
     //Main loop
     while(!quit){
         //FPS Handling
@@ -1190,9 +1193,11 @@ int main(int argc, char * argv[]) {
                                 //Click mouse selector over multiplayer users
                                 if(event.motion.x >= 1030 && event.motion.x <= 1030 + BUTTON_MENU_WIDTH){
                                     temp_option = (event.motion.y - 350) / BUTTON_MENU_HEIGHT;
-                                    if(temp_option <= MAX_CLIENT - 2)
-                                        player_adversary = temp_option;
-                                }							}
+                                    if(temp_option <= MAX_CLIENT - 2){
+										player_adversary = temp_option;
+									}
+                                }							
+							}
 							break;
 					}
 					break;
@@ -1442,6 +1447,18 @@ int main(int argc, char * argv[]) {
                     }
                     
                     break;
+				case MULTIPLAYER_CHOOSE_ROOM:
+					//Need to do.
+					break;
+				
+				case MULTIPLAYER_ROOM:
+					//Need to do.
+					
+					break;
+                default:
+                    
+                    break;
+                    
             }
         }
 		
@@ -1454,7 +1471,6 @@ int main(int argc, char * argv[]) {
 			
 			//One second timer
 			show_timer++;
-			
 			
 			//Game timer.
 			if(game_started && !game_paused) {
@@ -1537,6 +1553,7 @@ int main(int argc, char * argv[]) {
 		/////////////////////////////////////////////////////
 		if(multiplayer) {
 			SDL_AtomicLock(&comm_lock);
+			//-- Change, dont need this, use the global variable instead.
 			if(comm){
 				if(comm->server->searching){
 					network.searching = 1;
@@ -1560,10 +1577,6 @@ int main(int argc, char * argv[]) {
 				if(comm->server->connection_failed) {
 					network.connection_failed = 1;
 				}
-				
-				
-				
-				
 			}
 			SDL_AtomicUnlock(&comm_lock);
 			
@@ -1575,12 +1588,17 @@ int main(int argc, char * argv[]) {
                     gold_per_second += get_minion_bonus(avaliable_minions, send_minion);
                 }
                 
+				//Get adversary id
 				SDL_AtomicLock(&comm_lock);
+				int adversary_id_to_use =  comm->adversary[player_adversary % comm->match->players].id;
+				SDL_AtomicUnlock(&comm_lock);
+				
+				SDL_AtomicLock(&user_lock);
 				if(current_user->minions && current_user->spawn_amount){
 					int adversary_found = 0;
 					//Realloc minions.
 					for(i = 0; i < current_user->spawn_amount;i++){
-						if(current_user->minions[i].client_id == comm->adversary[player_adversary % comm->match->players].id){
+						if(current_user->minions[i].client_id == adversary_id_to_use){
 							//User found
 							adversary_found = 1;
 							//Add minion to adversary array. Realloc array.
@@ -1596,13 +1614,14 @@ int main(int argc, char * argv[]) {
 							break;
 						}
 					}
+					
 					if(!adversary_found){
 						SpawnMinion *new_spawn = malloc(sizeof(SpawnMinion) * current_user->spawn_amount + 1);
 						//Realloc minions.
 						for(i = 0; i < current_user->spawn_amount;i++){
 							new_spawn[i] = current_user->minions[i];
 						}
-						new_spawn[i].client_id = comm->adversary[player_adversary % comm->match->players].id;
+						new_spawn[i].client_id = adversary_id_to_use;
 						new_spawn[i].amount =  1;
 						new_spawn[i].type = malloc(sizeof(int));
 						
@@ -1615,7 +1634,7 @@ int main(int argc, char * argv[]) {
 					current_user->spawn_amount = 1;
 					SpawnMinion *minions = malloc(sizeof(SpawnMinion));//Only one now.
 					minions[0].amount = 1;
-					minions[0].client_id = comm->adversary[player_adversary % comm->match->players].id;//Mod in case players amount changed.
+					minions[0].client_id = adversary_id_to_use;//Mod in case players amount changed.
 					minions[0].type = malloc(sizeof(int));
 					minions[0].type[0] = send_minion;
 					
@@ -1624,8 +1643,8 @@ int main(int argc, char * argv[]) {
 					}
 					current_user->minions = minions;
 				}
-				SDL_AtomicUnlock(&comm_lock);
 				send_minion = 0;
+				SDL_AtomicUnlock(&user_lock);
 			}
 			
 			//Check if a connection running was failed. This will kill the thread.
@@ -1635,8 +1654,6 @@ int main(int argc, char * argv[]) {
 				multiplayer_status = MPS_NONE;
 				multiplayer = false;
 			}
-			
-			
 		}
 		
 		//Action Performancer
@@ -1694,7 +1711,7 @@ int main(int argc, char * argv[]) {
 						//Check if there is a thread running
                         if(thread) {
 							printf("Thread alreay running!\n");
-							thread_name = SDL_GetThreadName(thread);
+							thread_name = (char *)SDL_GetThreadName(thread);
 							if(strcmp(thread_name, "run_server") != 0) {
 								printf("Killing client thread\n");
 								kill_thread(&thread);
@@ -1715,7 +1732,7 @@ int main(int argc, char * argv[]) {
 							if(!comm) {
 								printf("Initing\n");
 								comm = init_communication();
-								printf("Initing %d\n", comm);
+//								printf("Initing %d\n", comm);
 							}
 							SDL_AtomicUnlock(&comm_lock);
 							
@@ -1736,7 +1753,7 @@ int main(int argc, char * argv[]) {
 						//Check if there is a thread in progress and is run_client
 						if(thread) {
 							printf("Thread running\n");
-							thread_name = SDL_GetThreadName(thread);
+							thread_name = (char *)SDL_GetThreadName(thread);
 							if(strcmp(thread_name, "run_client") != 0) {
 								printf("Killing server thread\n");
 								kill_thread(&thread);
@@ -1757,7 +1774,7 @@ int main(int argc, char * argv[]) {
 							if(!comm) {
 								printf("Initing\n");
 								comm = init_communication();
-								printf("Initing %d\n", comm);
+								//printf("Initing %d\n", comm);
 							}
 							SDL_AtomicUnlock(&comm_lock);
 							
@@ -1793,18 +1810,18 @@ int main(int argc, char * argv[]) {
 
                         multiplayer_status = MPS_STARTED_GAME;
 						
-						SDL_AtomicLock(&comm_lock);
+						SDL_AtomicLock(&user_lock);
 						current_user->process.message_status = current_user->process.message_status + 1;
 						current_user->ready_to_play = 1;
-						SDL_AtomicUnlock(&comm_lock);
+						SDL_AtomicUnlock(&user_lock);
                         
 						break;
                         
                     case MP_TOGGLE_READY:
-						SDL_AtomicLock(&comm_lock);
+						SDL_AtomicLock(&user_lock);
 						current_user->process.message_status = current_user->process.message_status + 1;
 						current_user->ready_to_play = (current_user->ready_to_play + 1) % 2;
-						SDL_AtomicUnlock(&comm_lock);
+						SDL_AtomicUnlock(&user_lock);
 					    break;
                         
                     case MP_LEAVE:
@@ -1914,7 +1931,6 @@ int main(int argc, char * argv[]) {
 			
             
             case GAME_RUNNING:
-#warning HERE
 				if (!game_paused){
 					if (add_tower > 0){
 						//Add tower
@@ -1963,10 +1979,10 @@ int main(int argc, char * argv[]) {
                             health --;
 							//Update player health if multiplayer
 							if(multiplayer){
-								SDL_AtomicLock(&comm_lock);
+								SDL_AtomicLock(&user_lock);
 								current_user->process.message_life++;
 								current_user->life = health;
-								SDL_AtomicUnlock(&comm_lock);
+								SDL_AtomicUnlock(&user_lock);
 							}
                         }
                         
@@ -2040,6 +2056,7 @@ int main(int argc, char * argv[]) {
                     }
                 }
 				if(multiplayer){
+					SDL_AtomicLock(&comm_lock);
 					for(i = 0; i < comm->match->players; i++){
 						for(j = 0; j < comm->adversary[i].pending_minions;j++){
 							if(comm->adversary[i].minions_sent[j] > 0){
@@ -2053,12 +2070,14 @@ int main(int argc, char * argv[]) {
 							}
 						}
 						//Free minions_sent
+						
 						if(comm->adversary[i].minions_sent){
 							free(comm->adversary[i].minions_sent);
 							comm->adversary[i].minions_sent = NULL;
 						}
 						comm->adversary[i].pending_minions = 0;
 					}
+					SDL_AtomicUnlock(&comm_lock);
 				}
                 break;
 
@@ -2135,6 +2154,8 @@ int main(int argc, char * argv[]) {
                 }
                 
                 end_game_option = EG_NONE;
+                break;
+            default:
                 break;
             
 		}

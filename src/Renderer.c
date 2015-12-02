@@ -370,7 +370,7 @@ void get_menu_size_minion(int size[], list_minion_avaliable *list, int *per_row)
 }
 
 void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], Game_Running_Options running_option, list_minion_avaliable *list_m, list_turret_avaliable *list_t, bool multiplayer) {
-	bool display_over = false;
+	//bool display_over = false;
     
 	//Display grid_over
 	
