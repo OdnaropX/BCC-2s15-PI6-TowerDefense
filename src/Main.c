@@ -1717,7 +1717,7 @@ int main(int argc, char * argv[]) {
 								if (thread_control->server.pointer == NULL) {
 									ignore_next_command = 1;
 									multiplayer = false;
-									multiplayer_status = MPS_NONE;
+									//multiplayer_status = MPS_NONE;
 									remove_communication();
 								}
 								else {
@@ -1904,9 +1904,6 @@ int main(int argc, char * argv[]) {
 				//This will be used to show the same screen while thread not killed.
 				if(!ignore_next_command)
 					multiplayer_option = MP_NONE;
-                
-                //Get multiplayer menu assets
-                get_multiplayer_texts(multiplayer_status);
                 
                 break;
                 
@@ -2238,6 +2235,8 @@ int main(int argc, char * argv[]) {
                 break;
                 
             case GAME_MULTIPLAY_SERVER:
+				//Get multiplayer menu assets
+                get_multiplayer_texts(multiplayer_status);
                 draw_screen_multiplayer_menu(renderer, multiplayer_menu_assets, multiplayer_menu_rects, multiplayer_menu_assets_count, select_multiplayer_option);
                 break;
                 
