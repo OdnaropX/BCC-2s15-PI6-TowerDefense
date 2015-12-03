@@ -1742,7 +1742,7 @@ int main(int argc, char * argv[]) {
 								if (thread_control->server.pointer == NULL) {
 									ignore_next_command = 1;
 									multiplayer = false;
-									multiplayer_status = MPS_NONE;
+									//multiplayer_status = MPS_NONE;
 									remove_communication();
 								}
 								else {
