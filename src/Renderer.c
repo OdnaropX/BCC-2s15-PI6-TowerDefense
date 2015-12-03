@@ -291,27 +291,35 @@ void draw_screen_multiplayer_menu(SDL_Renderer *renderer, SDL_Texture **assets, 
                 sel = 6;
                 break;
                 
-            case MP_ROOM_1:
+            case MP_PREVIOUS_PAGE:
                 sel = 8;
                 break;
                 
-            case MP_ROOM_2:
+            case MP_ROOM_1:
                 sel = 10;
                 break;
                 
-            case MP_ROOM_3:
+            case MP_ROOM_2:
                 sel = 12;
                 break;
                 
-            case MP_ROOM_4:
+            case MP_ROOM_3:
                 sel = 14;
+                break;
+                
+            case MP_ROOM_4:
+                sel = 16;
+                break;
+                
+            case MP_NEXT_PAGE:
+                sel = 18;
                 break;
                 
             default:
                 break;
         }
         
-        if((i == 0 || i == sel || i % 2 == 1 || i > 14) && assets[i])
+        if((i == 0 || i == sel || i % 2 == 1 || i > 18) && assets[i])
             SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
         
         if(assets[i])

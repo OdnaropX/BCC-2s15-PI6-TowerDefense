@@ -26,7 +26,10 @@
 #define credits_menu_assets_count 7
 #define score_menu_assets_count 3
 #define end_game_interface_assets_count 8
-#define multiplayer_menu_assets_count 27
+#define multiplayer_menu_assets_count 31
+
+#define rooms_page_offset 4
+#define players_page_offset 3
 
 #define FRAMES_PER_SEC 60
 
@@ -79,10 +82,15 @@ SDL_Rect score_menu_rects[score_menu_assets_count];
 SDL_Texture *end_game_interface_assets[end_game_interface_assets_count];
 SDL_Rect end_game_interface_rects[end_game_interface_assets_count];
 
-//Multiplayer screen order: title, create room/start/ready(+sel), search room/leave room(+sel), back(+sel), room list(4)(+sel),
+//Multiplayer screen order: title, create room/start/ready(+sel), search room/leave room(+sel), back(+sel),
+//previous page(+sel), room list(4)(+sel), next page(+sel),
 //rooms, players, ready?, player list(4), ready list(4), status
 SDL_Texture *multiplayer_menu_assets[multiplayer_menu_assets_count];
 SDL_Rect multiplayer_menu_rects[multiplayer_menu_assets_count];
+
+//Pages index(Allow > 4 rooms/players)
+int room_current_page = 0;
+int players_current_page = 0;
 
 CONFIGURATION *config;
 
@@ -105,9 +113,9 @@ bool main_init();
 void main_quit();
 
 void get_config_text();
-void get_multiplayer_texts(multiplayer_status current_status);
+void get_multiplayer_texts(multiplayer_status current_status, int page);
 void set_end_game_status_text(end_game_status end_status);
-void get_multiplayer_game_names();
+void get_multiplayer_game_names(int page);
 void reset_game_data();
 
 //Socket structure
@@ -383,11 +391,13 @@ int main(int argc, char * argv[]) {
                                     
                                     if(multiplayer_status == MPS_SEARCHING_ROOM){
                                         if(select_multiplayer_option == MP_NONE)
-                                            select_multiplayer_option = MP_ROOM_4;
-                                        else if(select_multiplayer_option <= MP_ROOM_4 && select_multiplayer_option >= MP_ROOM_2)
+                                            select_multiplayer_option = MP_NEXT_PAGE;
+                                        else if(select_multiplayer_option <= MP_NEXT_PAGE && select_multiplayer_option >= MP_ROOM_1)
                                             select_multiplayer_option --;
-                                        else if(select_multiplayer_option == MP_ROOM_1)
+                                        else if(select_multiplayer_option == MP_PREVIOUS_PAGE)
                                             select_multiplayer_option = MP_BACK_TO_MAIN;
+                                        else
+                                            select_multiplayer_option = MP_NONE;
                                     }
                                     
                                     break;
@@ -425,10 +435,12 @@ int main(int argc, char * argv[]) {
                                     if(multiplayer_status == MPS_SEARCHING_ROOM){
                                         if(select_multiplayer_option == MP_NONE)
                                             select_multiplayer_option = MP_BACK_TO_MAIN;
-                                        else if(select_multiplayer_option <= MP_ROOM_3 && select_multiplayer_option >= MP_ROOM_1)
+                                        else if(select_multiplayer_option <= MP_ROOM_4 && select_multiplayer_option >= MP_PREVIOUS_PAGE)
                                             select_multiplayer_option ++;
-                                        else if(select_multiplayer_option == MP_ROOM_4)
+                                        else if(select_multiplayer_option == MP_NEXT_PAGE)
                                             select_multiplayer_option = MP_BACK_TO_MAIN;
+                                        else
+                                            select_multiplayer_option = MP_NONE;
                                     }
                                     break;
                                     
@@ -485,21 +497,27 @@ int main(int argc, char * argv[]) {
                                 else if(event.motion.x >= 195 && event.motion.x <= 195 + BUTTON_MENU_WIDTH && multiplayer_status == MPS_SEARCHING_ROOM){
                                     temp_option = (event.motion.y - 300 - BUTTON_MENU_HEIGHT) / BUTTON_MENU_HEIGHT;
                                     switch(temp_option){
-                                            case 0:
-                                                multiplayer_option = MP_ROOM_1;
-                                                break;
-                                            case 1:
-                                                multiplayer_option = MP_ROOM_2;
-                                                break;
-                                            case 2:
-                                                multiplayer_option = MP_ROOM_3;
-                                                break;
-                                            case 3:
-                                                multiplayer_option = MP_ROOM_4;
-                                                break;
-                                            default:
-                                                break;
-                                        }
+                                        case 0:
+                                            multiplayer_option = MP_PREVIOUS_PAGE;
+                                            break;
+                                        case 1:
+                                            multiplayer_option = MP_ROOM_1;
+                                            break;
+                                        case 2:
+                                            multiplayer_option = MP_ROOM_2;
+                                            break;
+                                        case 3:
+                                            multiplayer_option = MP_ROOM_3;
+                                            break;
+                                        case 4:
+                                            multiplayer_option = MP_ROOM_4;
+                                            break;
+                                        case 5:
+                                            multiplayer_option = MP_NEXT_PAGE;
+                                            break;
+                                        default:
+                                            break;
+                                    }
                                 }
                                 
                                 
@@ -537,17 +555,24 @@ int main(int argc, char * argv[]) {
                                 temp_option = (event.motion.y - 300 - BUTTON_MENU_HEIGHT) / BUTTON_MENU_HEIGHT;
                                 switch(temp_option){
                                     case 0:
-                                        select_multiplayer_option = MP_ROOM_1;
+                                        select_multiplayer_option = MP_PREVIOUS_PAGE;
                                         break;
                                     case 1:
-                                        select_multiplayer_option = MP_ROOM_2;
+                                        select_multiplayer_option = MP_ROOM_1;
                                         break;
                                     case 2:
-                                        select_multiplayer_option = MP_ROOM_3;
+                                        select_multiplayer_option = MP_ROOM_2;
                                         break;
                                     case 3:
+                                        select_multiplayer_option = MP_ROOM_3;
+                                        break;
+                                    case 4:
                                         select_multiplayer_option = MP_ROOM_4;
                                         break;
+                                    case 5:
+                                        select_multiplayer_option = MP_NEXT_PAGE;
+                                        break;
+                                        
                                     default:
                                         break;
                                 }
@@ -1862,10 +1887,9 @@ int main(int argc, char * argv[]) {
 						}
                         break;
                         
-					//-- Remove this, cannot be this way, must have the possibility to acept n rooms.
                     case MP_ROOM_1:
                         data_shared->current_comm->server->choosing = 0;
-                        data_shared->current_comm->server->choosed = 0;
+                        data_shared->current_comm->server->choosed = room_current_page * 4;
                         
                         if(data_shared->current_comm->server->connected)
                             multiplayer_status = MPS_ENTERED_ROOM;
@@ -1873,14 +1897,14 @@ int main(int argc, char * argv[]) {
                         
                     case MP_ROOM_2:
                         data_shared->current_comm->server->choosing = 0;
-                        data_shared->current_comm->server->choosed = 1;
+                        data_shared->current_comm->server->choosed = room_current_page * 4 + 1;
                         
                         if(data_shared->current_comm->server->connected)
                             multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
                     case MP_ROOM_3:data_shared->current_comm->server->choosing = 0;
-                        data_shared->current_comm->server->choosed = 2;
+                        data_shared->current_comm->server->choosed = room_current_page * 4 + 2;
                         
                         if(data_shared->current_comm->server->connected)
                             multiplayer_status = MPS_ENTERED_ROOM;
@@ -1888,10 +1912,20 @@ int main(int argc, char * argv[]) {
                         
                     case MP_ROOM_4:
                         data_shared->current_comm->server->choosing = 0;
-                        data_shared->current_comm->server->choosed = 3;
+                        data_shared->current_comm->server->choosed = room_current_page * 4 + 3;
                         
                         if(data_shared->current_comm->server->connected)
                             multiplayer_status = MPS_ENTERED_ROOM;
+                        break;
+                        
+                    case MP_PREVIOUS_PAGE:
+                        if(room_current_page > 0)
+                            room_current_page--;
+                        break;
+                        
+                    case MP_NEXT_PAGE:
+                        if(room_current_page < MAX_SERVER / 4)
+                            room_current_page++;
                         break;
                         
                     case MP_NONE:
@@ -1906,7 +1940,7 @@ int main(int argc, char * argv[]) {
 					multiplayer_option = MP_NONE;
                 
                 //Get multiplayer menu assets
-                get_multiplayer_texts(multiplayer_status);
+                get_multiplayer_texts(multiplayer_status, room_current_page);
                 
                 break;
                 
@@ -2961,7 +2995,7 @@ void get_config_text(){
 }
 
 //Carrega textos do menu de multiplayer
-void get_multiplayer_texts(multiplayer_status current_status){
+void get_multiplayer_texts(multiplayer_status current_status, int page){
 	printf("Current status %d\n", current_status);
     for(int i = 0; i < multiplayer_menu_assets_count; i++){
         char *text = NULL;
@@ -3000,59 +3034,75 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            //Room hosts
             case 7: case 8:
                 if(current_status == MPS_SEARCHING_ROOM){
-                    text = get_host_name(0);
+                    text = "Previous page";
                     
                     rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
                 break;
                 
+            //Room hosts
             case 9: case 10:
                 if(current_status == MPS_SEARCHING_ROOM){
-                    text = get_host_name(1);
+                    text = get_host_name(0);
                     
-                    rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                    rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
                 break;
                 
             case 11: case 12:
                 if(current_status == MPS_SEARCHING_ROOM){
-                    text = get_host_name(2);
+                    text = get_host_name(1);
                     
-                    rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                    rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
                 break;
                 
             case 13: case 14:
                 if(current_status == MPS_SEARCHING_ROOM){
+                    text = get_host_name(2);
+                    
+                    rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
+                
+            case 15: case 16:
+                if(current_status == MPS_SEARCHING_ROOM){
                     text = get_host_name(3);
                     
-                    rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                    rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                }
+                break;
+                
+            case 17: case 18:
+                if(current_status == MPS_SEARCHING_ROOM){
+                    text = "Next page";
+                    
+                    rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT * 6, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
                 break;
             
-            case 15:
+            case 19:
                 text = "Rooms";
                 
                 rect = (SDL_Rect){195, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 16:
+            case 20:
                 text = "Players";
                 
                 rect = (SDL_Rect){515, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
-            case 17:
+            case 21:
                 text = "Ready?";
                 
                 rect = (SDL_Rect){835, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             //Players in room
-            case 18:
+            case 22:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 0){
                     if(data_shared->current_comm->adversary[0].name)
                         text = data_shared->current_comm->adversary[0].name;
@@ -3060,7 +3110,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 }
                 break;
                 
-            case 19:
+            case 23:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 1){
                     if(data_shared->current_comm->adversary[1].name)
                         text = data_shared->current_comm->adversary[1].name;
@@ -3069,7 +3119,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 }
                 break;
                 
-            case 20:
+            case 24:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 2){
                     if(data_shared->current_comm->adversary[2].name)
                         text = data_shared->current_comm->adversary[2].name;
@@ -3078,7 +3128,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 }
                 break;
                 
-            case 21:
+            case 25:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 3){
                     if(data_shared->current_comm->adversary[3].name)
                         text = data_shared->current_comm->adversary[3].name;
@@ -3088,7 +3138,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 break;
                 
             //Ready?
-            case 22:
+            case 26:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 0){
                     if(data_shared->current_comm->adversary[0].ready_to_play)
                         text = "Yes";
@@ -3100,7 +3150,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
 
                 break;
                 
-            case 23:
+            case 27:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 1){
                     if(data_shared->current_comm->adversary[1].ready_to_play)
                         text = "Yes";
@@ -3111,7 +3161,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 }
                 break;
                 
-            case 24:
+            case 28:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 2){
                     if(data_shared->current_comm->adversary[2].ready_to_play)
                         text = "Yes";
@@ -3122,7 +3172,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 }
                 break;
                 
-            case 25:
+            case 29:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 3){
                     if(data_shared->current_comm->adversary[3].ready_to_play)
                         text = "Yes";
@@ -3134,7 +3184,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 break;
             
             //status
-            case 26:
+            case 30:
                 if(current_status == MPS_NONE)
                     text = "";
                 else if(current_status == MPS_WAIT_FOR_PLAYER)
@@ -3157,7 +3207,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
         //Creating textures
         if(text && strlen(text) > 0){
             SDL_Surface *surface;
-            if(i%2 == 0 && i > 0 && i <= 14)
+            if(i%2 == 0 && i > 0 && i <= 18)
                 surface = TTF_RenderText_Solid(font, text, red);
             else
                 surface = TTF_RenderText_Solid(font, text, black);
@@ -3295,7 +3345,7 @@ void set_end_game_status_text(end_game_status end_status){
     
 }
 
-void get_multiplayer_game_names(){
+void get_multiplayer_game_names(int page){
     for(int i = 2; i < 10; i++){
         char *text = NULL;
         SDL_Rect rect;
