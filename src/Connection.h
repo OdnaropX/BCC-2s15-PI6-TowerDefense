@@ -145,6 +145,7 @@
 	struct _locks {
 		SDL_SpinLock user;
 		SDL_SpinLock comm;
+		SDL_SpinLock control;
 	};
 	
 		

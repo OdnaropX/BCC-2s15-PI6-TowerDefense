@@ -121,7 +121,7 @@ int main(int argc, char * argv[]) {
     if(!main_init()){
         quit = true;
     }
-	printf("here2\n");
+
 	int i = 0, j = 0;
 	
 	//Screen control
@@ -216,8 +216,6 @@ int main(int argc, char * argv[]) {
 	//Thread
 	char *thread_name = NULL;
 	
-	printf("Thread %d\n", thread_control);
-	
 	//Multiplayer
 	Network network;
 	network.searching = 0;
@@ -243,7 +241,6 @@ int main(int argc, char * argv[]) {
     //Main loop
     while(!quit){
         t1 = SDL_GetTicks();
-        printf("here\n");
         //Event Handler
         ///////////////////////////////////////////////////
 		while(SDL_PollEvent(&event) != 0){
@@ -1625,12 +1622,14 @@ int main(int argc, char * argv[]) {
 			//Check if a connection running was failed. This will kill the thread.
 			if(network.connection_failed){
 				//Kill threads.
+				SDL_AtomicLock(&thread_control->lock.control);
 				thread_control->udp.terminate = 1;
 				thread_control->server.terminate = 1;
 				thread_control->client.terminate = 1;
 				thread_control->client.pointer = NULL;
 				thread_control->server.pointer = NULL;
 				thread_control->udp.pointer = NULL;
+				SDL_AtomicUnlock(&thread_control->lock.control);
 				
 				//After this the thread will be dead must use network.connection_failed to show message with renderer.
 				//- TODO:
@@ -1696,9 +1695,11 @@ int main(int argc, char * argv[]) {
 						
 						if(thread_control){
 							if(thread_control->client.pointer || thread_control->client.alive){
+								SDL_AtomicLock(&thread_control->lock.control);
 								//Wait until thread is killed.
 								thread_control->client.terminate = 1;
 								ignore_next_command = 1;
+								SDL_AtomicUnlock(&thread_control->lock.control);
 							}
 							//Init thread.
 							else if(!thread_control->server.pointer && !thread_control->server.alive){
@@ -1740,9 +1741,11 @@ int main(int argc, char * argv[]) {
 						printf("search\n");
 						if(thread_control){
 							if(thread_control->server.pointer || thread_control->server.alive){
+								SDL_AtomicLock(&thread_control->lock.control);
 								//Wait until thread is killed.
 								thread_control->server.terminate = 1;
 								ignore_next_command = 1;
+								SDL_AtomicUnlock(&thread_control->lock.control);
 							}
 							//Init thread.
 							else if(!thread_control->client.pointer && !thread_control->client.alive){
@@ -1809,18 +1812,18 @@ int main(int argc, char * argv[]) {
                         
 						if(thread_control){
 							ignore_next_command = 1;
-							
+							SDL_AtomicLock(&thread_control->lock.control);
 							if(thread_control->server.pointer || thread_control->server.alive){
 								thread_control->server.terminate = 1;
-								printf("Kill thread!!\n");
+								printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
 							}
 							else if(thread_control->client.pointer || thread_control->client.alive){
 								thread_control->client.terminate = 1;
-								printf("Kill thread!!\n");
+								//printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
 							}
 							else if(thread_control->udp.pointer || thread_control->udp.alive){
 								thread_control->udp.terminate = 1;
-								printf("Kill thread!!\n");
+								printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
 							}
 							else {
 								printf("Threads killed!!\n");
@@ -1830,13 +1833,14 @@ int main(int argc, char * argv[]) {
 								current_screen = MAIN;
 								previous_screen = GAME_MULTIPLAY_SERVER;
 							}
+							SDL_AtomicUnlock(&thread_control->lock.control);
 						}
                         break;    
                     case MP_LEAVE:
                         //Leave room
 						if(thread_control){
 							ignore_next_command = 1;
-							
+							SDL_AtomicLock(&thread_control->lock.control);
 							if(thread_control->server.pointer || thread_control->server.alive){
 								thread_control->server.terminate = 1;
 								printf("Kill thread!!\n");
@@ -1854,6 +1858,7 @@ int main(int argc, char * argv[]) {
 								ignore_next_command = 0;
 								multiplayer_status = MPS_NONE;
 							}
+							SDL_AtomicUnlock(&thread_control->lock.control);
 						}
                         break;
                         
@@ -2957,7 +2962,7 @@ void get_config_text(){
 
 //Carrega textos do menu de multiplayer
 void get_multiplayer_texts(multiplayer_status current_status){
-	printf("Current status\n");
+	printf("Current status %d\n", current_status);
     for(int i = 0; i < multiplayer_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
@@ -3239,7 +3244,6 @@ void reset_game_data(){
 		}
 		SDL_AtomicUnlock(&thread_control->lock.user);
 	}
-	printf("efssef");
 	return;
 }
 
