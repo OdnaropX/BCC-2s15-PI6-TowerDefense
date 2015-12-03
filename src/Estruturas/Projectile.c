@@ -12,6 +12,7 @@ projectile *init_projectile(list_projectile_avaliable *list, turret* shooter){
     }
     
     projectile *new_projectile = malloc(sizeof(projectile));
+	printf("Proje init %d\n", new_projectile);
     new_projectile->node = init_node(available -> thumbnail_file, shooter->node->xPos, shooter->node->yPos);
 	
     new_projectile->speed = available->speed;
@@ -40,7 +41,9 @@ projectile_avaliable *init_avaliable_projectile(char *image_file, float speed, i
 void remove_projectile(projectile *proj){
     if(proj){
         free_node(proj->node);
-        proj->node = NULL;
+		if(proj->node)
+			proj->node = NULL;
+		
         free(proj);
         proj = NULL;
     }
@@ -61,10 +64,25 @@ void remove_avaliable_projectile(projectile_avaliable *proj){
 	
 //List Projectiles
 list_projectile *init_list_projectile(){
-    list_projectile *new_list = malloc(sizeof(list_projectile));
-    new_list->e = NULL;
-    new_list->next = NULL;
+	list_projectile *new_list = NULL;
+	
+    new_list = calloc(1, sizeof(list_projectile));
     
+	if (!new_list->e){
+		printf("Not\n");
+	}
+	if(!new_list->next){
+		printf("Not 2\n");
+		
+	}
+	if(new_list){
+		new_list->e = NULL;
+		new_list->next = NULL;
+	}
+	else {
+		printf("Could not create list\n");
+	}
+	
     return new_list;
 }
 
@@ -88,20 +106,37 @@ void free_list_projectile(list_projectile *list){
 }
 
 void add_projectile_to_list(list_projectile *list, projectile *projectile){
-    //Caso a lista esteja vazia ainda
-    if(list->e == NULL){
-        list->e = projectile;
-        return;
-    }
-    while(list->next != NULL)
-        list = list->next;
-    
-    list_projectile *new_element = init_list_projectile();
-    new_element->e = projectile;
-    list->next = new_element;
+    if(list){
+		//Caso a lista esteja vazia ainda
+		if(list->e == NULL){
+			list->e = projectile;
+			return;
+		}
+		if(!list->next){
+			printf("NoOOOOOOOOoooo !!!!\n");
+		}
+		while(list->next != NULL)
+			list = list->next;
+		
+		printf("Initing projectile %d\n", projectile);
+		list_projectile *new_element = NULL;
+		printf("projectile list declareted\n");
+		new_element = init_list_projectile();
+		printf("projectile list created\n");
+		
+		if(new_element){
+			new_element->e = projectile;
+			list->next = new_element;
+		}
+		else {
+			printf("There is no new list element created\n");
+		}
+		printf("Projectile initiated\n");
+	}
 }
 
 list_projectile *remove_projectile_from_list(list_projectile *list, projectile *projectile){
+	printf("Removing projectile\n");
     list_projectile *first_node = list;
     list_projectile *remove = NULL;
     int count = 0;

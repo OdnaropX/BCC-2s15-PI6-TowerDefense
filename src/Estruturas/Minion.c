@@ -5,21 +5,30 @@
 	
 //Minion
 minion *init_minion(list_minion_avaliable *list, int minionID){
-	minion_avaliable *avaliable = get_minion_from_avaliable_list(list, minionID);
 	
+	minion_avaliable *avaliable = NULL;
+	avaliable = get_minion_from_avaliable_list(list, minionID);
+	
+	printf("Type returned\n");
 	if (avaliable == NULL){
 		return NULL;
 	}	
 
+	printf("Trying create\d");
     // USAR MINIONID para diferentes minions dps.
-    minion *new_minion = malloc(sizeof(minion));
-    new_minion->node = init_node(avaliable->thumbnail_file, 0, 50);
+    minion *new_minion = NULL;
+    new_minion = calloc(1, sizeof(minion));
+    
+	printf("New minion allocated\n");
+	printf("New minion allocated %s\n", avaliable->thumbnail_file);
+	new_minion->node = init_node(avaliable->thumbnail_file, 0, 50);
     new_minion->HP = avaliable->HP;
     new_minion->speed = avaliable->speed;
     new_minion->minionType = minionID;
     
+	new_minion->targetted_projectils = NULL;
     new_minion->targetted_projectils = init_list_projectile();
-    
+    printf("F*** you code!\n");
     return new_minion;
 }
 
@@ -276,14 +285,15 @@ int get_minion_bonus(list_minion_avaliable *list, int turretID){
     return available->gold_per_second_bonus;
 }
 minion_avaliable *get_minion_from_avaliable_list(list_minion_avaliable *list, int type){
-	list_minion_avaliable *temp_list;
+	list_minion_avaliable *temp_list = NULL;
 	
 	temp_list = list;
 	while(temp_list->type != type && temp_list->next) {
 		temp_list = temp_list->next;
 	}
 	
-	if (temp_list != NULL) {
+	if (temp_list != NULL && temp_list->e) {
+		printf("Returning type\n");
 		return temp_list->e;
 	}
 	return NULL;
