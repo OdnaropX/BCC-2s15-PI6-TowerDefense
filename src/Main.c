@@ -1691,7 +1691,7 @@ int main(int argc, char * argv[]) {
             case GAME_MULTIPLAY_SERVER:
                 switch (multiplayer_option){
                     case MP_CREATE_ROOM:
-						multiplayer_status = MPS_WAIT_FOR_PLAYER;
+						multiplayer_status = MPS_SEARCHING_ROOM;
 						
 						if(thread_control){
 							if(thread_control->client.pointer || thread_control->client.alive){
@@ -1723,7 +1723,7 @@ int main(int argc, char * argv[]) {
 								else {
 									ignore_next_command = 0;
 									multiplayer = true;
-									multiplayer_status = MPS_WAIT_READY;
+									//multiplayer_status = MPS_WAIT_READY;
 								}
 								printf("Here problem\n");
 							}
@@ -1749,7 +1749,7 @@ int main(int argc, char * argv[]) {
 							}
 							//Init thread.
 							else if(!thread_control->client.pointer && !thread_control->client.alive){
-								multiplayer_status = MPS_WAIT_FOR_PLAYER;
+								//multiplayer_status = MPS_WAIT_FOR_PLAYER;
 								
 								SDL_AtomicLock(&thread_control->lock.comm);
 								if(!data_shared->current_comm) {
@@ -1769,7 +1769,7 @@ int main(int argc, char * argv[]) {
 								else {
 									ignore_next_command = 0;
 									multiplayer = true;
-									multiplayer_status = MPS_WAIT_READY;
+									//multiplayer_status = MPS_WAIT_READY;
 								}
 								printf("Here problem\n");
 							}
