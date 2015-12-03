@@ -229,18 +229,6 @@ int main(int argc, char * argv[]) {
 	network.server_choosed = -1;
 	
 	int player_adversary = 0;
-	
-	//Current Player info
-	data_shared->current_user = calloc(1, sizeof(User));
-	#ifdef _WIN32
-	data_shared->current_user->name = getenv("USERNAME");
-	#else
-	data_shared->current_user->name = getlogin();
-	#endif
-	if(!data_shared->current_user->name) {
-		data_shared->current_user->name = malloc(sizeof(char) * 7);
-		strncpy(data_shared->current_user->name, "Unknown", 7);
-	}
 
 	int ready_to_play = 0;
 	
@@ -1748,7 +1736,6 @@ int main(int argc, char * argv[]) {
                         
                     case MP_SEARCH_ROOM:
                         multiplayer_status = MPS_SEARCHING_ROOM;
-						//Check if there is a thread in progress and is run_client
 						printf("search\n");
 						if(thread_control){
 							if(thread_control->server.pointer || thread_control->server.alive){
@@ -2757,6 +2744,18 @@ bool main_init(){
 	data_shared = malloc(sizeof(ShareData));
 	data_shared->current_comm = NULL;
 	data_shared->current_user = NULL;
+
+	//Init Current Player info
+	data_shared->current_user = calloc(1, sizeof(User));
+	#ifdef _WIN32
+	data_shared->current_user->name = getenv("USERNAME");
+	#else
+	data_shared->current_user->name = getlogin();
+	#endif
+	if(!data_shared->current_user->name) {
+		data_shared->current_user->name = malloc(sizeof(char) * 7);
+		strncpy(data_shared->current_user->name, "Unknown", 7);
+	}
 	
 	//Init shared data
 	thread_control = calloc(1, sizeof(Threads));
@@ -2766,7 +2765,7 @@ bool main_init(){
 	thread_control->client.pointer = NULL;
 	thread_control->server.pointer = NULL;
 	thread_control->udp.pointer = NULL;
-	
+
     return true;
 }
 
