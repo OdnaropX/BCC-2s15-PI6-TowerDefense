@@ -121,7 +121,7 @@ int main(int argc, char * argv[]) {
     if(!main_init()){
         quit = true;
     }
-	
+	printf("here2\n");
 	int i = 0, j = 0;
 	
 	//Screen control
@@ -243,7 +243,7 @@ int main(int argc, char * argv[]) {
     //Main loop
     while(!quit){
         t1 = SDL_GetTicks();
-        
+        printf("here\n");
         //Event Handler
         ///////////////////////////////////////////////////
 		while(SDL_PollEvent(&event) != 0){
@@ -1736,6 +1736,7 @@ int main(int argc, char * argv[]) {
                         
                     case MP_SEARCH_ROOM:
                         multiplayer_status = MPS_SEARCHING_ROOM;
+
 						printf("search\n");
 						if(thread_control){
 							if(thread_control->server.pointer || thread_control->server.alive){
@@ -2681,7 +2682,7 @@ bool main_init(){
         printf("Falha ao inicializar mapa!\n");
         return false;
     }
-    
+    printf ("ssere\n");
     //Init stats
     reset_game_data();
     
@@ -2739,24 +2740,27 @@ bool main_init(){
 		printf("Falha ao carregar projectiles");
 		//return false;
 	}
-	
+	printf ("sserae\n");
 	//Init thread data
 	data_shared = malloc(sizeof(ShareData));
 	data_shared->current_comm = NULL;
 	data_shared->current_user = NULL;
-
+printf ("ssssere\n");
 	//Init Current Player info
 	data_shared->current_user = calloc(1, sizeof(User));
+	
 	#ifdef _WIN32
 	data_shared->current_user->name = getenv("USERNAME");
 	#else
 	data_shared->current_user->name = getlogin();
 	#endif
+	printf ("sssssssssssere\n");
 	if(!data_shared->current_user->name) {
 		data_shared->current_user->name = malloc(sizeof(char) * 7);
 		strncpy(data_shared->current_user->name, "Unknown", 7);
 	}
 	
+	printf ("ssere\n");
 	//Init shared data
 	thread_control = calloc(1, sizeof(Threads));
 	thread_control->udp.priority = SDL_THREAD_PRIORITY_HIGH;//Maybe normal
@@ -3208,28 +3212,35 @@ void reset_game_data(){
     mana = 0;
 	
 	//Reset current user data used on network.
-	SDL_AtomicLock(&thread_control->lock.user);
-	if(data_shared && data_shared->current_user){
-		data_shared->current_user->id = 0;
-		data_shared->current_user->is_server = 0;
-		data_shared->current_user->life = health;
-		data_shared->current_user->ready_to_play = 0;
-		data_shared->current_user->process.message_status = 0;
-		data_shared->current_user->process.message_life = 0;
-		data_shared->current_user->process.message_minion = 0;
-		if(data_shared->current_user->minions){
-			for(i = 0; i < data_shared->current_user->spawn_amount; i++){
-				if(data_shared->current_user->minions[i].type) {
-					free(data_shared->current_user->minions[i].type);
-					data_shared->current_user->minions[i].type = NULL;
+	if(thread_control){
+		SDL_AtomicLock(&thread_control->lock.user);
+		if(data_shared){
+			if(data_shared->current_user){
+				data_shared->current_user->id = 0;
+				data_shared->current_user->is_server = 0;
+				data_shared->current_user->life = health;
+				data_shared->current_user->ready_to_play = 0;
+				data_shared->current_user->process.message_status = 0;
+				data_shared->current_user->process.message_life = 0;
+				data_shared->current_user->process.message_minion = 0;
+				
+				if(data_shared->current_user->minions){
+					for(i = 0; i < data_shared->current_user->spawn_amount; i++){
+						if(data_shared->current_user->minions[i].type) {
+							free(data_shared->current_user->minions[i].type);
+							data_shared->current_user->minions[i].type = NULL;
+						}
+					}
+					free(data_shared->current_user->minions);
+					data_shared->current_user->minions = NULL;
 				}
+				data_shared->current_user->spawn_amount = 0;
 			}
-			free(data_shared->current_user->minions);
-			data_shared->current_user->minions = NULL;
 		}
-		data_shared->current_user->spawn_amount = 0;
+		SDL_AtomicUnlock(&thread_control->lock.user);
 	}
-	SDL_AtomicUnlock(&thread_control->lock.user);
+	printf("efssef");
+	return;
 }
 
 void set_end_game_status_text(end_game_status end_status){
