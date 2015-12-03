@@ -345,6 +345,7 @@ int find_servers() {
         }
 
 		for(number_found = 0; number_found < MAX_SERVER && servers[number_found].ip.host != 0; number_found++);
+		
 		printf("Found: %d\n", number_found);
 		
 		if (number_found != MAX_SERVER) {
@@ -1561,9 +1562,12 @@ void process_action(){
 
 void thread_check_messages_udp(void *data){
 	thread_control->udp.alive = 1;
-	int check;
+	int check, t1, t2;
+	int delay = SERVER_USER_RESPONSE_DELAY;//Aprox. de 1000ms/60
 	
 	while(!thread_control->udp.terminate){
+		t1 = SDL_GetTicks();
+		
 		SDL_AtomicLock(&thread_control->lock.comm);
 		check = !game_in_progress && !data_shared->current_comm->server->connection_failed;
 		SDL_AtomicUnlock(&thread_control->lock.comm);
@@ -1575,6 +1579,11 @@ void thread_check_messages_udp(void *data){
 		else {
 			thread_control->udp.terminate = 1;
 		}
+		//FPS Handling
+        t2 = SDL_GetTicks() - t1;
+        if(t2 < delay){
+            SDL_Delay(delay - t2);
+        }
 	}
 	
 	thread_control->udp.alive = 0;
@@ -1583,7 +1592,8 @@ void thread_check_messages_udp(void *data){
 }
 
 void run_server(void *data){
-	int created_server = 0, thread_begin = 0;
+	int created_server = 0, thread_begin = 0, t1, t2;
+	int delay = SERVER_USER_RESPONSE_DELAY;//Aprox. de 1000ms/60
 	
 	data_shared->current_user->is_server = 1;
 	game_in_progress = 0;
@@ -1628,8 +1638,9 @@ void run_server(void *data){
 	
 	
 	while(!thread_control->server.terminate){
+		t1 = SDL_GetTicks();
 		SDL_AtomicLock(&thread_control->lock.comm);
-		thread_begin = created_server && !data_shared->current_comm->match->finished && !data_shared->current_comm->server->connection_failed;
+		thread_begin = created_server && !data_shared->current_comm->match->finished && !data_shared->current_comm->server->connection_failed && !data_shared->current_comm->connection_lost;
 		SDL_AtomicUnlock(&thread_control->lock.comm);
 		
 		if(thread_begin){
@@ -1642,26 +1653,36 @@ void run_server(void *data){
 				check_connection_tcp();
 			}
 			
-			printf("Begin game status\n");
-			//Update game status
-			game_status();
+			if(!data_shared->current_comm->connection_lost){
+				printf("Begin game status\n");
+				//Update game status
+				game_status();
+			}
 			
-			printf("Begin message handler\n");
-			//Check TCP messages from clients connected. This also connect with a 
-			check_messages_tcp();
+			if(!data_shared->current_comm->connection_lost){
+				printf("Begin message handler\n");
+				//Check TCP messages from clients connected. This also connect with a 
+				check_messages_tcp();
+			}
 			
-			
-			printf("Begin game status again\n");
-			//Update game status
-			game_status();
+			if(!data_shared->current_comm->connection_lost){
+				printf("Begin game status again\n");
+				//Update game status
+				game_status();
+			}
 			
 			printf("Begin to process user action\n");
 			//process player action.
-			process_action();
-			
-			//Delay server
+			if(!data_shared->current_comm->connection_lost){
+				process_action();
+			}
 			
 		}
+		//FPS Handling
+        t2 = SDL_GetTicks() - t1;
+        if(t2 < delay){
+            SDL_Delay(delay - t2);
+        }
 	}
 	
 	printf("Here 6b\n");
@@ -1689,7 +1710,7 @@ void run_server(void *data){
 	
 	thread_control->server.terminate = 0;
 	thread_control->server.alive = 0;
-	
+	thread_control->server.pointer = NULL;
 	return;
 }
 
@@ -1697,6 +1718,8 @@ void run_client(void *data){
 	int found = 0;
 	int connected = 0;
 	int thread_begin = 0;
+	int t1, t2;
+	int delay = SERVER_USER_RESPONSE_DELAY;//Aprox. de 1000ms/60
 	
 	game_in_progress = 0;
 	game_ended = 0;
@@ -1736,9 +1759,14 @@ void run_client(void *data){
 			
 			//Need to choose server.
 			while(data_shared->current_comm->server->choosing && !thread_control->client.terminate){
+				t1 = SDL_GetTicks();
 				//Wait until the user choose a server on main thread.
-				SDL_Delay(SERVER_USER_RESPONSE_DELAY);
 				printf("Waiting user choose server\n");
+				//FPS Handling
+				t2 = SDL_GetTicks() - t1;
+				if(t2 < delay){
+					SDL_Delay(delay - t2);
+				}
 			}
 			SDL_AtomicLock(&thread_control->lock.comm);
 			data_shared->current_comm->server->connecting = 1;
@@ -1763,9 +1791,11 @@ void run_client(void *data){
 		}
 		
 		while(!thread_control->client.terminate){
+			t1 = SDL_GetTicks();
+			
 			//Running 
 			SDL_AtomicLock(&thread_control->lock.comm);
-			thread_begin = connected && !data_shared->current_comm->match->finished && !data_shared->current_comm->server->connection_failed;
+			thread_begin = connected && !data_shared->current_comm->match->finished && !data_shared->current_comm->server->connection_failed && data_shared->current_comm->connection_lost;
 			SDL_AtomicUnlock(&thread_control->lock.comm);
 			
 			if(thread_begin){
@@ -1773,36 +1803,37 @@ void run_client(void *data){
 				//Check if there is response to begin game.
 				//Check tcp messages only.
 				if(!data_shared->current_comm->connection_lost){
+					printf("Begin checking TCP\n");
 					check_messages_tcp();
 				}
 				
-				game_status();
-
+				if(!data_shared->current_comm->connection_lost){
+					printf("Begin checking game status\n");
+					game_status();
+				}
+				
 				//Process player action
 				if(!data_shared->current_comm->connection_lost){
 					process_action();
 				}
+			}
+			//FPS Handling
+			t2 = SDL_GetTicks() - t1;
+			if(t2 < delay){
+				SDL_Delay(delay - t2);
 			}
 		}
 		//Destroy game communication
 		remove_communication();
 	}
 	printf("Thread exiting\n");
-	
-	
-	
-	
+
 	thread_control->client.terminate = 0;
 	thread_control->client.alive = 0;
+	thread_control->client.pointer = NULL;
 	return;
 }
 
-void kill_thread(SDL_Thread **thread){
-	//Kill thread.
-	SDL_DetachThread(*thread);
-	*thread = NULL;
-	return;
-}
 
 /**
 This function was copied from deltheil on 
@@ -1817,9 +1848,3 @@ int str_to_uint16(const char *str, Uint16 *res){
 	*res = (Uint16) val;
 	return 1;
 }
-
-void free_thread_control(){
-	
-	return;
-}
-

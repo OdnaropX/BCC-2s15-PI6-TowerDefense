@@ -250,19 +250,12 @@ int main(int argc, char * argv[]) {
 	int show_timer = 0;
 	int timer_count = 0;
 	int frame = 0;
-    t1 = SDL_GetTicks();
 	
 	//int next = 0;  //unused
     //Main loop
     while(!quit){
-        //FPS Handling
-        t2 = SDL_GetTicks() - t1;
-        if(t2 < delay){
-            SDL_Delay(delay - t2);
-        }
-        
         t1 = SDL_GetTicks();
-
+        
         //Event Handler
         ///////////////////////////////////////////////////
 		while(SDL_PollEvent(&event) != 0){
@@ -2278,6 +2271,12 @@ int main(int argc, char * argv[]) {
 			SDL_DestroyTexture(screen_surfaces);
 			screen_surfaces = NULL;
         }
+		
+		//FPS Handling
+        t2 = SDL_GetTicks() - t1;
+        if(t2 < delay){
+            SDL_Delay(delay - t2);
+        }
     }
     
 	//Destroy thread naturally
@@ -2955,6 +2954,7 @@ void get_config_text(){
 
 //Carrega textos do menu de multiplayer
 void get_multiplayer_texts(multiplayer_status current_status){
+	printf("Current status\n");
     for(int i = 0; i < multiplayer_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
@@ -3209,6 +3209,7 @@ void reset_game_data(){
     mana = 0;
 	
 	//Reset current user data used on network.
+	SDL_AtomicLock(&thread_control->lock.user);
 	if(data_shared && data_shared->current_user){
 		data_shared->current_user->id = 0;
 		data_shared->current_user->is_server = 0;
@@ -3229,6 +3230,7 @@ void reset_game_data(){
 		}
 		data_shared->current_user->spawn_amount = 0;
 	}
+	SDL_AtomicUnlock(&thread_control->lock.user);
 }
 
 void set_end_game_status_text(end_game_status end_status){
