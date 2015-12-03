@@ -32,14 +32,8 @@
 
 //Global variable
 ///////////////////////////////////////////////////////////////////////
-int terminate_thread;
-SDL_SpinLock comm_lock;
-SDL_SpinLock user_lock;
-Communication *comm;
-User *current_user;
-int terminate_thread_udp;
-SDL_Thread *thread_udp;
 Threads *thread_control;
+ShareData *data_shared;
 
 //SDL stuff
 SDL_Window *main_Window;
@@ -186,6 +180,8 @@ int main(int argc, char * argv[]) {
 	int add_tower = 0;
 	int add_minion = 0;//Game add the minion.
 	int send_minion = 0;//User send the minion.
+	int ignore_next_command = 0;
+	
 	
 	int current_position[] = {0,0};
 	
@@ -218,16 +214,9 @@ int main(int argc, char * argv[]) {
 	int temp_option;
 	
 	//Thread
-	SDL_Thread *thread = NULL;
-	terminate_thread = 0;
 	char *thread_name = NULL;
-//	comm = NULL;
-//	terminate_thread_udp = 0;
-//	thread_udp = NULL;
-	thread_control = calloc(1, sizeof(Threads));
-	thread_control->udp->priority = SDL_THREAD_PRIORITY_HIGH;//Maybe normal
-	thread_control->client->priority = SDL_THREAD_PRIORITY_LOW;
-	thread_control->server->priority = SDL_THREAD_PRIORITY_LOW;
+	
+	printf("Thread %d\n", thread_control);
 	
 	//Multiplayer
 	Network network;
@@ -242,15 +231,15 @@ int main(int argc, char * argv[]) {
 	int player_adversary = 0;
 	
 	//Current Player info
-	current_user = calloc(1, sizeof(User));
+	data_shared->current_user = calloc(1, sizeof(User));
 	#ifdef _WIN32
-	current_user->name = getenv("USERNAME");
+	data_shared->current_user->name = getenv("USERNAME");
 	#else
-	current_user->name = getlogin();
+	data_shared->current_user->name = getlogin();
 	#endif
-	if(!current_user->name) {
-		current_user->name = malloc(sizeof(char) * 7);
-		strncpy(current_user->name, "Unknown", 7);
+	if(!data_shared->current_user->name) {
+		data_shared->current_user->name = malloc(sizeof(char) * 7);
+		strncpy(data_shared->current_user->name, "Unknown", 7);
 	}
 
 	int ready_to_play = 0;
@@ -394,8 +383,8 @@ int main(int argc, char * argv[]) {
                                             select_multiplayer_option --;
                                     }
                                     
-                                    else if(comm){
-                                        if(current_user->is_server){
+                                    else if(data_shared->current_comm){
+                                        if(data_shared->current_user->is_server){
                                             if(select_multiplayer_option == MP_START)
                                                 select_multiplayer_option = MP_BACK_TO_MAIN;
                                             else if(select_multiplayer_option == MP_BACK_TO_MAIN)
@@ -435,8 +424,8 @@ int main(int argc, char * argv[]) {
                                             select_multiplayer_option ++;
                                     }
                                     
-                                    else if(comm){
-                                        if(current_user->is_server){
+                                    else if(data_shared->current_comm){
+                                        if(data_shared->current_user->is_server){
                                             if(select_multiplayer_option == MP_START)
                                                 select_multiplayer_option = MP_LEAVE;
                                             else if(select_multiplayer_option == MP_BACK_TO_MAIN)
@@ -496,8 +485,8 @@ int main(int argc, char * argv[]) {
                                         if(multiplayer_status == MPS_NONE)
                                             multiplayer_option = temp_option;
                                         
-                                        else if(comm){
-                                            if(current_user->is_server){
+                                        else if(data_shared->current_comm){
+                                            if(data_shared->current_user->is_server){
                                                 if(temp_option == 0)
                                                     multiplayer_option = MP_START;
                                             }
@@ -547,8 +536,8 @@ int main(int argc, char * argv[]) {
                                     if(multiplayer_status == MPS_NONE)
                                         select_multiplayer_option = temp_option;
                                     
-                                    else if(comm){
-                                        if(current_user->is_server){
+                                    else if(data_shared->current_comm){
+                                        if(data_shared->current_user->is_server){
                                             if(temp_option == 0)
                                                 select_multiplayer_option = MP_START;
                                         }
@@ -1557,33 +1546,33 @@ int main(int argc, char * argv[]) {
 		//Network Thread Status Checker
 		/////////////////////////////////////////////////////
 		if(multiplayer) {
-			SDL_AtomicLock(&comm_lock);
+			SDL_AtomicLock(&thread_control->lock.comm);
 			//-- Change, dont need this, use the global variable instead.
-			if(comm){
-				if(comm->server->searching){
+			if(data_shared->current_comm){
+				if(data_shared->current_comm->server->searching){
 					network.searching = 1;
 				}
-				if(comm->server->searching_finished){
+				if(data_shared->current_comm->server->searching_finished){
 					network.searched = 1;
 				}
-				if(comm->server->search_result > 0){
-					if(comm->server->connecting){
+				if(data_shared->current_comm->server->search_result > 0){
+					if(data_shared->current_comm->server->connecting){
 						network.connecting = 1;
 					}
-					network.servers = comm->server->search_result;
+					network.servers = data_shared->current_comm->server->search_result;
 					for(i = 0; i < network.servers; i++){
-						strncpy(network.server_name[i], comm->server->host[i].name, SERVER_NAME);
+						strncpy(network.server_name[i], data_shared->current_comm->server->host[i].name, SERVER_NAME);
 					}
 				}
-				if(comm->server->choosing) {
+				if(data_shared->current_comm->server->choosing) {
 					network.choose_server = 1;
 				}
 				
-				if(comm->server->connection_failed) {
+				if(data_shared->current_comm->server->connection_failed) {
 					network.connection_failed = 1;
 				}
 			}
-			SDL_AtomicUnlock(&comm_lock);
+			SDL_AtomicUnlock(&thread_control->lock.comm);
 			
 			//Set minions to send.
 			if(send_minion > 0) {
@@ -1594,68 +1583,78 @@ int main(int argc, char * argv[]) {
                 }
                 
 				//Get adversary id
-				SDL_AtomicLock(&comm_lock);
-				int adversary_id_to_use =  comm->adversary[player_adversary % comm->match->players].id;
-				SDL_AtomicUnlock(&comm_lock);
+				SDL_AtomicLock(&thread_control->lock.comm);
+				int adversary_id_to_use =  data_shared->current_comm->adversary[player_adversary % data_shared->current_comm->match->players].id;
+				SDL_AtomicUnlock(&thread_control->lock.comm);
 				
-				SDL_AtomicLock(&user_lock);
-				if(current_user->minions && current_user->spawn_amount){
+				SDL_AtomicLock(&thread_control->lock.user);
+				if(data_shared->current_user->minions && data_shared->current_user->spawn_amount){
 					int adversary_found = 0;
 					//Realloc minions.
-					for(i = 0; i < current_user->spawn_amount;i++){
-						if(current_user->minions[i].client_id == adversary_id_to_use){
+					for(i = 0; i < data_shared->current_user->spawn_amount;i++){
+						if(data_shared->current_user->minions[i].client_id == adversary_id_to_use){
 							//User found
 							adversary_found = 1;
 							//Add minion to adversary array. Realloc array.
-							int *new_type = malloc(sizeof(int) * current_user->minions[i].amount + 1);
-							for(int j = 0; j < current_user->minions[i].amount;j++){
-								new_type[j] = current_user->minions[i].type[j];//Need to check if this is right.
+							int *new_type = malloc(sizeof(int) * data_shared->current_user->minions[i].amount + 1);
+							for(int j = 0; j < data_shared->current_user->minions[i].amount;j++){
+								new_type[j] = data_shared->current_user->minions[i].type[j];//Need to check if this is right.
 							}
 							new_type[j] = send_minion;
 							
-							free(current_user->minions[i].type);
-							current_user->minions[i].type = new_type;
-							current_user->minions[i].amount += 1;
+							free(data_shared->current_user->minions[i].type);
+							data_shared->current_user->minions[i].type = new_type;
+							data_shared->current_user->minions[i].amount += 1;
 							break;
 						}
 					}
 					
 					if(!adversary_found){
-						SpawnMinion *new_spawn = malloc(sizeof(SpawnMinion) * current_user->spawn_amount + 1);
+						SpawnMinion *new_spawn = malloc(sizeof(SpawnMinion) * data_shared->current_user->spawn_amount + 1);
 						//Realloc minions.
-						for(i = 0; i < current_user->spawn_amount;i++){
-							new_spawn[i] = current_user->minions[i];
+						for(i = 0; i < data_shared->current_user->spawn_amount;i++){
+							new_spawn[i] = data_shared->current_user->minions[i];
 						}
 						new_spawn[i].client_id = adversary_id_to_use;
 						new_spawn[i].amount =  1;
 						new_spawn[i].type = malloc(sizeof(int));
 						
 						new_spawn[i].type[0] = send_minion;
-						free(current_user->minions);
-						current_user->minions = new_spawn;
+						free(data_shared->current_user->minions);
+						data_shared->current_user->minions = new_spawn;
 					}				
 				}
 				else {
-					current_user->spawn_amount = 1;
+					data_shared->current_user->spawn_amount = 1;
 					SpawnMinion *minions = malloc(sizeof(SpawnMinion));//Only one now.
 					minions[0].amount = 1;
 					minions[0].client_id = adversary_id_to_use;//Mod in case players amount changed.
 					minions[0].type = malloc(sizeof(int));
 					minions[0].type[0] = send_minion;
 					
-					if(current_user->minions){
-						free(current_user->minions);
+					if(data_shared->current_user->minions){
+						free(data_shared->current_user->minions);
 					}
-					current_user->minions = minions;
+					data_shared->current_user->minions = minions;
 				}
 				send_minion = 0;
-				SDL_AtomicUnlock(&user_lock);
+				SDL_AtomicUnlock(&thread_control->lock.user);
 			}
-			
+			//-- Change
 			//Check if a connection running was failed. This will kill the thread.
-			if(network.connection_failed && thread){
+			if(network.connection_failed){
+				//Kill threads.
+				thread_control->udp.terminate = 1;
+				thread_control->server.terminate = 1;
+				thread_control->client.terminate = 1;
+				thread_control->client.pointer = NULL;
+				thread_control->server.pointer = NULL;
+				thread_control->udp.pointer = NULL;
+				
 				//After this the thread will be dead must use network.connection_failed to show message with renderer.
-				kill_thread(&thread);//Kill thread already kill comm.
+				//- TODO:
+				// [ ] Change screen to connection failed.
+				
 				multiplayer_status = MPS_NONE;
 				multiplayer = false;
 			}
@@ -1669,7 +1668,6 @@ int main(int argc, char * argv[]) {
 				switch(main_option){
 					case OPT_EXIT:
 						quit = true;
-						terminate_thread = 1;
 						break;
 					case OPT_PLAY:
 						game_started = true;
@@ -1711,45 +1709,46 @@ int main(int argc, char * argv[]) {
 				break;
                 
             case GAME_MULTIPLAY_SERVER:
-                switch (multiplayer_option) {
+                switch (multiplayer_option){
                     case MP_CREATE_ROOM:
-						//Check if there is a thread running
-                        if(thread) {
-							printf("Thread alreay running!\n");
-							thread_name = (char *)SDL_GetThreadName(thread);
-							if(strcmp(thread_name, "run_server") != 0) {
-								printf("Killing client thread\n");
-								kill_thread(&thread);
-								multiplayer_status = MPS_NONE;
-								multiplayer = false;
+						multiplayer_status = MPS_WAIT_FOR_PLAYER;
+						
+						if(thread_control){
+							if(thread_control->client.pointer || thread_control->client.alive){
+								//Wait until thread is killed.
+								thread_control->client.terminate = 1;
+								ignore_next_command = 1;
 							}
-							else {
-								printf("%d\n", network.connection_failed);
-							}
-						}
-						else {
-							printf("Thread not running!\n");
-							//terminate_thread = 0;
-							//Create server
-							multiplayer_status = MPS_WAIT_FOR_PLAYER;
-	
-							SDL_AtomicLock(&comm_lock);
-							if(!comm) {
-								printf("Initing\n");
-								comm = init_communication();
-							}
-							SDL_AtomicUnlock(&comm_lock);
-							
-							if (!thread && comm) {
-								thread = SDL_CreateThread((SDL_ThreadFunction) run_server, "run_server", (void *)NULL);
-								if (thread == NULL) {
-									multiplayer_status = MPS_NONE;
-									if(comm)
-										remove_communication();
+							//Init thread.
+							else if(!thread_control->server.pointer && !thread_control->server.alive){
+								multiplayer_status = MPS_WAIT_FOR_PLAYER;
+								
+								SDL_AtomicLock(&thread_control->lock.comm);
+								if(!data_shared->current_comm) {
+									printf("Initing\n");
+									data_shared->current_comm = init_communication();
 								}
-								multiplayer = true;
-                                
-                                multiplayer_status = MPS_WAIT_READY;
+								SDL_AtomicUnlock(&thread_control->lock.comm);
+							
+								//Create thread
+								thread_control->server.pointer = SDL_CreateThread((SDL_ThreadFunction) run_server, "run_server", (void *)NULL);
+								if (thread_control->server.pointer == NULL) {
+									ignore_next_command = 1;
+									multiplayer = false;
+									multiplayer_status = MPS_NONE;
+									remove_communication();
+								}
+								else {
+									ignore_next_command = 0;
+									multiplayer = true;
+									multiplayer_status = MPS_WAIT_READY;
+								}
+								printf("Here problem\n");
+							}
+							//Loop again.
+							else if(!ignore_next_command) {
+								thread_control->server.terminate = 1;
+								ignore_next_command = 1;
 							}
 						}
                         break;
@@ -1757,118 +1756,155 @@ int main(int argc, char * argv[]) {
                     case MP_SEARCH_ROOM:
                         multiplayer_status = MPS_SEARCHING_ROOM;
 						//Check if there is a thread in progress and is run_client
-						if(thread) {
-							printf("Thread running\n");
-							thread_name = (char *)SDL_GetThreadName(thread);
-							if(strcmp(thread_name, "run_client") != 0) {
-								printf("Killing server thread\n");
-								kill_thread(&thread);
-								multiplayer_status = MPS_NONE;
-								multiplayer = false;
+						printf("search\n");
+						if(thread_control){
+							if(thread_control->server.pointer || thread_control->server.alive){
+								//Wait until thread is killed.
+								thread_control->server.terminate = 1;
+								ignore_next_command = 1;
 							}
-							else {
-								//Check if a connection running was failed. This will kill the thread.
-								printf("%d\n", network.connection_failed);
-							}
-						}
-						else {
-							printf("Thread not running\n");
-							//terminate_thread = 0;
-							//Start thread and network communication.
-							
-							SDL_AtomicLock(&comm_lock);
-							if(!comm) {
-								printf("Initing\n");
-								comm = init_communication();
-								//printf("Initing %d\n", comm);
-							}
-							SDL_AtomicUnlock(&comm_lock);
-							
-							if(!thread && comm){
-								thread = SDL_CreateThread((SDL_ThreadFunction) run_client, "run_client", (void *) NULL);
-								if (thread == NULL) {
-									multiplayer_status = MPS_NONE;
-									if(comm)
-										remove_communication();
+							//Init thread.
+							else if(!thread_control->client.pointer && !thread_control->client.alive){
+								multiplayer_status = MPS_WAIT_FOR_PLAYER;
+								
+								SDL_AtomicLock(&thread_control->lock.comm);
+								if(!data_shared->current_comm) {
+									printf("Initing\n");
+									data_shared->current_comm = init_communication();
 								}
-								multiplayer = true;
+								SDL_AtomicUnlock(&thread_control->lock.comm);
+							
+								//Create thread
+								thread_control->client.pointer = SDL_CreateThread((SDL_ThreadFunction) run_client, "run_client", (void *)NULL);
+								if (thread_control->client.pointer == NULL) {
+									ignore_next_command = 1;
+									multiplayer = false;
+									multiplayer_status = MPS_NONE;
+									remove_communication();
+								}
+								else {
+									ignore_next_command = 0;
+									multiplayer = true;
+									multiplayer_status = MPS_WAIT_READY;
+								}
+								printf("Here problem\n");
+							}
+							//Loop again.
+							else if(!ignore_next_command) {
+								thread_control->client.terminate = 1;
+								ignore_next_command = 1;
 							}
 						}
                         break;
-                        
-                    case MP_BACK_TO_MAIN:
-                        //Same as cancel option
-                        current_screen = MAIN;
-                        previous_screen = GAME_MULTIPLAY_SERVER;
-                        
-                        printf("Cancel\n");
-                        //Filter whether client or server and finnish
-                        if(thread){
-                            printf("Kill thread!!\n");
-                            multiplayer_status = MPS_NONE;
-                            kill_thread(&thread);
-                        }
-                        
-                        break;
-                        
+
                     case MP_START:
                         // ready_to_play = 1;
-
-                        multiplayer_status = MPS_STARTED_GAME;
-						
-						SDL_AtomicLock(&user_lock);
-						current_user->process.message_status = current_user->process.message_status + 1;
-						current_user->ready_to_play = 1;
-						SDL_AtomicUnlock(&user_lock);
-                        
+						if(data_shared){
+							multiplayer_status = MPS_STARTED_GAME;
+							SDL_AtomicLock(&thread_control->lock.user);
+							data_shared->current_user->process.message_status = data_shared->current_user->process.message_status + 1;
+							data_shared->current_user->ready_to_play = 1;
+							SDL_AtomicUnlock(&thread_control->lock.user);
+                        }
+						else {
+							printf("Something that was not supose to happen happened.\n");
+						}
 						break;
                         
                     case MP_TOGGLE_READY:
-						SDL_AtomicLock(&user_lock);
-						current_user->process.message_status = current_user->process.message_status + 1;
-						current_user->ready_to_play = (current_user->ready_to_play + 1) % 2;
-						SDL_AtomicUnlock(&user_lock);
+						if(data_shared){
+							SDL_AtomicLock(&thread_control->lock.user);
+							data_shared->current_user->process.message_status = data_shared->current_user->process.message_status + 1;
+							data_shared->current_user->ready_to_play = (data_shared->current_user->ready_to_play + 1) % 2;
+							SDL_AtomicUnlock(&thread_control->lock.user);
+						}
+						else {
+							printf("Something that was not supose to happen happened.\n");
+						}
 					    break;
+                    
+					case MP_BACK_TO_MAIN:
+                        //Same as cancel option
                         
+						if(thread_control){
+							ignore_next_command = 1;
+							
+							if(thread_control->server.pointer || thread_control->server.alive){
+								thread_control->server.terminate = 1;
+								printf("Kill thread!!\n");
+							}
+							else if(thread_control->client.pointer || thread_control->client.alive){
+								thread_control->client.terminate = 1;
+								printf("Kill thread!!\n");
+							}
+							else if(thread_control->udp.pointer || thread_control->udp.alive){
+								thread_control->udp.terminate = 1;
+								printf("Kill thread!!\n");
+							}
+							else {
+								printf("Threads killed!!\n");
+								ignore_next_command = 0;
+								multiplayer_status = MPS_NONE;
+								
+								current_screen = MAIN;
+								previous_screen = GAME_MULTIPLAY_SERVER;
+							}
+						}
+                        break;    
                     case MP_LEAVE:
                         //Leave room
-                        multiplayer_status = MPS_NONE;
-                        
-                        if(thread){
-                            printf("Kill thread!!\n");
-                            kill_thread(&thread);
-                        }
-
+						if(thread_control){
+							ignore_next_command = 1;
+							
+							if(thread_control->server.pointer || thread_control->server.alive){
+								thread_control->server.terminate = 1;
+								printf("Kill thread!!\n");
+							}
+							else if(thread_control->client.pointer || thread_control->client.alive){
+								thread_control->client.terminate = 1;
+								printf("Kill thread!!\n");
+							}
+							else if(thread_control->udp.pointer || thread_control->udp.alive){
+								thread_control->udp.terminate = 1;
+								printf("Kill thread!!\n");
+							}
+							else {
+								printf("Threads killed!!\n");
+								ignore_next_command = 0;
+								multiplayer_status = MPS_NONE;
+							}
+						}
                         break;
                         
+					//-- Remove this, cannot be this way, must have the possibility to acept n rooms.
                     case MP_ROOM_1:
-                        comm->server->choosing = 0;
-                        comm->server->choosed = 0;
+                        data_shared->current_comm->server->choosing = 0;
+                        data_shared->current_comm->server->choosed = 0;
                         
-                        if(connect_to_server(0))
+                        if(data_shared->current_comm->server->connected)
                             multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
                     case MP_ROOM_2:
-                        comm->server->choosing = 0;
-                        comm->server->choosed = 1;
+                        data_shared->current_comm->server->choosing = 0;
+                        data_shared->current_comm->server->choosed = 1;
                         
-                        if(connect_to_server(1))
+                        if(data_shared->current_comm->server->connected)
                             multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
-                    case MP_ROOM_3:comm->server->choosing = 0;
-                        comm->server->choosed = 2;
+                    case MP_ROOM_3:data_shared->current_comm->server->choosing = 0;
+                        data_shared->current_comm->server->choosed = 2;
                         
-                        if(connect_to_server(2))
+                        if(data_shared->current_comm->server->connected)
                             multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
                     case MP_ROOM_4:
-                        comm->server->choosing = 0;
-                        comm->server->choosed = 3;
+                        data_shared->current_comm->server->choosing = 0;
+                        data_shared->current_comm->server->choosed = 3;
                         
-                        if(connect_to_server(3))
+                        if(data_shared->current_comm->server->connected)
                             multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
@@ -1879,7 +1915,9 @@ int main(int argc, char * argv[]) {
                         break;
                 }
                 
-                multiplayer_option = MP_NONE;
+				//This will be used to show the same screen while thread not killed.
+				if(!ignore_next_command)
+					multiplayer_option = MP_NONE;
                 
                 //Get multiplayer menu assets
                 get_multiplayer_texts(multiplayer_status);
@@ -1982,10 +2020,10 @@ int main(int argc, char * argv[]) {
                             health --;
 							//Update player health if multiplayer
 							if(multiplayer){
-								SDL_AtomicLock(&user_lock);
-								current_user->process.message_life++;
-								current_user->life = health;
-								SDL_AtomicUnlock(&user_lock);
+								SDL_AtomicLock(&thread_control->lock.user);
+								data_shared->current_user->process.message_life++;
+								data_shared->current_user->life = health;
+								SDL_AtomicUnlock(&thread_control->lock.user);
 							}
                         }
                         
@@ -2059,12 +2097,12 @@ int main(int argc, char * argv[]) {
                     }
                 }
 				if(multiplayer){
-					SDL_AtomicLock(&comm_lock);
-					for(i = 0; i < comm->match->players; i++){
-						for(j = 0; j < comm->adversary[i].pending_minions;j++){
-							if(comm->adversary[i].minions_sent[j] > 0){
+					SDL_AtomicLock(&thread_control->lock.comm);
+					for(i = 0; i < data_shared->current_comm->match->players; i++){
+						for(j = 0; j < data_shared->current_comm->adversary[i].pending_minions;j++){
+							if(data_shared->current_comm->adversary[i].minions_sent[j] > 0){
 								//Add minion
-								new_minion = init_minion(avaliable_minions, comm->adversary[i].minions_sent[j]);     //minion_id not used
+								new_minion = init_minion(avaliable_minions, data_shared->current_comm->adversary[i].minions_sent[j]);     //minion_id not used
 								if(new_minion != NULL){
 									add_minion_to_list(minions, new_minion);
 									new_minion->node->xPos = 150;
@@ -2074,13 +2112,13 @@ int main(int argc, char * argv[]) {
 						}
 						//Free minions_sent
 						
-						if(comm->adversary[i].minions_sent){
-							free(comm->adversary[i].minions_sent);
-							comm->adversary[i].minions_sent = NULL;
+						if(data_shared->current_comm->adversary[i].minions_sent){
+							free(data_shared->current_comm->adversary[i].minions_sent);
+							data_shared->current_comm->adversary[i].minions_sent = NULL;
 						}
-						comm->adversary[i].pending_minions = 0;
+						data_shared->current_comm->adversary[i].pending_minions = 0;
 					}
-					SDL_AtomicUnlock(&comm_lock);
+					SDL_AtomicUnlock(&thread_control->lock.comm);
 				}
                 break;
 
@@ -2161,12 +2199,7 @@ int main(int argc, char * argv[]) {
             default:
                 break;
             
-		}
-		
-		//Network Thread Status Changer
-		/////////////////////////////////////////////////////
-		
-		
+		}		
         
 		// Select the color for drawing.
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -2247,6 +2280,19 @@ int main(int argc, char * argv[]) {
         }
     }
     
+	//Destroy thread naturally
+	if(thread_control){
+		if(thread_control->server.alive){
+			thread_control->server.terminate = 1;
+			if(thread_control->udp.alive){
+				thread_control->udp.terminate = 1;
+			}
+		}
+		if(thread_control->client.alive){
+			thread_control->client.terminate = 1;
+		}
+	}
+						
     //Quit
     main_quit();
     return 0;
@@ -2708,6 +2754,20 @@ bool main_init(){
 		//return false;
 	}
 	
+	//Init thread data
+	data_shared = malloc(sizeof(ShareData));
+	data_shared->current_comm = NULL;
+	data_shared->current_user = NULL;
+	
+	//Init shared data
+	thread_control = calloc(1, sizeof(Threads));
+	thread_control->udp.priority = SDL_THREAD_PRIORITY_HIGH;//Maybe normal
+	thread_control->client.priority = SDL_THREAD_PRIORITY_LOW;
+	thread_control->server.priority = SDL_THREAD_PRIORITY_LOW;
+	thread_control->client.pointer = NULL;
+	thread_control->server.pointer = NULL;
+	thread_control->udp.pointer = NULL;
+	
     return true;
 }
 
@@ -2785,6 +2845,39 @@ void main_quit(){
 		
 	if(avaliable_turrets) 
 		free_avaliable_list_turret(avaliable_turrets);
+	
+	if(data_shared){
+		if(data_shared->current_comm){
+			free(data_shared->current_comm);
+			data_shared->current_comm = NULL;
+		}
+		
+		if(data_shared->current_user){
+			free(data_shared->current_user);
+			data_shared->current_user = NULL;		
+		}
+		free(data_shared);
+		data_shared = NULL;
+	}
+	
+	if(thread_control){
+		if(thread_control->client.pointer){
+			free(thread_control->client.pointer);
+			thread_control->client.pointer = NULL;
+		}
+		if(thread_control->server.pointer){
+			free(thread_control->server.pointer);
+			thread_control->server.pointer = NULL;
+		}
+		if(thread_control->udp.pointer){
+			free(thread_control->udp.pointer);
+			thread_control->udp.pointer = NULL;
+		}
+		
+		free(thread_control);
+		thread_control = NULL;
+	}
+	
 	
     reset_game_data();
 }
@@ -2952,35 +3045,35 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 
             //Players in room
             case 18:
-                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 0){
-                    if(comm->adversary[0].name)
-                        text = comm->adversary[0].name;
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 0){
+                    if(data_shared->current_comm->adversary[0].name)
+                        text = data_shared->current_comm->adversary[0].name;
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
                 break;
                 
             case 19:
-                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 1){
-                    if(comm->adversary[1].name)
-                        text = comm->adversary[1].name;
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 1){
+                    if(data_shared->current_comm->adversary[1].name)
+                        text = data_shared->current_comm->adversary[1].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
                 break;
                 
             case 20:
-                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 2){
-                    if(comm->adversary[2].name)
-                        text = comm->adversary[2].name;
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 2){
+                    if(data_shared->current_comm->adversary[2].name)
+                        text = data_shared->current_comm->adversary[2].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
                 break;
                 
             case 21:
-                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 3){
-                    if(comm->adversary[3].name)
-                        text = comm->adversary[3].name;
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 3){
+                    if(data_shared->current_comm->adversary[3].name)
+                        text = data_shared->current_comm->adversary[3].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
@@ -2988,8 +3081,8 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 
             //Ready?
             case 22:
-                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 0){
-                    if(comm->adversary[0].ready_to_play)
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 0){
+                    if(data_shared->current_comm->adversary[0].ready_to_play)
                         text = "Yes";
                     else
                         text = "No";
@@ -3000,8 +3093,8 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 break;
                 
             case 23:
-                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 1){
-                    if(comm->adversary[1].ready_to_play)
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 1){
+                    if(data_shared->current_comm->adversary[1].ready_to_play)
                         text = "Yes";
                     else
                         text = "No";
@@ -3011,8 +3104,8 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 break;
                 
             case 24:
-                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 2){
-                    if(comm->adversary[2].ready_to_play)
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 2){
+                    if(data_shared->current_comm->adversary[2].ready_to_play)
                         text = "Yes";
                     else
                         text = "No";
@@ -3022,8 +3115,8 @@ void get_multiplayer_texts(multiplayer_status current_status){
                 break;
                 
             case 25:
-                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && comm->match->players > 3){
-                    if(comm->adversary[3].ready_to_play)
+                if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 3){
+                    if(data_shared->current_comm->adversary[3].ready_to_play)
                         text = "Yes";
                     else
                         text = "No";
@@ -3116,25 +3209,25 @@ void reset_game_data(){
     mana = 0;
 	
 	//Reset current user data used on network.
-	if(current_user){
-		current_user->id = 0;
-		current_user->is_server = 0;
-		current_user->life = health;
-		current_user->ready_to_play = 0;
-		current_user->process.message_status = 0;
-		current_user->process.message_life = 0;
-		current_user->process.message_minion = 0;
-		if(current_user->minions){
-			for(i = 0; i < current_user->spawn_amount; i++){
-				if(current_user->minions[i].type) {
-					free(current_user->minions[i].type);
-					current_user->minions[i].type = NULL;
+	if(data_shared && data_shared->current_user){
+		data_shared->current_user->id = 0;
+		data_shared->current_user->is_server = 0;
+		data_shared->current_user->life = health;
+		data_shared->current_user->ready_to_play = 0;
+		data_shared->current_user->process.message_status = 0;
+		data_shared->current_user->process.message_life = 0;
+		data_shared->current_user->process.message_minion = 0;
+		if(data_shared->current_user->minions){
+			for(i = 0; i < data_shared->current_user->spawn_amount; i++){
+				if(data_shared->current_user->minions[i].type) {
+					free(data_shared->current_user->minions[i].type);
+					data_shared->current_user->minions[i].type = NULL;
 				}
 			}
-			free(current_user->minions);
-			current_user->minions = NULL;
+			free(data_shared->current_user->minions);
+			data_shared->current_user->minions = NULL;
 		}
-		current_user->spawn_amount = 0;
+		data_shared->current_user->spawn_amount = 0;
 	}
 }
 
@@ -3193,33 +3286,33 @@ void get_multiplayer_game_names(){
         
         switch(i){
             case 2: case 3:
-                if(comm->match->players > 1){
-                    if(strcmp(comm->adversary[0].name, current_user->name))
-                        text = comm->adversary[1].name;
+                if(data_shared->current_comm->match->players > 1){
+                    if(strcmp(data_shared->current_comm->adversary[0].name, data_shared->current_user->name))
+                        text = data_shared->current_comm->adversary[1].name;
                     else
-                        text = comm->adversary[0].name;
+                        text = data_shared->current_comm->adversary[0].name;
                 }
                 
                 rect = (SDL_Rect){1030, 350, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 4: case 5:
-                if(comm->match->players >2){
-                    if(strcmp(comm->adversary[1].name, current_user->name))
-                        text = comm->adversary[2].name;
+                if(data_shared->current_comm->match->players >2){
+                    if(strcmp(data_shared->current_comm->adversary[1].name, data_shared->current_user->name))
+                        text = data_shared->current_comm->adversary[2].name;
                     else
-                        text = comm->adversary[1].name;
+                        text = data_shared->current_comm->adversary[1].name;
                 }
                 
                 rect = (SDL_Rect){1090, 350 + BUTTON_MENU_HEIGHT * 2, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 6: case 7:
-                if(comm->match->players >3){
-                    if(strcmp(comm->adversary[2].name, current_user->name))
-                        text = comm->adversary[3].name;
+                if(data_shared->current_comm->match->players >3){
+                    if(strcmp(data_shared->current_comm->adversary[2].name, data_shared->current_user->name))
+                        text = data_shared->current_comm->adversary[3].name;
                     else
-                        text = comm->adversary[2].name;
+                        text = data_shared->current_comm->adversary[2].name;
                 }
                 
                 rect = (SDL_Rect){1090, 350 + BUTTON_MENU_HEIGHT * 4, 180, BUTTON_MENU_HEIGHT};
@@ -3256,6 +3349,5 @@ void get_multiplayer_game_names(){
         
         else
             game_interface_assets[i] = NULL;
-
     }
 }

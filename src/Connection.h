@@ -135,30 +135,33 @@
 		int server_choosed;
 	};
 	
-	struct _threads {
-		Thread udp; 
-		Thread client; 
-		Thread server; 
-		Locks lock;
-		ShareData data;
-	};
-
 	struct _thread {
 		int alive;
 		int terminate;
 		SDL_Thread *pointer;
 		SDL_ThreadPriority priority; //SDL_THREAD_PRIORITY_LOW //SDL_THREAD_PRIORITY_NORMAL//SDL_THREAD_PRIORITY_HIGH
-	}
+	};
 	
 	struct _locks {
 		SDL_SpinLock user;
 		SDL_SpinLock comm;
 	};
 	
+		
 	struct _share_data {
-		Communication *comm;
+		Communication *current_comm;
 		User *current_user;
 	};
+	
+	struct _threads {
+		Thread udp; 
+		Thread client; 
+		Thread server; 
+		Locks lock;
+		//ShareData data;
+	};
+	
+
 	
 	//Allocation Functions
 	///////////////////////////////////////////////////////////////////////
