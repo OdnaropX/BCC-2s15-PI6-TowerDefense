@@ -1465,9 +1465,6 @@ int handle_message_pool(TCPsocket tcp_socket){
 			return 1;
 		}
 	}
-    //Código abaixo jamais utilizado
-//	free(buffer);
-//	return 1;
 }
 
 void process_action(){

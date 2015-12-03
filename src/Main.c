@@ -2102,7 +2102,7 @@ int main(int argc, char * argv[]) {
 								}
 							}
 						}
-						//Free minions_sent
+						//free minions_sent
 						
 						if(data_shared->current_comm->adversary[i].minions_sent){
 							free(data_shared->current_comm->adversary[i].minions_sent);
@@ -2833,11 +2833,11 @@ void main_quit(){
             SDL_DestroyTexture(multiplayer_menu_assets[i]);
     }
     
-    //Free surfaces
+    //////free surfaces
     if(map_Surface)
         SDL_FreeSurface(map_Surface);
     
-    //Free window
+    //////free window
     if(renderer)
         SDL_DestroyRenderer(renderer);
     if(main_Window)
@@ -2849,8 +2849,8 @@ void main_quit(){
 	SDLNet_Quit();
     SDL_Quit();
 	
-	//Free config
-	//free(config->language);
+	//free config
+	free(config->language);
     
     if(config)
         free(config);
@@ -3195,7 +3195,7 @@ void get_multiplayer_texts(multiplayer_status current_status){
 //Reseta listas, e dados do jogo
 void reset_game_data(){
 	int i;
-    //Free lists
+    //////free lists
     if(minions)
         free_list_minion(minions);
     if(turrets)

@@ -4,6 +4,9 @@
 ///////////////////////////////////////////////////////////////////////
 
 //Node
+/**
+	Function used to allocate struct node.
+*/
 node *init_node(char *sprite_filename, double xPos, double yPos){
     node *new_node = malloc(sizeof(node));
     
@@ -20,6 +23,9 @@ node *init_node(char *sprite_filename, double xPos, double yPos){
     return new_node;
 }
 
+/**
+	Function used to free the struct node.
+*/
 void free_node(node *node){
     if(node){
         if(node->sprite)

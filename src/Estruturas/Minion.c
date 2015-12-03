@@ -28,7 +28,6 @@ minion *init_minion(list_minion_avaliable *list, int minionID){
     
 	new_minion->targetted_projectils = NULL;
     new_minion->targetted_projectils = init_list_projectile();
-    printf("F*** you code!\n");
     return new_minion;
 }
 
@@ -66,6 +65,9 @@ void remove_minion(minion *mium){
     }
 }
 
+/**
+	Function to remove a minion avaliable on the software exit.
+*/
 void remove_avaliable_minion(minion_avaliable *mium){
     if(mium){
         free_node(mium->thumbnail);
@@ -130,8 +132,7 @@ list_minion *remove_minion_from_list(list_minion *list, minion *minion){
                 list_minion *aux = list->next;
                 list->next = list;
                 list = aux;
-            }
-            
+            }			
             break;
         }
         
@@ -139,13 +140,15 @@ list_minion *remove_minion_from_list(list_minion *list, minion *minion){
     }
     
     if(remove){
+		printf("Remove %d", remove);
         remove_minion(remove->e);
         //remove_minion(remove->next->e);
         remove->e = NULL;
         remove->next = NULL;
         
         if(remove != list){
-            free(remove);
+			//This is the bug!!!!
+            //free(remove);//Check this. It is the error generator.
             remove = NULL;
         }
     }
@@ -182,6 +185,7 @@ void free_avaliable_list_minion(list_minion_avaliable *list){
     
     free(aux);
     aux = NULL;
+	return;
 }
 
 void add_minion_to_avaliable_list(list_minion_avaliable *list, minion_avaliable *minion, int type){

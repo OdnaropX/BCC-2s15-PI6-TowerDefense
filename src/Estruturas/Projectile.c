@@ -12,8 +12,8 @@ projectile *init_projectile(list_projectile_avaliable *list, turret* shooter){
     }
     
     projectile *new_projectile = malloc(sizeof(projectile));
-	printf("Proje init %d\n", new_projectile);
-    new_projectile->node = init_node(available -> thumbnail_file, shooter->node->xPos, shooter->node->yPos);
+	
+    new_projectile->node = init_node(available->thumbnail_file, shooter->node->xPos, shooter->node->yPos);
 	
     new_projectile->speed = available->speed;
     new_projectile->damage = available->damage;
@@ -21,6 +21,9 @@ projectile *init_projectile(list_projectile_avaliable *list, turret* shooter){
     return new_projectile;
 }
 
+/**
+	Function to initiate a avaliable list of projectiles.
+*/
 projectile_avaliable *init_avaliable_projectile(char *image_file, float speed, int damage){
 	projectile_avaliable *new_proj = malloc(sizeof(projectile_avaliable));
     new_proj->thumbnail = init_node(image_file, 0, 400);
@@ -31,13 +34,17 @@ projectile_avaliable *init_avaliable_projectile(char *image_file, float speed, i
 		return NULL;
 	}
 	
-	strcpy(new_proj->thumbnail_file, image_file);
-    new_proj->speed = speed;
+	strncpy(new_proj->thumbnail_file, image_file, FILENAME_LIMIT);
+    
+	new_proj->speed = speed;
     new_proj->damage = damage;
     
     return new_proj;
 }
 
+/**
+	Function to remove a previously allocated projectile.
+*/
 void remove_projectile(projectile *proj){
     if(proj){
         free_node(proj->node);
@@ -162,15 +169,15 @@ list_projectile *remove_projectile_from_list(list_projectile *list, projectile *
         
         if(remove != first_node){
             remove_projectile(remove->e);
-            remove = NULL;
-            free(remove);
-            
+			remove->e = NULL;
+			//This is the bug!!!
+            //free(remove);//Check this. It is the error generator.
+            remove = NULL;           
         }
         else{
             remove->next = NULL;
         }
     }
-    
     else{
         printf("Your projectile is in another castle!\n");
     }
