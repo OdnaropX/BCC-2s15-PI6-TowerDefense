@@ -119,17 +119,11 @@ void add_projectile_to_list(list_projectile *list, projectile *projectile){
 			list->e = projectile;
 			return;
 		}
-		if(!list->next){
-			printf("NoOOOOOOOOoooo !!!!\n");
-		}
 		while(list->next != NULL)
 			list = list->next;
 		
-		printf("Initing projectile %d\n", projectile);
 		list_projectile *new_element = NULL;
-		printf("projectile list declareted\n");
 		new_element = init_list_projectile();
-		printf("projectile list created\n");
 		
 		if(new_element){
 			new_element->e = projectile;
@@ -138,7 +132,6 @@ void add_projectile_to_list(list_projectile *list, projectile *projectile){
 		else {
 			printf("There is no new list element created\n");
 		}
-		printf("Projectile initiated\n");
 	}
 }
 
