@@ -131,6 +131,7 @@ int main(int argc, char * argv[]) {
     }
 
 	int i = 0, j = 0;
+	time_t t;
 	
 	//Screen control
 	screen current_screen = MAIN;
@@ -1482,8 +1483,9 @@ int main(int argc, char * argv[]) {
 					
 				//Wave spawning. Only to single player.
 				if(pending_wave_number > 0 && !multiplayer) {
-					printf("Minion\n");
-					add_minion = (add_minion + 1) % get_minion_avaliable(avaliable_minions);
+					srand((unsigned) time(&t));
+					printf("Minion 1\n");
+					add_minion = rand() % get_minion_avaliable(avaliable_minions);
 					pending_wave_number--;
 				}
                 
@@ -1524,7 +1526,7 @@ int main(int argc, char * argv[]) {
 					pending_wave_number = monsterSpawner[spawn_minion];
 					timer_minion = pending_wave_number + 20;
 					spawn_minion++;
-					
+					printf("Here spawn\n");
 					if (spawn_minion > 0 && spawn_minion < 10) {
 						spawn_minion = 0;
 						timer_minion = 20;
