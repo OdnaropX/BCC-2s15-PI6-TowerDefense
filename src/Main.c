@@ -46,6 +46,7 @@ SDL_Renderer *renderer;
 //Media
 TTF_Font *font;
 SDL_Surface *map_Surface;
+SDL_Texture *select_Texture;
 
 //Constants
 SDL_Color black = {0, 0, 0, 255};
@@ -756,11 +757,9 @@ int main(int argc, char * argv[]) {
 											}
 											else {
 											//Move up mouse cursor from GAME_AREA. 
-												if (select_grid == 0) {
-													select_grid = max_grid - 1;
-												}
-												else {
-													select_grid--;
+												select_grid-=17;
+												if(select_grid < 0){
+													select_grid = max_grid + select_grid;
 												}
 											}
 											break;
@@ -911,7 +910,7 @@ int main(int argc, char * argv[]) {
 											}
 											else {
 											//Move down mouse cursor from GAME_AREA. 
-												select_grid = (select_grid + 1) % max_grid;
+												select_grid = (select_grid + 17) % max_grid;
 											}
 											break;
 										case ADVERSARY_MENU:
@@ -2269,7 +2268,7 @@ int main(int argc, char * argv[]) {
 			
                 draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, select_running_option.multiplay.current_player);
                 
-				display_mouse(renderer, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option, avaliable_minions, avaliable_turrets, multiplayer);
+				display_mouse(renderer, select_Texture, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option, avaliable_minions, avaliable_turrets, multiplayer);
 				
                 display_health(renderer, health, font);
                 display_mana(renderer, mana, font);
@@ -2732,7 +2731,7 @@ bool main_init(){
         printf("Falha ao inicializar mapa!\n");
         return false;
     }
-    printf ("ssere\n");
+
     //Init stats
     reset_game_data();
     
@@ -2790,12 +2789,12 @@ bool main_init(){
 		printf("Falha ao carregar projectiles");
 		//return false;
 	}
-	printf ("sserae\n");
+
 	//Init thread data
 	data_shared = malloc(sizeof(ShareData));
 	data_shared->current_comm = NULL;
 	data_shared->current_user = NULL;
-printf ("ssssere\n");
+
 	//Init Current Player info
 	data_shared->current_user = calloc(1, sizeof(User));
 	
@@ -2804,13 +2803,12 @@ printf ("ssssere\n");
 	#else
 	data_shared->current_user->name = getlogin();
 	#endif
-	printf ("sssssssssssere\n");
+
 	if(!data_shared->current_user->name) {
 		data_shared->current_user->name = malloc(sizeof(char) * 7);
 		strncpy(data_shared->current_user->name, "Unknown", 7);
 	}
 	
-	printf ("ssere\n");
 	//Init shared data
 	thread_control = calloc(1, sizeof(Threads));
 	thread_control->udp.priority = SDL_THREAD_PRIORITY_HIGH;//Maybe normal
@@ -2819,7 +2817,14 @@ printf ("ssssere\n");
 	thread_control->client.pointer = NULL;
 	thread_control->server.pointer = NULL;
 	thread_control->udp.pointer = NULL;
-
+	
+	//Selector
+	SDL_Surface *select_Surface = IMG_Load("../images/select.png");
+	
+	select_Texture = SDL_CreateTextureFromSurface(renderer, select_Surface);
+	
+	SDL_FreeSurface(select_Surface);
+	
     return true;
 }
 
@@ -2874,6 +2879,9 @@ void main_quit(){
     if(map_Surface)
         SDL_FreeSurface(map_Surface);
     
+	if(select_Texture)
+		SDL_DestroyTexture(select_Texture);
+		
     //////free window
     if(renderer)
         SDL_DestroyRenderer(renderer);

@@ -377,14 +377,17 @@ void get_menu_size_minion(int size[], list_minion_avaliable *list, int *per_row)
 	*per_row = row;
 }
 
-void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], Game_Running_Options running_option, list_minion_avaliable *list_m, list_turret_avaliable *list_t, bool multiplayer) {
+void display_mouse(SDL_Renderer *renderer, SDL_Texture *select, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], Game_Running_Options running_option, list_minion_avaliable *list_m, list_turret_avaliable *list_t, bool multiplayer) {
+	int x, y;
+	int cartesian[] = {0,0};
 	//bool display_over = false;
     
+	get_cartesian_from_grid_number(grid_over, cartesian, 17);
+	
 	//Display grid_over
+	SDL_RenderCopy(renderer, select, NULL, &(SDL_Rect){cartesian[0] - 32, cartesian[1] - 21, block_width, block_height});
 	
 	
-	
-
 	if(active_clicked){
 		int size[] = {0,0};
 		int position[] = {0,0};
