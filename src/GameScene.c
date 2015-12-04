@@ -238,11 +238,9 @@ int get_touched_menu_address(int x_touch, int y_touch, int center_position[], in
 	height = columns * MENU_ICON;
 	
 	if (x_touch < center_position[0] - (width / 2) || x_touch > center_position[0] + (width / 2)) {
-		printf("Here\n");
 		return 0;
 	}
 	if (y_touch < center_position[1] - (height / 2) || y_touch > center_position[1] + (height / 2)) {
-		printf("2222Here\n");
 		return 0;
 	}
 	

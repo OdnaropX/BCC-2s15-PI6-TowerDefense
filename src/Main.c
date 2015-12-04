@@ -1105,7 +1105,7 @@ int main(int argc, char * argv[]) {
 								left_click = event.button.button == SDL_BUTTON_LEFT;
 								
 								if (!left_click && !multiplayer){
-									printf("Do nothing\n");
+									//printf("Do nothing\n");
 								}
 								//Game area
 								else if(get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
@@ -1483,7 +1483,7 @@ int main(int argc, char * argv[]) {
 				//Wave spawning. Only to single player.
 				if(pending_wave_number > 0 && !multiplayer) {
 					srand((unsigned) time(&t));
-					printf("Minion 1\n");
+					
 					add_minion = rand() % get_minion_avaliable(avaliable_minions);
 					pending_wave_number--;
 				}
@@ -1525,7 +1525,7 @@ int main(int argc, char * argv[]) {
 					pending_wave_number = monsterSpawner[spawn_minion];
 					timer_minion = pending_wave_number + 20;
 					spawn_minion++;
-					printf("Here spawn\n");
+
 					if (spawn_minion > 0 && spawn_minion < 10) {
 						spawn_minion = 0;
 						timer_minion = 20;
@@ -1797,7 +1797,7 @@ int main(int argc, char * argv[]) {
 									multiplayer = true;
 									//multiplayer_status = MPS_WAIT_READY;
 								}
-								printf("Here problem\n");
+	
 							}
 							//Loop again.
 							else if(!ignore_next_command) {
@@ -2077,6 +2077,13 @@ int main(int argc, char * argv[]) {
                                 gold += 12;
                                 
                                 minions = remove_minion_from_list(minions, temp_minion->e);
+								int iii = 0;
+								for(list_minion *t = minions; t != NULL; t = t->next){
+									iii++;
+								}
+								printf("Current list size %d\n", iii);
+								
+                                //remove_minion_from_list(minions, temp_minion->e);
                                 temp_minion->e = NULL;
                                 temp_minion = NULL;
                             }

@@ -14,7 +14,6 @@ minion *init_minion(list_minion_avaliable *list, int minionID){
 		return NULL;
 	}	
 
-	printf("Trying create\d");
     // USAR MINIONID para diferentes minions dps.
     minion *new_minion = NULL;
     new_minion = calloc(1, sizeof(minion));
@@ -122,41 +121,25 @@ void add_minion_to_list(list_minion *list, minion *minion){
 }
 
 list_minion *remove_minion_from_list(list_minion *list, minion *minion){
-    list_minion *remove = NULL;
-    
-    while(list){
-        if(list->e == minion){
-            remove = list;
-            
-            if(list->next){
-                list_minion *aux = list->next;
-                list->next = list;
-                list = aux;
-            }			
+    list_minion *temp = list;
+	
+	while(temp){
+        if(temp->e == minion){
+			//free(temp->e);
+            if(temp->next){
+                list_minion *aux = temp->next;
+                temp->e = aux->e;
+				temp->next = aux->next;
+            }
+			else {
+				//Remove current list
+				//free(temp);
+				//temp = NULL;  
+			}
             break;
         }
-        
-        list = list->next;
+        temp = temp->next;
     }
-    
-    if(remove){
-		printf("Remove %d", remove);
-        remove_minion(remove->e);
-        //remove_minion(remove->next->e);
-        remove->e = NULL;
-        remove->next = NULL;
-        
-        if(remove != list){
-			//This is the bug!!!!
-            //free(remove);//Check this. It is the error generator.
-            remove = NULL;
-        }
-    }
-    
-    else{
-        printf("Your minion is in another castle!\n");
-    }
-    
     return list;
 }
 

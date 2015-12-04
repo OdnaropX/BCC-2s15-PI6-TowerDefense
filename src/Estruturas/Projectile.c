@@ -74,14 +74,7 @@ list_projectile *init_list_projectile(){
 	list_projectile *new_list = NULL;
 	
     new_list = calloc(1, sizeof(list_projectile));
-    
-	if (!new_list->e){
-		printf("Not\n");
-	}
-	if(!new_list->next){
-		printf("Not 2\n");
-		
-	}
+
 	if(new_list){
 		new_list->e = NULL;
 		new_list->next = NULL;
@@ -146,7 +139,6 @@ list_projectile *remove_projectile_from_list(list_projectile *list, projectile *
             remove = list;
             if(list->next){
                 list_projectile *aux = list->next;
-//                list->next = NULL;
                 list = aux;
             }
             

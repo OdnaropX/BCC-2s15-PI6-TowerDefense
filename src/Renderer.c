@@ -8,6 +8,17 @@
 
 #include "Renderer.h"
 
+void drawn_dashed_retangle(SDL_Renderer *renderer, int x, int y, int width, int height, SDL_Color color){
+	SDL_Rect line = {x,y,width,height};
+	//Vertical
+	for(int i = 0 ; i < 10 ; i++){
+		SDL_RenderFillRect(renderer,&line);
+		line.y += 30; //So actually a line with holes in it
+	}
+	//Horizontal
+}
+
+
 /**
  Draws a node considering it's x and y points at the center of the drawn point.
  1- The screen is where to draw.
@@ -461,3 +472,4 @@ void display_gold(SDL_Renderer *renderer, int value, TTF_Font *font){
     SDL_RenderCopy(renderer, texture, NULL, &(SDL_Rect){1185, 240, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT});
 	SDL_DestroyTexture(texture);
 }
+
