@@ -217,7 +217,7 @@ int main(int argc, char * argv[]) {
 	//Wave control - 20 seconds, after 
 	int spawn_minion = 0;
 	int pending_wave_number = 0;
-	int timer_minion = 20;
+	int timer_minion = 10;//20
 	
 	int temp_option;
 	
@@ -2019,11 +2019,13 @@ int main(int argc, char * argv[]) {
 						printf("Add minions\n");
 						//Add minion
 						new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
-                        if(new_minion != NULL){
+                        printf("Minion created %d\n");
+						if(new_minion != NULL){
 							add_minion_to_list(minions, new_minion);
                             new_minion->node->xPos = 150;
                             new_minion->node->yPos = 600;
 						}
+						printf("Minion maybe added\n");
 						//Reset minion
 						add_minion = 0;
 					}
@@ -2100,8 +2102,15 @@ int main(int argc, char * argv[]) {
                                 enemy = enemy->next;
                             }
                             if(target){
-                                projectile* newShoot = init_projectile(avaliable_projectiles, turret->e);
-                                add_projectile_to_list(target->targetted_projectils, newShoot);
+                                printf("Add targe\n");
+								projectile *newShoot = NULL;
+								newShoot = init_projectile(avaliable_projectiles, turret->e);
+								printf("Created projectile\n");
+								
+                                if(newShoot)
+									add_projectile_to_list(target->targetted_projectils, newShoot);
+								
+                                printf("Added projectile to list \n");
 
                                 
 
@@ -2130,7 +2139,7 @@ int main(int argc, char * argv[]) {
 								}
 							}
 						}
-						//Free minions_sent
+						//free minions_sent
 						
 						if(data_shared->current_comm->adversary[i].minions_sent){
 							free(data_shared->current_comm->adversary[i].minions_sent);
@@ -2859,11 +2868,11 @@ void main_quit(){
             SDL_DestroyTexture(multiplayer_menu_assets[i]);
     }
     
-    //Free surfaces
+    //////free surfaces
     if(map_Surface)
         SDL_FreeSurface(map_Surface);
     
-    //Free window
+    //////free window
     if(renderer)
         SDL_DestroyRenderer(renderer);
     if(main_Window)
@@ -2875,8 +2884,8 @@ void main_quit(){
 	SDLNet_Quit();
     SDL_Quit();
 	
-	//Free config
-	//free(config->language);
+	//free config
+	free(config->language);
     
     if(config)
         free(config);
@@ -3237,7 +3246,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
 //Reseta listas, e dados do jogo
 void reset_game_data(){
 	int i;
-    //Free lists
+    //////free lists
     if(minions)
         free_list_minion(minions);
     if(turrets)

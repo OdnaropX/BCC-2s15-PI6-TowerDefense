@@ -6,6 +6,11 @@
 	//#include "Misc.h" // Turret already includes Misc.
 	#include "Turret.h"
 	
+	
+	//Constant
+	///////////////////////////////////////////////////////////////////////
+	#define FILENAME_LIMIT 255
+	
 	//Structs
 	///////////////////////////////////////////////////////////////////////
 	
@@ -23,7 +28,7 @@
 	
 	struct _projectiles {
 		node *thumbnail;
-		char thumbnail_file[255];
+		char thumbnail_file[FILENAME_LIMIT];
 		float speed;
 		int damage;
 	};
