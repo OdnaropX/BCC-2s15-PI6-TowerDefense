@@ -3186,6 +3186,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 0){
                     if(data_shared->current_comm->adversary[0].name)
                         text = data_shared->current_comm->adversary[0].name;
+                    //text = "ALLAHU AKBAR";
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }

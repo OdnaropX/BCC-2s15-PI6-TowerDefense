@@ -548,7 +548,9 @@ void check_connection_tcp(){
 		data_shared->current_comm->adversary[temp].life = DEFAULT_PLAYERS_LIFE;
 		data_shared->current_comm->adversary[temp].ready_to_play = 0;
 		data_shared->current_comm->adversary[temp].minions_sent = NULL;
-
+        data_shared->current_comm->adversary[temp].name = malloc(sizeof(char)* SERVER_NAME);
+        strcpy(data_shared->current_comm->adversary[temp].name, "New PLayer");
+        
 		data_shared->current_comm->match->players = data_shared->current_comm->match->players + 1;
 		SDL_AtomicUnlock(&thread_control->lock.comm);
 		
