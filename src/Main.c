@@ -169,6 +169,7 @@ int main(int argc, char * argv[]) {
 	select_running_option.game_area.left = OPT_R_A_L_NONE;
 	select_running_option.game_area.right = OPT_R_A_R_NONE;
     select_running_option.multiplay.current_player = 0;
+    select_running_option.multiplay.players = 0;
 	
 	//Game events
 	SDL_Event event;
@@ -2259,7 +2260,6 @@ int main(int argc, char * argv[]) {
                 
             case GAME_RUNNING:
 				select_running_option.current_tab = running_option.current_tab;
-				
                 draw_screen_game_running(main_Surface, map_Surface, minions, turrets);
                 
                 screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
@@ -3216,7 +3216,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
             //status
             case 30:
                 if(current_status == MPS_NONE)
-                    text = "";
+                    text = " ";
                 else if(current_status == MPS_WAIT_FOR_PLAYER)
                     text = "Waiting for players...";
                 else if(current_status == MPS_SEARCHING_ROOM)
@@ -3230,7 +3230,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 break;
                 
             default:
-                text = "";
+                text = " ";
                 break;
         }
         

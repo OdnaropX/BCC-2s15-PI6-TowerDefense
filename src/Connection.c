@@ -84,7 +84,7 @@ void remove_communication(){
 }
 
 void remove_client(int client){
-	int i, temp, connected;
+	int i, j, temp, connected;
 	char buffer[3];
 	
 	//Send message to remove user to clients	
@@ -136,25 +136,27 @@ void remove_client(int client){
 		if(data_shared->current_comm->match->players > 0){
 			temp = data_shared->current_comm->match->players;
 			Adversary *adversary = malloc(sizeof (Adversary) * (temp - 1));
+            j = 0;
 			for (i = 0; i< temp; i++){
 				if(data_shared->current_comm->adversary[i].id != clients[client].id) {
-					adversary[i].id = data_shared->current_comm->adversary[i].id;
-					adversary[i].playing = data_shared->current_comm->adversary[i].playing;
-					adversary[i].ready_to_play = data_shared->current_comm->adversary[i].ready_to_play;
-					adversary[i].name = data_shared->current_comm->adversary[i].name;
-					adversary[i].life = data_shared->current_comm->adversary[i].life;
-					adversary[i].pending_minions = data_shared->current_comm->adversary[i].pending_minions;
-					adversary[i].minions_sent = data_shared->current_comm->adversary[i].minions_sent;
+					adversary[j].id = data_shared->current_comm->adversary[i].id;
+					adversary[j].playing = data_shared->current_comm->adversary[i].playing;
+					adversary[j].ready_to_play = data_shared->current_comm->adversary[i].ready_to_play;
+					adversary[j].name = data_shared->current_comm->adversary[i].name;
+					adversary[j].life = data_shared->current_comm->adversary[i].life;
+					adversary[j].pending_minions = data_shared->current_comm->adversary[i].pending_minions;
+					adversary[j].minions_sent = data_shared->current_comm->adversary[i].minions_sent;
+                    j++;
 				}
 				else {
-					if(adversary[i].minions_sent){
-						free(adversary[i].minions_sent);
-						adversary[i].minions_sent = NULL;
+					if(data_shared->current_comm->adversary[i].minions_sent){
+						free(data_shared->current_comm->adversary[i].minions_sent);
+						data_shared->current_comm->adversary[i].minions_sent = NULL;
 					}
-					if(adversary[i].name){
+					if(data_shared->current_comm->adversary[i].name){
 						//Free name
-						free(adversary[i].name);
-						adversary[i].name = NULL;
+						free(data_shared->current_comm->adversary[i].name);
+						data_shared->current_comm->adversary[i].name = NULL;
 					}
 
 				}
@@ -1084,14 +1086,14 @@ void handle_message(char *buffer, int handle_internal){
 						j++;
 					}
 					else {
-						if(adversary[i].minions_sent){
-							free(adversary[i].minions_sent);
-							adversary[i].minions_sent = NULL;
+						if(data_shared->current_comm->adversary[i].minions_sent){
+							free(data_shared->current_comm->adversary[i].minions_sent);
+							data_shared->current_comm->adversary[i].minions_sent = NULL;
 						}
 						//Free name
-						if(adversary[i].name){
-							free(adversary[i].name);
-							adversary[i].name = NULL;
+						if(data_shared->current_comm->adversary[i].name){
+							free(data_shared->current_comm->adversary[i].name);
+							data_shared->current_comm->adversary[i].name = NULL;
 						}
 					}
 				}
@@ -1271,6 +1273,7 @@ void handle_message(char *buffer, int handle_internal){
 						//printf("Error on realloc data_shared->current_comm->adversary[i].minions_sent\n");
 					}
 					data_shared->current_comm->adversary[i].pending_minions = temp + data_shared->current_comm->adversary[i].pending_minions;
+                    free(minions_sent);
 					break;
 				}
 			}
