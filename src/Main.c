@@ -21,7 +21,7 @@
 
 #define main_menu_assets_count 13
 #define config_menu_assets_count 9
-#define game_interface_assets_count 8
+#define game_interface_assets_count 14
 #define pause_interface_assets_count 13
 #define credits_menu_assets_count 7
 #define score_menu_assets_count 3
@@ -63,7 +63,7 @@ SDL_Rect main_menu_rects[main_menu_assets_count];
 SDL_Texture *config_menu_assets[config_menu_assets_count];
 SDL_Rect config_menu_rects[config_menu_assets_count];
 
-//Game interface order: Pause button, Right bar, adversaries(X3)(+sel)
+//Game interface order: Pause button, Right bar, previous page, adversaries(4)(+sel), next page
 SDL_Texture *game_interface_assets[game_interface_assets_count];
 SDL_Rect game_interface_rects[game_interface_assets_count];
 
@@ -145,6 +145,7 @@ int main(int argc, char * argv[]) {
 	Game_Running_Options running_option;
     end_game_options end_game_option = EG_NONE;
     multiplayer_menu_options multiplayer_option = MP_NONE;
+    target_select_options target_option = TSO_NONE;
     
     multiplayer_status multiplayer_status = MPS_NONE;
     end_game_status end_status = EGS_NONE;
@@ -162,6 +163,7 @@ int main(int argc, char * argv[]) {
 	Game_Running_Options select_running_option;
     end_game_options select_end_game_option = EG_NONE;
     multiplayer_menu_options select_multiplayer_option = MP_NONE;
+    target_select_options select_target_option = TSO_NONE;
 	
 	select_running_option.current_tab = TOP_MENU;
 	select_running_option.top = OPT_R_T_NONE;
@@ -769,12 +771,12 @@ int main(int argc, char * argv[]) {
 											}
 											break;
 										case ADVERSARY_MENU:
-											if(select_running_option.multiplay.current_player == 0){
-												select_running_option.multiplay.current_player = select_running_option.multiplay.players - 1;
-											}
-											else {
-												select_running_option.multiplay.current_player--;
-											}
+											if(select_target_option == TSO_PREVIOUS_PAGE)
+                                                select_target_option = TSO_NEXT_PAGE;
+                                            else if(select_target_option == TSO_NONE)
+                                                select_target_option = TSO_NEXT_PAGE;
+                                            else
+                                                select_target_option--;
 											break;
 									}
 									break;
@@ -837,13 +839,12 @@ int main(int argc, char * argv[]) {
 											}
 											break;
 										case ADVERSARY_MENU:
-											//Move between players.
-											if(select_running_option.multiplay.current_player == 0){
-												select_running_option.multiplay.current_player = select_running_option.multiplay.players - 1;
-											}
-											else {
-												select_running_option.multiplay.current_player--;
-											}
+                                            if(select_target_option == TSO_PREVIOUS_PAGE)
+                                                select_target_option = TSO_NEXT_PAGE;
+                                            else if(select_target_option == TSO_NONE)
+                                                select_target_option = TSO_NEXT_PAGE;
+                                            else
+                                                select_target_option--;
 											break;
 									}
 									break;
@@ -881,7 +882,12 @@ int main(int argc, char * argv[]) {
 											}
 											break;
 										case ADVERSARY_MENU:
-											select_running_option.multiplay.current_player = (select_running_option.multiplay.current_player + 1) % select_running_option.multiplay.players;										
+                                            if(select_target_option == TSO_NEXT_PAGE)
+                                                select_target_option = TSO_PREVIOUS_PAGE;
+                                            else if(select_target_option == TSO_NONE)
+                                                select_target_option = TSO_PREVIOUS_PAGE;
+                                            else
+                                                select_target_option++;
 											break;
 									}
 									break;
@@ -919,7 +925,12 @@ int main(int argc, char * argv[]) {
 											}
 											break;
 										case ADVERSARY_MENU:
-											select_running_option.multiplay.current_player = (select_running_option.multiplay.current_player + 1) % select_running_option.multiplay.players;										
+                                            if(select_target_option == TSO_NEXT_PAGE)
+                                                select_target_option = TSO_PREVIOUS_PAGE;
+                                            else if(select_target_option == TSO_NONE)
+                                                select_target_option = TSO_PREVIOUS_PAGE;
+                                            else
+                                                select_target_option++;
 											break;
 									}
 									break;
@@ -1012,7 +1023,7 @@ int main(int argc, char * argv[]) {
 											}
 											break;
 										case ADVERSARY_MENU:
-											player_adversary = select_running_option.multiplay.current_player;										
+                                            target_option = select_target_option;
 											break;
 									}
 									break;
@@ -1073,7 +1084,7 @@ int main(int argc, char * argv[]) {
 											}
 											break;
 										case ADVERSARY_MENU:
-											player_adversary = select_running_option.multiplay.current_player;										
+                                            target_option = select_target_option;
 											break;
 									}
 									break;
@@ -1096,10 +1107,10 @@ int main(int argc, char * argv[]) {
 							}
 							
 							//Move mouse selector over multiplayer users
-                            if(event.motion.x >= 1030 && event.motion.x <= 1030 + BUTTON_MENU_WIDTH){
+                            if(event.motion.x >= 1097 && event.motion.x <= 1277){
                                 temp_option = (event.motion.y - 350) / BUTTON_MENU_HEIGHT;
-                                if(temp_option <= MAX_CLIENT - 2)
-                                    select_running_option.multiplay.current_player = temp_option;
+                                if(temp_option >= TSO_PREVIOUS_PAGE && temp_option <= TSO_NEXT_PAGE)
+                                    select_target_option = temp_option;
                             }
 							
 							break;
@@ -1193,12 +1204,11 @@ int main(int argc, char * argv[]) {
 								}
                                 
                                 //Click mouse selector over multiplayer users
-                                if(event.motion.x >= 1030 && event.motion.x <= 1030 + BUTTON_MENU_WIDTH){
+                                if(event.motion.x >= 1097 && event.motion.x <= 1277){
                                     temp_option = (event.motion.y - 350) / BUTTON_MENU_HEIGHT;
-                                    if(temp_option <= MAX_CLIENT - 2){
-										player_adversary = temp_option;
-									}
-                                }							
+                                    if(temp_option >= TSO_PREVIOUS_PAGE && temp_option <= TSO_NEXT_PAGE)
+                                        target_option = temp_option;
+                                }
 							}
 							break;
 					}
@@ -2034,6 +2044,37 @@ int main(int argc, char * argv[]) {
 							data_shared->current_comm->adversary[i].minions_sent = NULL;
 						}
 						data_shared->current_comm->adversary[i].pending_minions = 0;
+                        
+                        switch (target_option) {
+                            case TSO_PREVIOUS_PAGE:
+                                if(players_current_page > 0)
+                                    players_current_page--;
+                                break;
+                                
+                            case TSO_TGT_1:
+                                select_running_option.multiplay.current_player = players_current_page * 4;
+                                break;
+                                
+                            case TSO_TGT_2:
+                                select_running_option.multiplay.current_player = players_current_page * 4 + 1;
+                                break;
+                                
+                            case TSO_TGT_3:
+                                select_running_option.multiplay.current_player = players_current_page * 4 + 2;
+                                break;
+                                
+                            case TSO_TGT_4:
+                                select_running_option.multiplay.current_player = players_current_page * 4 + 3;
+                                break;
+                                
+                            case TSO_NEXT_PAGE:
+                                if(players_current_page < (MAX_CLIENT)/4)
+                                    players_current_page++;
+                                break;
+                                
+                            default:
+                                break;
+                        }
 					}
 					SDL_AtomicUnlock(&thread_control->lock.comm);
 				}
@@ -2153,6 +2194,7 @@ int main(int argc, char * argv[]) {
                     if(health <= 0){
                         current_screen = END_GAME;
                         game_started = false;
+                        end_status = EGS_LOSE;
                     }
                 }
 				
@@ -2272,7 +2314,7 @@ int main(int argc, char * argv[]) {
                 screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
                 SDL_RenderCopy(renderer, screen_surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
 			
-                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, select_running_option.multiplay.current_player);
+                draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, select_running_option.multiplay.current_player, multiplayer);
                 
 				display_mouse(renderer, select_Texture, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option, avaliable_minions, avaliable_turrets, multiplayer);
 				
@@ -3382,45 +3424,61 @@ void set_end_game_status_text(end_game_status end_status){
 }
 
 void get_multiplayer_game_names(int page){
-    for(int i = 2; i < 10; i++){
+    for(int i = 2; i < multiplayer_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
         
         switch(i){
             case 2: case 3:
-                if(data_shared->current_comm->match->players > 1){
-                    if(strcmp(data_shared->current_comm->adversary[0].name, data_shared->current_user->name))
-                        text = data_shared->current_comm->adversary[1].name;
-                    else
-                        text = data_shared->current_comm->adversary[0].name;
-                }
+                text = "Previous page";
                 
-                rect = (SDL_Rect){1030, 350, 180, BUTTON_MENU_HEIGHT};
+                rect = (SDL_Rect){1097, 350, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 4: case 5:
-                if(data_shared->current_comm->match->players >2){
-                    if(strcmp(data_shared->current_comm->adversary[1].name, data_shared->current_user->name))
-                        text = data_shared->current_comm->adversary[2].name;
-                    else
-                        text = data_shared->current_comm->adversary[1].name;
-                }
+                text = data_shared->current_comm->adversary[page * 4].name;
                 
-                rect = (SDL_Rect){1090, 350 + BUTTON_MENU_HEIGHT * 2, 180, BUTTON_MENU_HEIGHT};
+                if(*text == '\0')
+                    text = "----------";
+                
+                rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 6: case 7:
-                if(data_shared->current_comm->match->players >3){
-                    if(strcmp(data_shared->current_comm->adversary[2].name, data_shared->current_user->name))
-                        text = data_shared->current_comm->adversary[3].name;
-                    else
-                        text = data_shared->current_comm->adversary[2].name;
-                }
+                text = data_shared->current_comm->adversary[page * 4 + 1].name;
                 
-                rect = (SDL_Rect){1090, 350 + BUTTON_MENU_HEIGHT * 4, 180, BUTTON_MENU_HEIGHT};
+                if(*text == '\0')
+                    text = "----------";
+                
+                rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT * 2, 180, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 8: case 9:
+                text = data_shared->current_comm->adversary[page * 4 + 2].name;
+                
+                if(*text == '\0')
+                    text = "----------";
+                
+                rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT * 3, 180, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 10: case 11:
+                text = data_shared->current_comm->adversary[page * 4 + 3].name;
+                
+                if(*text == '\0')
+                    text = "----------";
+                
+                rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT * 4, 180, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 12: case 13:
+                text = "Next page";
+                
+                rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT * 5, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             default:
+                text = NULL;
                 break;
         }
         
