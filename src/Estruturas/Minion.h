@@ -51,7 +51,7 @@
 	
 	minion *init_minion(list_minion_avaliable *list, int minionID);
 	minion_avaliable *init_avaliable_minion(char *image_file, int hp, float speed, int cost, float gold_p_s, int gold_drop);
-	void remove_minion(minion *mium);
+	void remove_minion(minion **mium);
 	void remove_avaliable_minion(minion_avaliable *mium);
 
 	//List Functions
@@ -67,7 +67,7 @@
 	list_minion *init_list_minion();
 	void free_list_minion(list_minion *list);
 	void add_minion_to_list(list_minion *list, minion *minion);
-	list_minion *remove_minion_from_list(list_minion *list, minion *minion);
+	void remove_minion_from_list(list_minion *list, minion **minion);
 
 	list_minion_avaliable *init_avaliable_list_minion();
 	void free_avaliable_list_minion(list_minion_avaliable *list);

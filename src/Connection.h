@@ -28,7 +28,7 @@
 	#define SERVER_NAME 150
 	#define MAX_SERVER 4//Change to get from config file.
 	#define MAX_CLIENT 3//4 Players in total.
-	#define SERVER_USER_RESPONSE_DELAY 300//Miliseconds.
+	#define SERVER_USER_RESPONSE_DELAY 30//Aprox. de 1000ms/60
 	
 	//Structs
 	///////////////////////////////////////////////////////////////////////
@@ -43,6 +43,10 @@
 	typedef struct _network Network;
 	typedef struct _game_communication Communication;
 	typedef struct _send_minion SpawnMinion;
+	typedef struct _thread Thread;
+	typedef struct _threads Threads;
+	typedef struct _locks Locks;
+	typedef struct _share_data ShareData;
 		
 	struct _game_communication {
 		int connection_lost;//Connection to server lost or not.
@@ -130,6 +134,35 @@
 		int choose_server;
 		int server_choosed;
 	};
+	
+	struct _thread {
+		int alive;
+		int terminate;
+		SDL_Thread *pointer;
+		SDL_ThreadPriority priority; //SDL_THREAD_PRIORITY_LOW //SDL_THREAD_PRIORITY_NORMAL//SDL_THREAD_PRIORITY_HIGH
+	};
+	
+	struct _locks {
+		SDL_SpinLock user;
+		SDL_SpinLock comm;
+		SDL_SpinLock control;
+	};
+	
+		
+	struct _share_data {
+		Communication *current_comm;
+		User *current_user;
+	};
+	
+	struct _threads {
+		Thread udp; 
+		Thread client; 
+		Thread server; 
+		Locks lock;
+		//ShareData data;
+	};
+	
+
 	
 	//Allocation Functions
 	///////////////////////////////////////////////////////////////////////

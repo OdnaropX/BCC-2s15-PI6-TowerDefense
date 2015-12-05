@@ -5,21 +5,28 @@
 	
 //Minion
 minion *init_minion(list_minion_avaliable *list, int minionID){
-	minion_avaliable *avaliable = get_minion_from_avaliable_list(list, minionID);
 	
+	minion_avaliable *avaliable = NULL;
+	avaliable = get_minion_from_avaliable_list(list, minionID);
+	
+	printf("Type returned\n");
 	if (avaliable == NULL){
 		return NULL;
 	}	
 
     // USAR MINIONID para diferentes minions dps.
-    minion *new_minion = malloc(sizeof(minion));
-    new_minion->node = init_node(avaliable->thumbnail_file, 0, 50);
+    minion *new_minion = NULL;
+    new_minion = calloc(1, sizeof(minion));
+    
+	printf("New minion allocated\n");
+	printf("New minion allocated %s\n", avaliable->thumbnail_file);
+	new_minion->node = init_node(avaliable->thumbnail_file, 0, 50);
     new_minion->HP = avaliable->HP;
     new_minion->speed = avaliable->speed;
     new_minion->minionType = minionID;
     
+	new_minion->targetted_projectils = NULL;
     new_minion->targetted_projectils = init_list_projectile();
-    
     return new_minion;
 }
 
@@ -46,17 +53,20 @@ minion_avaliable *init_avaliable_minion(char *image_file, int hp, float speed, i
     return new_minion;
 }
 
-void remove_minion(minion *mium){
-    if(mium){
-        free_node(mium->node);
-        mium->node = NULL;
-        free_list_projectile(mium->targetted_projectils);
-        mium->targetted_projectils = NULL;
-        free(mium);
-        mium = NULL;
+void remove_minion(minion **mium){
+    if(*mium){
+        free_node((*mium)->node);
+        (*mium)->node = NULL;
+        free_list_projectile((*mium)->targetted_projectils);
+        (*mium)->targetted_projectils = NULL;
+        free(*mium);
+        *mium = NULL;
     }
 }
 
+/**
+	Function to remove a minion avaliable on the software exit.
+*/
 void remove_avaliable_minion(minion_avaliable *mium){
     if(mium){
         free_node(mium->thumbnail);
@@ -83,16 +93,18 @@ void free_list_minion(list_minion *list){
     list_minion *aux = list;
     
     while (aux && aux->next){
-        remove_minion(aux->e);
+        remove_minion(&aux->e);
         aux->e = NULL;
         list_minion *rmv = aux;
         aux = aux->next;
         free(rmv);
         rmv = NULL;
     }
-    
-    free(aux);
-    aux = NULL;
+    if(aux){
+		free(aux);
+		aux = NULL;		
+	}
+	return;
 }
 
 void add_minion_to_list(list_minion *list, minion *minion){
@@ -110,42 +122,23 @@ void add_minion_to_list(list_minion *list, minion *minion){
     list->next = new_element;
 }
 
-list_minion *remove_minion_from_list(list_minion *list, minion *minion){
-    list_minion *remove = NULL;
-    
-    while(list){
-        if(list->e == minion){
-            remove = list;
-            
-            if(list->next){
-                list_minion *aux = list->next;
-                list->next = list;
-                list = aux;
+void remove_minion_from_list(list_minion *list, minion **minion){
+    list_minion *temp = list;
+	
+	while(temp){
+        if(temp->e == *minion){
+			remove_minion(minion);
+			temp->e = NULL;
+            if(temp->next){
+                list_minion *aux = temp->next;
+                temp->e = aux->e;
+				temp->next = aux->next;
             }
-            
             break;
         }
-        
-        list = list->next;
+        temp = temp->next;
     }
-    
-    if(remove){
-        remove_minion(remove->e);
-        //remove_minion(remove->next->e);
-        remove->e = NULL;
-        remove->next = NULL;
-        
-        if(remove != list){
-            free(remove);
-            remove = NULL;
-        }
-    }
-    
-    else{
-        printf("Your minion is in another castle!\n");
-    }
-    
-    return list;
+    return;
 }
 
 
@@ -173,6 +166,7 @@ void free_avaliable_list_minion(list_minion_avaliable *list){
     
     free(aux);
     aux = NULL;
+	return;
 }
 
 void add_minion_to_avaliable_list(list_minion_avaliable *list, minion_avaliable *minion, int type){
@@ -276,14 +270,15 @@ int get_minion_bonus(list_minion_avaliable *list, int turretID){
     return available->gold_per_second_bonus;
 }
 minion_avaliable *get_minion_from_avaliable_list(list_minion_avaliable *list, int type){
-	list_minion_avaliable *temp_list;
+	list_minion_avaliable *temp_list = NULL;
 	
 	temp_list = list;
 	while(temp_list->type != type && temp_list->next) {
 		temp_list = temp_list->next;
 	}
 	
-	if (temp_list != NULL) {
+	if (temp_list != NULL && temp_list->e) {
+		printf("Returning type\n");
 		return temp_list->e;
 	}
 	return NULL;

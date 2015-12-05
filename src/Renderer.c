@@ -8,6 +8,17 @@
 
 #include "Renderer.h"
 
+void drawn_dashed_retangle(SDL_Renderer *renderer, int x, int y, int width, int height, SDL_Color color){
+	SDL_Rect line = {x,y,width,height};
+	//Vertical
+	for(int i = 0 ; i < 10 ; i++){
+		SDL_RenderFillRect(renderer,&line);
+		line.y += 30; //So actually a line with holes in it
+	}
+	//Horizontal
+}
+
+
 /**
  Draws a node considering it's x and y points at the center of the drawn point.
  1- The screen is where to draw.
@@ -152,7 +163,7 @@ void draw_screen_config(SDL_Renderer *renderer, SDL_Texture **texts, SDL_Rect *r
 }
 
 void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion *minions, list_turret *turrets){
-    //Draw map
+	//Draw map
     SDL_Rect map_Rect = {0, 0, map->w, map->h};
     SDL_BlitSurface(map, NULL, screen, &map_Rect);
     
@@ -161,29 +172,30 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
     
     while (t && t->e) {
         turret *target = t->e;
-        draw_node(screen, target->node, true);
+		if(target->node)
+			draw_node(screen, target->node, true);
         
         t = t->next;
     }
     
     //Draw minions
     list_minion *m = minions;
-    
+
     while (m && m->e) {
         minion *target = m->e;
-        draw_node(screen, target->node, false);
-        
+		if(target->node)
+			draw_node(screen, target->node, false);
         list_projectile *p = m->e->targetted_projectils;
-        
+
         //Draw projectiles
-        while (p && p->e != NULL){
-            draw_node(screen, p->e->node, false);
-        
+        while (p && p->e){
+			if(p->e->node)//Dont known why p->e != NULL and p->e->node == NULL.
+				draw_node(screen, p->e->node, false);
             p = p->next;
         }
-        
         m = m->next;
     }
+	
 }
 
 void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, int selected_adversary){
@@ -291,27 +303,35 @@ void draw_screen_multiplayer_menu(SDL_Renderer *renderer, SDL_Texture **assets, 
                 sel = 6;
                 break;
                 
-            case MP_ROOM_1:
+            case MP_PREVIOUS_PAGE:
                 sel = 8;
                 break;
                 
-            case MP_ROOM_2:
+            case MP_ROOM_BTN_1:
                 sel = 10;
                 break;
                 
-            case MP_ROOM_3:
+            case MP_ROOM_BTN_2:
                 sel = 12;
                 break;
                 
-            case MP_ROOM_4:
+            case MP_ROOM_BTN_3:
                 sel = 14;
+                break;
+                
+            case MP_ROOM_BTN_4:
+                sel = 16;
+                break;
+                
+            case MP_NEXT_PAGE:
+                sel = 18;
                 break;
                 
             default:
                 break;
         }
         
-        if((i == 0 || i == sel || i % 2 == 1 || i > 14) && assets[i])
+        if((i == 0 || i == sel || i % 2 == 1 || i > 18) && assets[i])
             SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
         
         if(assets[i])
@@ -369,14 +389,17 @@ void get_menu_size_minion(int size[], list_minion_avaliable *list, int *per_row)
 	*per_row = row;
 }
 
-void display_mouse(SDL_Renderer *renderer, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], Game_Running_Options running_option, list_minion_avaliable *list_m, list_turret_avaliable *list_t, bool multiplayer) {
+void display_mouse(SDL_Renderer *renderer, SDL_Texture *select, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], Game_Running_Options running_option, list_minion_avaliable *list_m, list_turret_avaliable *list_t, bool multiplayer) {
+	int x, y;
+	int cartesian[] = {0,0};
 	//bool display_over = false;
     
+	get_cartesian_from_grid_number(grid_over, cartesian, 17);
+	
 	//Display grid_over
+	SDL_RenderCopy(renderer, select, NULL, &(SDL_Rect){cartesian[0] - 32, cartesian[1] - 21, block_width, block_height});
 	
 	
-	
-
 	if(active_clicked){
 		int size[] = {0,0};
 		int position[] = {0,0};
@@ -450,3 +473,4 @@ void display_gold(SDL_Renderer *renderer, int value, TTF_Font *font){
     SDL_RenderCopy(renderer, texture, NULL, &(SDL_Rect){1185, 240, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT});
 	SDL_DestroyTexture(texture);
 }
+
