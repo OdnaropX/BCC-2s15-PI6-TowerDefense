@@ -639,11 +639,12 @@ void game_status(){
 	int i, j, temp, alive = 0, winner_id = 0;
 	char buffer[BUFFER_LIMIT];
 	
-	if(data_shared->current_user->is_server) {
+	if(is_server) {
 		//Check if there is player connected. If not end game.
 		
 		if(game_in_progress){
 			if(connected_clients <= 0){
+				printf("Game step 1\n");
 				SDL_AtomicLock(&thread_control->lock.comm);
 				//Everyone left, and game with data_shared->current_user as winner.
 				data_shared->current_comm->match->finished = 1;
@@ -652,8 +653,10 @@ void game_status(){
 				SDL_AtomicUnlock(&thread_control->lock.comm);
 			}
 			else {
+				printf("Game step 2\n");
 				//Check if game was finished.
 				SDL_AtomicLock(&thread_control->lock.user);
+				printf("Game step alive %d\n", alive);
 				if(data_shared->current_user->life > 0){
 					alive++;
 					winner_id = data_shared->current_user->id;
@@ -661,7 +664,7 @@ void game_status(){
 				SDL_AtomicUnlock(&thread_control->lock.user);
 				
 				temp = 0;
-				for(i = 0; i < MAX_CLIENT;i++){
+				for(i = 0; i < MAX_CLIENT; i++){
 					if(temp == connected_clients){
 						break;
 					}
@@ -672,6 +675,7 @@ void game_status(){
 					}
 				}
 				
+				printf("Game step alive %d\n", alive);
 				if(alive == 1){
 					game_ended = 1;
 					//Send message of end game to users.
@@ -701,6 +705,7 @@ void game_status(){
 					SDL_AtomicUnlock(&thread_control->lock.comm);
 					//Close connection.//Will be closed when thread is killed.
 				}
+				printf("Game step alive %d\n", alive);
 			}
 		}
 		else {
