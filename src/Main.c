@@ -3079,7 +3079,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 else if(current_status == MPS_CAN_START)
                     text = "Start Game";
                 else if(current_status == MPS_ENTERED_ROOM)     //Or not ready
-                    text = "Ready!";
+                    text = "Get ready";
                 
                 rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
@@ -3180,43 +3180,52 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 
             //Players in room
             case 22:
+                SDL_AtomicLock(&thread_control->lock.comm);
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 0){
                     if(data_shared->current_comm->adversary[0].name)
                         text = data_shared->current_comm->adversary[0].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
+                SDL_AtomicUnlock(&thread_control->lock.comm);
                 break;
                 
             case 23:
+                SDL_AtomicLock(&thread_control->lock.comm);
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 1){
                     if(data_shared->current_comm->adversary[1].name)
                         text = data_shared->current_comm->adversary[1].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
+                SDL_AtomicUnlock(&thread_control->lock.comm);
                 break;
                 
             case 24:
+                SDL_AtomicLock(&thread_control->lock.comm);
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 2){
                     if(data_shared->current_comm->adversary[2].name)
                         text = data_shared->current_comm->adversary[2].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
+                SDL_AtomicUnlock(&thread_control->lock.comm);
                 break;
                 
             case 25:
+                SDL_AtomicLock(&thread_control->lock.comm);
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 3){
                     if(data_shared->current_comm->adversary[3].name)
                         text = data_shared->current_comm->adversary[3].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
+                SDL_AtomicUnlock(&thread_control->lock.comm);
                 break;
                 
             //Ready?
             case 26:
+                SDL_AtomicLock(&thread_control->lock.comm);
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 0){
                     if(data_shared->current_comm->adversary[0].ready_to_play)
                         text = "Yes";
@@ -3225,10 +3234,11 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                     
                     rect = (SDL_Rect){945, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
                 }
-
+                SDL_AtomicUnlock(&thread_control->lock.comm);
                 break;
                 
             case 27:
+                SDL_AtomicLock(&thread_control->lock.comm);
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 1){
                     if(data_shared->current_comm->adversary[1].ready_to_play)
                         text = "Yes";
@@ -3237,9 +3247,11 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                     
                     rect = (SDL_Rect){945, 300 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
                 }
+                SDL_AtomicUnlock(&thread_control->lock.comm);
                 break;
                 
             case 28:
+                SDL_AtomicLock(&thread_control->lock.comm);
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 2){
                     if(data_shared->current_comm->adversary[2].ready_to_play)
                         text = "Yes";
@@ -3248,9 +3260,11 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                     
                     rect = (SDL_Rect){945, 300 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
                 }
+                SDL_AtomicUnlock(&thread_control->lock.comm);
                 break;
                 
             case 29:
+                SDL_AtomicLock(&thread_control->lock.comm);
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 3){
                     if(data_shared->current_comm->adversary[3].ready_to_play)
                         text = "Yes";
@@ -3259,6 +3273,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                     
                     rect = (SDL_Rect){945, 300 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
                 }
+                SDL_AtomicUnlock(&thread_control->lock.comm);
                 break;
             
             //status

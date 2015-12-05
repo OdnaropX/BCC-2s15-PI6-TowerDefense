@@ -1507,7 +1507,6 @@ void process_action(){
 	char buffer[BUFFER_LIMIT];
 	SpawnMinion *minions = NULL;
 	//Send message ready to play
-	
 	is_server = data_shared->current_user->is_server;
 
 	//Send message status
