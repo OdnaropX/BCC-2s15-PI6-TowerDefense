@@ -1608,8 +1608,22 @@ int main(int argc, char * argv[]) {
 					network.choose_server = 1;
 				}
 				
-				if(data_shared->current_comm->server->connection_failed) {
-					network.connection_failed = 1;
+				if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost) {
+					//Set current screen
+					current_screen = END_GAME;
+					//network.connection_failed = 1;
+					
+					if(data_shared->current_comm->server->connection_failed){
+						end_status = EGS_DC;
+						
+					}
+					else {
+						end_status = EGS_OPLEFT;
+					}
+					game_started = false;
+					
+					//Reset multiplay in back to menu or other.
+					
 				}
 				
 				if(data_shared->current_comm->match->can_start && !not_started){
@@ -1677,6 +1691,7 @@ int main(int argc, char * argv[]) {
 						new_spawn[i].type[0] = send_minion;
 						free(data_shared->current_user->minions);
 						data_shared->current_user->minions = new_spawn;
+						data_shared->current_user->spawn_amount +=1;
 					}				
 				}
 				else {
@@ -1691,8 +1706,8 @@ int main(int argc, char * argv[]) {
 						free(data_shared->current_user->minions);
 					}
 					data_shared->current_user->minions = spawn_minium;
-				}
-				
+					}
+				printf("Minions to send %d (amount user)\n", data_shared->current_user->spawn_amount);
 				}
 				send_minion = 0;
 				SDL_AtomicUnlock(&thread_control->lock.user);

@@ -1558,6 +1558,7 @@ void process_action(){
 		SDL_AtomicUnlock(&thread_control->lock.user);
 		//Process minions.
 		if(minions) {
+			
 			for(int j = 0; j < i; j++){
 				SDL_AtomicLock(&thread_control->lock.user);
 				snprintf(buffer, BUFFER_LIMIT, "USER_MINION\t%c\t%c\t%c", (char) data_shared->current_user->id, (char) minions[j].client_id, (char) minions[j].amount);
