@@ -662,7 +662,7 @@ void game_status(){
 					winner_id = data_shared->current_user->id;
 				}
 				SDL_AtomicUnlock(&thread_control->lock.user);
-				
+				printf("Game step alive %d\n", alive);
 				temp = 0;
 				for(i = 0; i < MAX_CLIENT; i++){
 					if(temp == connected_clients){

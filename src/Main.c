@@ -2857,6 +2857,8 @@ bool main_init(){
 		strncpy(data_shared->current_user->name, "Unknown", 7);
 	}
 	
+	data_shared->current_user->life = DEFAULT_PLAYERS_LIFE;
+	
 	//Init shared data
 	thread_control = calloc(1, sizeof(Threads));
 	thread_control->udp.priority = SDL_THREAD_PRIORITY_HIGH;//Maybe normal
@@ -3352,7 +3354,7 @@ void reset_game_data(){
 			if(data_shared->current_user){
 				data_shared->current_user->id = 0;
 				data_shared->current_user->is_server = 0;
-				data_shared->current_user->life = health;
+				data_shared->current_user->life = DEFAULT_PLAYERS_LIFE;
 				data_shared->current_user->ready_to_play = 0;
 				data_shared->current_user->process.message_status = 0;
 				data_shared->current_user->process.message_life = 0;
