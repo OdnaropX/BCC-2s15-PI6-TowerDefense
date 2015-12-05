@@ -307,19 +307,19 @@ void draw_screen_multiplayer_menu(SDL_Renderer *renderer, SDL_Texture **assets, 
                 sel = 8;
                 break;
                 
-            case MP_ROOM_1:
+            case MP_ROOM_BTN_1:
                 sel = 10;
                 break;
                 
-            case MP_ROOM_2:
+            case MP_ROOM_BTN_2:
                 sel = 12;
                 break;
                 
-            case MP_ROOM_3:
+            case MP_ROOM_BTN_3:
                 sel = 14;
                 break;
                 
-            case MP_ROOM_4:
+            case MP_ROOM_BTN_4:
                 sel = 16;
                 break;
                 

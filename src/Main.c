@@ -383,7 +383,7 @@ int main(int argc, char * argv[]) {
                                                 select_multiplayer_option = MP_START;
                                         }
                                         
-                                        else{
+                                        else if(multiplayer_status == MPS_ENTERED_ROOM){
                                             if(select_multiplayer_option == MP_TOGGLE_READY)
                                                 select_multiplayer_option = MP_BACK_TO_MAIN;
                                             else if(select_multiplayer_option == MP_BACK_TO_MAIN)
@@ -391,17 +391,17 @@ int main(int argc, char * argv[]) {
                                             else if(select_multiplayer_option == MP_LEAVE)
                                                 select_multiplayer_option = MP_TOGGLE_READY;
                                         }
-                                    }
-                                    
-                                    if(multiplayer_status == MPS_SEARCHING_ROOM){
-                                        if(select_multiplayer_option == MP_NONE)
-                                            select_multiplayer_option = MP_NEXT_PAGE;
-                                        else if(select_multiplayer_option <= MP_NEXT_PAGE && select_multiplayer_option >= MP_ROOM_1)
-                                            select_multiplayer_option --;
-                                        else if(select_multiplayer_option == MP_PREVIOUS_PAGE)
-                                            select_multiplayer_option = MP_BACK_TO_MAIN;
-                                        else
-                                            select_multiplayer_option = MP_NONE;
+                                        
+                                        else if(multiplayer_status == MPS_SEARCHING_ROOM){
+                                            if(select_multiplayer_option <= MP_NEXT_PAGE && select_multiplayer_option >= MP_ROOM_BTN_1)
+                                                select_multiplayer_option --;
+                                            else if(select_multiplayer_option == MP_PREVIOUS_PAGE)
+                                                select_multiplayer_option = MP_BACK_TO_MAIN;
+                                            else if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                                select_multiplayer_option = MP_NEXT_PAGE;
+                                            else
+                                                select_multiplayer_option = MP_NEXT_PAGE;
+                                        }
                                     }
                                     
                                     break;
@@ -426,7 +426,7 @@ int main(int argc, char * argv[]) {
                                                 select_multiplayer_option = MP_BACK_TO_MAIN;
                                         }
                                         
-                                        else{
+                                        else if(multiplayer_status == MPS_ENTERED_ROOM){
                                             if(select_multiplayer_option == MP_TOGGLE_READY)
                                                 select_multiplayer_option = MP_LEAVE;
                                             else if(select_multiplayer_option == MP_BACK_TO_MAIN)
@@ -434,18 +434,19 @@ int main(int argc, char * argv[]) {
                                             else if(select_multiplayer_option == MP_LEAVE)
                                                 select_multiplayer_option = MP_BACK_TO_MAIN;
                                         }
+                                        
+                                        else if(multiplayer_status == MPS_SEARCHING_ROOM){
+                                            if(select_multiplayer_option <= MP_ROOM_BTN_4 && select_multiplayer_option >= MP_PREVIOUS_PAGE)
+                                                select_multiplayer_option ++;
+                                            else if(select_multiplayer_option == MP_NEXT_PAGE)
+                                                select_multiplayer_option = MP_BACK_TO_MAIN;
+                                            else if(select_multiplayer_option == MP_BACK_TO_MAIN)
+                                                select_multiplayer_option = MP_PREVIOUS_PAGE;
+                                            else
+                                                select_multiplayer_option = MP_BACK_TO_MAIN;
+                                        }
                                     }
                                     
-                                    if(multiplayer_status == MPS_SEARCHING_ROOM){
-                                        if(select_multiplayer_option == MP_NONE)
-                                            select_multiplayer_option = MP_BACK_TO_MAIN;
-                                        else if(select_multiplayer_option <= MP_ROOM_4 && select_multiplayer_option >= MP_PREVIOUS_PAGE)
-                                            select_multiplayer_option ++;
-                                        else if(select_multiplayer_option == MP_NEXT_PAGE)
-                                            select_multiplayer_option = MP_BACK_TO_MAIN;
-                                        else
-                                            select_multiplayer_option = MP_NONE;
-                                    }
                                     break;
                                     
                                 default:
@@ -505,16 +506,16 @@ int main(int argc, char * argv[]) {
                                             multiplayer_option = MP_PREVIOUS_PAGE;
                                             break;
                                         case 1:
-                                            multiplayer_option = MP_ROOM_1;
+                                            multiplayer_option = MP_ROOM_BTN_1;
                                             break;
                                         case 2:
-                                            multiplayer_option = MP_ROOM_2;
+                                            multiplayer_option = MP_ROOM_BTN_2;
                                             break;
                                         case 3:
-                                            multiplayer_option = MP_ROOM_3;
+                                            multiplayer_option = MP_ROOM_BTN_3;
                                             break;
                                         case 4:
-                                            multiplayer_option = MP_ROOM_4;
+                                            multiplayer_option = MP_ROOM_BTN_4;
                                             break;
                                         case 5:
                                             multiplayer_option = MP_NEXT_PAGE;
@@ -562,16 +563,16 @@ int main(int argc, char * argv[]) {
                                         select_multiplayer_option = MP_PREVIOUS_PAGE;
                                         break;
                                     case 1:
-                                        select_multiplayer_option = MP_ROOM_1;
+                                        select_multiplayer_option = MP_ROOM_BTN_1;
                                         break;
                                     case 2:
-                                        select_multiplayer_option = MP_ROOM_2;
+                                        select_multiplayer_option = MP_ROOM_BTN_2;
                                         break;
                                     case 3:
-                                        select_multiplayer_option = MP_ROOM_3;
+                                        select_multiplayer_option = MP_ROOM_BTN_3;
                                         break;
                                     case 4:
-                                        select_multiplayer_option = MP_ROOM_4;
+                                        select_multiplayer_option = MP_ROOM_BTN_4;
                                         break;
                                     case 5:
                                         select_multiplayer_option = MP_NEXT_PAGE;
@@ -1894,7 +1895,7 @@ int main(int argc, char * argv[]) {
 						}
                         break;
                         
-                    case MP_ROOM_1:
+                    case MP_ROOM_BTN_1:
                         data_shared->current_comm->server->choosing = 0;
                         data_shared->current_comm->server->choosed = room_current_page * 4;
                         
@@ -1902,7 +1903,7 @@ int main(int argc, char * argv[]) {
                             multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
-                    case MP_ROOM_2:
+                    case MP_ROOM_BTN_2:
                         data_shared->current_comm->server->choosing = 0;
                         data_shared->current_comm->server->choosed = room_current_page * 4 + 1;
                         
@@ -1910,14 +1911,14 @@ int main(int argc, char * argv[]) {
                             multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
-                    case MP_ROOM_3:data_shared->current_comm->server->choosing = 0;
+                    case MP_ROOM_BTN_3:data_shared->current_comm->server->choosing = 0;
                         data_shared->current_comm->server->choosed = room_current_page * 4 + 2;
                         
                         if(data_shared->current_comm->server->connected)
                             multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
-                    case MP_ROOM_4:
+                    case MP_ROOM_BTN_4:
                         data_shared->current_comm->server->choosing = 0;
                         data_shared->current_comm->server->choosed = room_current_page * 4 + 3;
                         
@@ -1931,7 +1932,7 @@ int main(int argc, char * argv[]) {
                         break;
                         
                     case MP_NEXT_PAGE:
-                        if(room_current_page < MAX_SERVER / 4)
+                        if(room_current_page < (MAX_SERVER - 1) / 4)
                             room_current_page++;
                         break;
                         
@@ -2887,8 +2888,6 @@ void main_quit(){
     SDL_Quit();
 	
 	//free config
-	free(config->language);
-    
     if(config)
         free(config);
     
@@ -3056,7 +3055,10 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
             //Room hosts
             case 9: case 10:
                 if(current_status == MPS_SEARCHING_ROOM){
-                    text = get_host_name(0);
+                    text = get_host_name(0 + page * 4);
+                    
+                    if(*text == '\0')
+                        text = "----------";
                     
                     rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
@@ -3064,7 +3066,10 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 
             case 11: case 12:
                 if(current_status == MPS_SEARCHING_ROOM){
-                    text = get_host_name(1);
+                    text = get_host_name(1 + page * 4);
+                    
+                    if(*text == '\0')
+                        text = "----------";
                     
                     rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
@@ -3072,7 +3077,10 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 
             case 13: case 14:
                 if(current_status == MPS_SEARCHING_ROOM){
-                    text = get_host_name(2);
+                    text = get_host_name(2 + page * 4);
+                    
+                    if(*text == '\0')
+                        text = "----------";
                     
                     rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
@@ -3080,7 +3088,10 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 
             case 15: case 16:
                 if(current_status == MPS_SEARCHING_ROOM){
-                    text = get_host_name(3);
+                    text = get_host_name(3 + page * 4);
+                    
+                    if(*text == '\0')
+                        text = "----------";
                     
                     rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
