@@ -251,7 +251,7 @@ int main(int argc, char * argv[]) {
 	
 	int seed = 1;
 	int total = 0;
-	
+	int not_started = 0;
 	
 	//int next = 0;  //unused
     //Main loop
@@ -941,14 +941,18 @@ int main(int argc, char * argv[]) {
 							switch(event.key.keysym.sym){
 								//Backspace
 								case SDLK_BACKSPACE:
-									current_screen = MAIN;
-									previous_screen = GAME_RUNNING;
+									if(!multiplayer){
+										current_screen = MAIN;
+										previous_screen = GAME_RUNNING;
+									}
 									break;
 								//Escape
 								case SDLK_ESCAPE:
 									//Show Game Pause screen with options
-									current_screen = GAME_PAUSED;
-									select_pause_option = OPT_P_RESUME;
+									if(!multiplayer){
+										current_screen = GAME_PAUSED;
+										select_pause_option = OPT_P_RESUME;
+									}
 									break;	
 								case SDLK_q:
 									printf("Key pressed: q\n"); 
@@ -975,12 +979,16 @@ int main(int argc, char * argv[]) {
 											switch(select_running_option.top){
 												case OPT_R_T_PAUSE:
 													//Dont do any action after this, only render the scene. 
-													current_screen = GAME_PAUSED;
-													game_paused = true;
+													if(!multiplayer){
+														current_screen = GAME_PAUSED;
+														game_paused = true;
+													}
 													break;
 												case OPT_R_T_RESUME:
-													current_screen = GAME_RUNNING;
-													game_paused = false;
+													if(!multiplayer){
+														current_screen = GAME_RUNNING;
+														game_paused = false;
+													}
 													break;
 												case OPT_R_T_NONE:
 													//Do nothing. Need this to not show warning on Windows.
@@ -1034,13 +1042,17 @@ int main(int argc, char * argv[]) {
 										case TOP_MENU:
 											switch(select_running_option.top){
 												case OPT_R_T_PAUSE:
+													if(!multiplayer){
 													//Dont do any action after this, only render the scene. 
-													current_screen = GAME_PAUSED;
-													game_paused = true;
+														current_screen = GAME_PAUSED;
+														game_paused = true;
+													}
 													break;
 												case OPT_R_T_RESUME:
-													current_screen = GAME_RUNNING;
-													game_paused = false;
+													if(!multiplayer){
+														current_screen = GAME_RUNNING;
+														game_paused = false;
+													}
 													break;
 												case OPT_R_T_NONE:
 													//Do nothing. Need this to not show warning on Windows.
@@ -1598,16 +1610,31 @@ int main(int argc, char * argv[]) {
 				if(data_shared->current_comm->server->connection_failed) {
 					network.connection_failed = 1;
 				}
+				
+				if(data_shared->current_comm->match->can_start && !not_started){
+					not_started = 1;
+					game_started = true;
+					current_screen = GAME_RUNNING;
+				}
+				
+				if(data_shared->current_comm->match->finished) {
+					not_started = 0;
+					
+					//Set screen
+					
+					
+					//data_shared->current_comm->match->winner_id;
+				}
 			}
 			SDL_AtomicUnlock(&thread_control->lock.comm);
 			
 			//Set minions to send.
 			if(send_minion > 0) {
-                int price = get_minion_price(avaliable_minions, add_tower);
+                int price = get_minion_price(avaliable_minions, send_minion);
                 if(gold >= price){
                     gold -= price;
                     gold_per_second += get_minion_bonus(avaliable_minions, send_minion);
-                }
+                
                 
 				//Get adversary id
 				SDL_AtomicLock(&thread_control->lock.comm);
@@ -1663,6 +1690,8 @@ int main(int argc, char * argv[]) {
 						free(data_shared->current_user->minions);
 					}
 					data_shared->current_user->minions = spawn_minium;
+				}
+				
 				}
 				send_minion = 0;
 				SDL_AtomicUnlock(&thread_control->lock.user);

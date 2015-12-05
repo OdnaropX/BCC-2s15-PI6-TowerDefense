@@ -653,16 +653,13 @@ void game_status(){
 				SDL_AtomicUnlock(&thread_control->lock.comm);
 			}
 			else {
-				printf("Game step 2\n");
 				//Check if game was finished.
 				SDL_AtomicLock(&thread_control->lock.user);
-				printf("Game step alive %d\n", alive);
 				if(data_shared->current_user->life > 0){
 					alive++;
 					winner_id = data_shared->current_user->id;
 				}
 				SDL_AtomicUnlock(&thread_control->lock.user);
-				printf("Game step alive %d\n", alive);
 				temp = 0;
 				for(i = 0; i < MAX_CLIENT; i++){
 					if(temp == connected_clients){
@@ -675,7 +672,6 @@ void game_status(){
 					}
 				}
 				
-				printf("Game step alive %d\n", alive);
 				if(alive == 1){
 					game_ended = 1;
 					//Send message of end game to users.
@@ -705,7 +701,6 @@ void game_status(){
 					SDL_AtomicUnlock(&thread_control->lock.comm);
 					//Close connection.//Will be closed when thread is killed.
 				}
-				printf("Game step alive %d\n", alive);
 			}
 		}
 		else {
