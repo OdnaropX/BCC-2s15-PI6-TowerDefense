@@ -1659,6 +1659,13 @@ int main(int argc, char * argv[]) {
 			}
 			//-- Change
 			//Check if a connection running was failed. This will kill the thread.
+			
+			SDL_AtomicLock(&thread_control->lock.comm);
+			if(data_shared->current_comm->server->connected){
+                multiplayer_status = MPS_ENTERED_ROOM;
+			}
+			SDL_AtomicUnlock(&thread_control->lock.comm);
+			
 			if(network.connection_failed){
 				//Kill threads.
 				SDL_AtomicLock(&thread_control->lock.control);
@@ -1905,31 +1912,25 @@ int main(int argc, char * argv[]) {
                         data_shared->current_comm->server->choosing = 0;
                         data_shared->current_comm->server->choosed = room_current_page * 4;
                         
-                        if(data_shared->current_comm->server->connected)
-                            multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
                     case MP_ROOM_BTN_2:
                         data_shared->current_comm->server->choosing = 0;
                         data_shared->current_comm->server->choosed = room_current_page * 4 + 1;
                         
-                        if(data_shared->current_comm->server->connected)
-                            multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
                     case MP_ROOM_BTN_3:data_shared->current_comm->server->choosing = 0;
                         data_shared->current_comm->server->choosed = room_current_page * 4 + 2;
-                        
-                        if(data_shared->current_comm->server->connected)
-                            multiplayer_status = MPS_ENTERED_ROOM;
+
                         break;
                         
                     case MP_ROOM_BTN_4:
                         data_shared->current_comm->server->choosing = 0;
                         data_shared->current_comm->server->choosed = room_current_page * 4 + 3;
                         
-                        if(data_shared->current_comm->server->connected)
-                            multiplayer_status = MPS_ENTERED_ROOM;
+                       // if(data_shared->current_comm->server->connected)
+                        //    multiplayer_status = MPS_ENTERED_ROOM;
                         break;
                         
                     case MP_PREVIOUS_PAGE:

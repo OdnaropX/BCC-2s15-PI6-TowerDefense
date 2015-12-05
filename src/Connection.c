@@ -1770,6 +1770,8 @@ void run_client(void *data){
 				}
 			}
 			
+			printf("Choosedddd!\n");
+			
 			if(!thread_control->client.terminate){
 				SDL_AtomicLock(&thread_control->lock.comm);
 				data_shared->current_comm->server->connecting = 1;
