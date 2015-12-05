@@ -201,7 +201,7 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
 void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, target_select_options select_target_option, bool multiplayer){
     int sel = 0;
     
-    for(int i = 0; i < count; i++){
+    for(int i = 1; i < count - 1; i++){
         if(multiplayer){
             switch (select_target_option) {
                 case TSO_PREVIOUS_PAGE:
@@ -239,6 +239,11 @@ void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SD
         if(assets[i] && i > 3 && i < 12)
             SDL_DestroyTexture(assets[i]);
     }
+    
+    if(!multiplayer)
+        SDL_RenderCopy(renderer, assets[0], NULL, &rectangles[0]);
+    else
+        SDL_RenderCopy(renderer, assets[0], NULL, &rectangles[0]);
 }
 
 void draw_screen_game_paused(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, pause_options select_pause_option){

@@ -21,7 +21,7 @@
 
 #define main_menu_assets_count 13
 #define config_menu_assets_count 9
-#define game_interface_assets_count 14
+#define game_interface_assets_count 15
 #define pause_interface_assets_count 13
 #define credits_menu_assets_count 7
 #define score_menu_assets_count 3
@@ -63,7 +63,7 @@ SDL_Rect main_menu_rects[main_menu_assets_count];
 SDL_Texture *config_menu_assets[config_menu_assets_count];
 SDL_Rect config_menu_rects[config_menu_assets_count];
 
-//Game interface order: Pause button, Right bar, previous page, adversaries(4)(+sel), next page
+//Game interface order: Pause button, Right bar, previous page, adversaries(4)(+sel), next page, quit(multiplayer)
 SDL_Texture *game_interface_assets[game_interface_assets_count];
 SDL_Rect game_interface_rects[game_interface_assets_count];
 
@@ -954,9 +954,38 @@ int main(int argc, char * argv[]) {
 										current_screen = GAME_PAUSED;
 										select_pause_option = OPT_P_RESUME;
 									}
-									break;	
+                                    
+                                    //Multiplayer quit
+                                    else{
+                                        if(thread_control){
+                                            ignore_next_command = 1;
+                                            SDL_AtomicLock(&thread_control->lock.control);
+                                            if(thread_control->server.pointer || thread_control->server.alive){
+                                                thread_control->server.terminate = 1;
+                                                printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+                                            }
+                                            else if(thread_control->client.pointer || thread_control->client.alive){
+                                                thread_control->client.terminate = 1;
+                                                //printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+                                            }
+                                            else if(thread_control->udp.pointer || thread_control->udp.alive){
+                                                thread_control->udp.terminate = 1;
+                                                printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+                                            }
+                                            else {
+                                                printf("Threads killed!!\n");
+                                                ignore_next_command = 0;
+                                                multiplayer_status = MPS_NONE;
+                                                
+                                                current_screen = MAIN;
+                                                previous_screen = GAME_RUNNING;
+                                            }
+                                            SDL_AtomicUnlock(&thread_control->lock.control);
+                                        }
+                                    }
+                                    break;
 								case SDLK_q:
-									printf("Key pressed: q\n"); 
+									printf("Key pressed: q\n");
 									if (running_option.current_tab == GAME_AREA && !active_clicked){
 										//Active click on current location
 										active_clicked = true;
@@ -1177,10 +1206,40 @@ int main(int argc, char * argv[]) {
 								//Top menu
 								else if(left_click && event.motion.y >= 0 && event.motion.y <= BUTTON_MENU_HEIGHT){
 									if (event.motion.x >= BUTTON_MENU_HEIGHT && event.motion.x <= BUTTON_MENU_HEIGHT * 2){
-										//Pause game
-										game_paused = !game_paused;
-										//Not sure if must use current_screen to show the pause screen or just change status to make network request.
-										current_screen = GAME_PAUSED;
+                                        if(!multiplayer){
+                                            //Pause game
+                                            game_paused = !game_paused;
+                                            //Not sure if must use current_screen to show the pause screen or just change status to make network request.
+                                            current_screen = GAME_PAUSED;
+                                        }
+										
+                                        else{
+                                            if(thread_control){
+                                                ignore_next_command = 1;
+                                                SDL_AtomicLock(&thread_control->lock.control);
+                                                if(thread_control->server.pointer || thread_control->server.alive){
+                                                    thread_control->server.terminate = 1;
+                                                    printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+                                                }
+                                                else if(thread_control->client.pointer || thread_control->client.alive){
+                                                    thread_control->client.terminate = 1;
+                                                    //printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+                                                }
+                                                else if(thread_control->udp.pointer || thread_control->udp.alive){
+                                                    thread_control->udp.terminate = 1;
+                                                    printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+                                                }
+                                                else {
+                                                    printf("Threads killed!!\n");
+                                                    ignore_next_command = 0;
+                                                    multiplayer_status = MPS_NONE;
+                                                    
+                                                    current_screen = MAIN;
+                                                    previous_screen = GAME_RUNNING;
+                                                }
+                                                SDL_AtomicUnlock(&thread_control->lock.control);
+                                            }
+                                        }
 									}
 								}
 								//Left menu
@@ -1718,7 +1777,7 @@ int main(int argc, char * argv[]) {
 			//Check if a connection running was failed. This will kill the thread.
 			
 			SDL_AtomicLock(&thread_control->lock.comm);
-			if(data_shared->current_comm->server->connected){
+			if(data_shared->current_comm && data_shared->current_comm->server && data_shared->current_comm->server->connected){
                 multiplayer_status = MPS_ENTERED_ROOM;
 			}
 			SDL_AtomicUnlock(&thread_control->lock.comm);
@@ -2320,6 +2379,8 @@ int main(int argc, char * argv[]) {
                         break;
                 }
                 
+                set_end_game_status_text(end_status);
+                
                 end_game_option = EG_NONE;
                 break;
             default:
@@ -2830,7 +2891,7 @@ bool main_init(){
     //Init stats
     reset_game_data();
     
-    //Init interface static assets(Pause button and right bar)
+    //Init interface static assets(Pause button, right bar, quit multiplayer)
     SDL_Surface *pause_surface = IMG_Load("../images/Pause.png");
     if(!pause_surface){
         printf("Falha ao carregar botão de pause! %s\n", IMG_GetError());
@@ -2862,6 +2923,22 @@ bool main_init(){
     SDL_FreeSurface(right_bar_surface);
     
     game_interface_rects[1] = (SDL_Rect){1095, 0, 185, 720};
+    
+    SDL_Surface *quit_surface = IMG_Load("../images/MP_Quit.png");
+    if(!quit_surface){
+        printf("Falha ao carregar botão quit! %s\n", IMG_GetError());
+        return false;
+    }
+    
+    game_interface_assets[14] = SDL_CreateTextureFromSurface(renderer, quit_surface);
+    if(!game_interface_assets[14]){
+        printf("Falha ao criar textura de botão quit! %s\n", SDL_GetError());
+        return false;
+    }
+    
+    SDL_FreeSurface(quit_surface);
+    
+    game_interface_rects[14] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
     
 	//Init minions avaliable
 	avaliable_minions = load_minions(MINION_FILE);
