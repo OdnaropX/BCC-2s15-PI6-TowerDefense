@@ -269,6 +269,13 @@ int get_minion_bonus(list_minion_avaliable *list, int turretID){
     
     return available->gold_per_second_bonus;
 }
+
+int get_minion_drop(list_minion_avaliable *list, int turretID){
+    minion_avaliable * available = get_minion_from_avaliable_list(list, turretID);
+    
+    return available->gold_drop;
+}
+
 minion_avaliable *get_minion_from_avaliable_list(list_minion_avaliable *list, int type){
 	list_minion_avaliable *temp_list = NULL;
 	

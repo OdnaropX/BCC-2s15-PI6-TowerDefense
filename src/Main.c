@@ -171,6 +171,7 @@ int main(int argc, char * argv[]) {
 	select_running_option.game_area.left = OPT_R_A_L_NONE;
 	select_running_option.game_area.right = OPT_R_A_R_NONE;
     select_running_option.multiplay.current_player = 0;
+    select_running_option.multiplay.players = 0;
 	
 	//Game events
 	SDL_Event event;
@@ -2177,7 +2178,7 @@ int main(int argc, char * argv[]) {
 								//Remove list from minion.
 								//free_list_projectile(enemy->e->targetted_projectils);
 							}                            
-							gold += 12;
+							gold += get_minion_drop(avaliable_minions, enemy->e->minionType);
 							remove_minion_from_list(enemy, &enemy->e);//This already get enemy->next
 						}
 						else {
@@ -2220,7 +2221,7 @@ int main(int argc, char * argv[]) {
                         turret = turret->next;
                     }
                     
-                    if(health <= 0){
+                    if(health <= 5){
                         current_screen = END_GAME;
                         game_started = false;
                         end_status = EGS_LOSE;
@@ -2337,7 +2338,6 @@ int main(int argc, char * argv[]) {
                 
             case GAME_RUNNING:
 				select_running_option.current_tab = running_option.current_tab;
-				
                 draw_screen_game_running(main_Surface, map_Surface, minions, turrets);
                 
                 screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
@@ -2974,6 +2974,8 @@ void main_quit(){
     SDL_Quit();
 	
 	//free config
+	//free(config->language);
+
     if(config)
         free(config);
     
@@ -3215,6 +3217,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 0){
                     if(data_shared->current_comm->adversary[0].name)
                         text = data_shared->current_comm->adversary[0].name;
+                    //text = "ALLAHU AKBAR";
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
@@ -3324,7 +3327,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 break;
                 
             default:
-                text = "";
+                text = " ";
                 break;
         }
         

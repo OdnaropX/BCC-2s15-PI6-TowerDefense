@@ -13,7 +13,7 @@ projectile *init_projectile(list_projectile_avaliable *list, turret* shooter){
     
     projectile *new_projectile = malloc(sizeof(projectile));
 	
-    new_projectile->node = init_node(available->thumbnail_file, shooter->node->xPos, shooter->node->yPos);
+    new_projectile->node = init_node(available->thumbnail_file, shooter->node->xPos + 17, shooter->node->yPos + 34);
 	
     new_projectile->speed = available->speed;
     new_projectile->damage = available->damage;
