@@ -958,6 +958,7 @@ int send_message(char *message, int message_type, TCPsocket socket, int incomple
 void handle_message(char *buffer, int handle_internal){
 	printf("Handling message\n");
 	printf("Receive buffer |%s|\n",buffer);
+	char buffer_temp[SERVER_NAME];
 	char *pointer = NULL;
 	int i, j, user_id, user_from, temp, life, connected, status;
 	//i = 0;
@@ -1123,15 +1124,15 @@ void handle_message(char *buffer, int handle_internal){
 	}			
 	//Check if must add minion
 	else if(strncmp(buffer, "ADD_MINION", strlen("ADD_MINION")) == 0) {
-		//printf("Handling ADD_MINION\n");
+		printf("Handling ADD_MINION\n");
 		pointer = strchr(buffer, '\t');
 		pointer++;
-		//user_from = (int) *pointer;
-		pointer+=2;
 		user_id = (int) *pointer;
-		pointer+=2;
+		pointer+=2;//Qtd
 		temp = (int) *pointer; //qtd.
 		SDL_AtomicLock(&thread_control->lock.comm);
+		printf("User id %d qtd %d\n", user_id, temp);
+		
 		//Check if user 
 		for(i = 0; i < data_shared->current_comm->match->players;i++){
 			if(data_shared->current_comm->adversary[i].id == user_id){
@@ -1163,6 +1164,7 @@ void handle_message(char *buffer, int handle_internal){
 				if(data_shared->current_comm->adversary[i].minions_sent){
 					free(data_shared->current_comm->adversary[i].minions_sent);
 				}
+				printf("Minions %i to send received %d %d\n", data_shared->current_comm->adversary[i].minions_sent, data_shared->current_comm->adversary[i].pending_minions);
 				data_shared->current_comm->adversary[i].minions_sent = minions_to_send;
 				break;
 			}
@@ -1253,12 +1255,14 @@ void handle_message(char *buffer, int handle_internal){
 		pointer+=2;
 		user_id = (int)*pointer;
 		temp = 0;
+		pointer+=2;//Qtd
 		if(user_id != data_shared->current_user->id) {			
 			TCPsocket sender_socket = get_socket_from_user_id(user_id, &temp);
 			if(sender_socket){
-				pointer+=2;
+				
+				sprintf(buffer_temp, "ADD_MINION\t%c\t%s", user_from, pointer);
 				//Send message
-				if(!send_message(pointer, 2, sender_socket, 1)){
+				if(!send_message(buffer_temp, 2, sender_socket, 0)){
 					//--Remove client if message not send
 					//Get index for socket
 					remove_client(temp);
@@ -1573,7 +1577,7 @@ void process_action(){
 					handle_message(buffer, 1);
 				}
 				else {
-					if(send_message(buffer, 8, server_tcp_socket, 0)){
+					if(!send_message(buffer, 8, server_tcp_socket, 0)){
 						lost_connection = 1;
 						break;
 					}

@@ -1612,12 +1612,13 @@ int main(int argc, char * argv[]) {
 					//Set current screen
 					current_screen = END_GAME;
 					//network.connection_failed = 1;
-					
+					printf("Lost comm\n");
 					if(data_shared->current_comm->server->connection_failed){
 						end_status = EGS_DC;
-						
+						printf("Connection failed\n");
 					}
 					else {
+						printf("Connection lost\n");
 						end_status = EGS_OPLEFT;
 					}
 					game_started = false;
@@ -1707,7 +1708,8 @@ int main(int argc, char * argv[]) {
 					}
 					data_shared->current_user->minions = spawn_minium;
 					}
-				printf("Minions to send %d (amount user)\n", data_shared->current_user->spawn_amount);
+					printf("Minions to send %d (amount user)\n", data_shared->current_user->spawn_amount);
+					data_shared->current_user->process.message_minion++;
 				}
 				send_minion = 0;
 				SDL_AtomicUnlock(&thread_control->lock.user);
@@ -2073,6 +2075,7 @@ int main(int argc, char * argv[]) {
 					for(i = 0; i < data_shared->current_comm->match->players; i++){
 						for(j = 0; j < data_shared->current_comm->adversary[i].pending_minions;j++){
 							if(data_shared->current_comm->adversary[i].minions_sent[j] > 0){
+								printf("Has minionnns %d\n", data_shared->current_comm->adversary[i].minions_sent[j]);
 								//Add minion
 								new_minion = init_minion(avaliable_minions, data_shared->current_comm->adversary[i].minions_sent[j]);     //minion_id not used
 								if(new_minion != NULL){
