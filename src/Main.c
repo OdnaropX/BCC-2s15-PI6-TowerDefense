@@ -3181,7 +3181,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
             //Players in room
             case 22:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 0){
-                    if(data_shared->current_comm->adversary[0].name && *text != '\0')
+                    if(data_shared->current_comm->adversary[0].name)
                         text = data_shared->current_comm->adversary[0].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
@@ -3190,7 +3190,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 
             case 23:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 1){
-                    if(data_shared->current_comm->adversary[1].name && *text != '\0')
+                    if(data_shared->current_comm->adversary[1].name)
                         text = data_shared->current_comm->adversary[1].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
@@ -3199,7 +3199,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 
             case 24:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 2){
-                    if(data_shared->current_comm->adversary[2].name && *text != '\0')
+                    if(data_shared->current_comm->adversary[2].name)
                         text = data_shared->current_comm->adversary[2].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
@@ -3208,7 +3208,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 
             case 25:
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 3){
-                    if(data_shared->current_comm->adversary[3].name && *text != '\0')
+                    if(data_shared->current_comm->adversary[3].name)
                         text = data_shared->current_comm->adversary[3].name;
                     
                     rect = (SDL_Rect){515, 300 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
@@ -3264,7 +3264,7 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
             //status
             case 30:
                 if(current_status == MPS_NONE)
-                    text = "";
+                    text = NULL;
                 else if(current_status == MPS_WAIT_FOR_PLAYER)
                     text = "Waiting for players...";
                 else if(current_status == MPS_SEARCHING_ROOM)
