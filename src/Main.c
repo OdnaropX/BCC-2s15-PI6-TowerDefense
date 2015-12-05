@@ -2143,7 +2143,7 @@ int main(int argc, char * argv[]) {
                         turret = turret->next;
                     }
                     
-                    if(health <= 0){
+                    if(health <= 5){
                         current_screen = END_GAME;
                         game_started = false;
                     }
