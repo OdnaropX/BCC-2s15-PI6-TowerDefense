@@ -956,10 +956,32 @@ int main(int argc, char * argv[]) {
 									}
                                     
                                     //Multiplayer quit
-                                    #warning needs routine to disconnect
                                     else{
-                                        current_screen = MAIN;
-                                        previous_screen = GAME_RUNNING;
+                                        if(thread_control){
+                                            ignore_next_command = 1;
+                                            SDL_AtomicLock(&thread_control->lock.control);
+                                            if(thread_control->server.pointer || thread_control->server.alive){
+                                                thread_control->server.terminate = 1;
+                                                printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+                                            }
+                                            else if(thread_control->client.pointer || thread_control->client.alive){
+                                                thread_control->client.terminate = 1;
+                                                //printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+                                            }
+                                            else if(thread_control->udp.pointer || thread_control->udp.alive){
+                                                thread_control->udp.terminate = 1;
+                                                printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+                                            }
+                                            else {
+                                                printf("Threads killed!!\n");
+                                                ignore_next_command = 0;
+                                                multiplayer_status = MPS_NONE;
+                                                
+                                                current_screen = MAIN;
+                                                previous_screen = GAME_RUNNING;
+                                            }
+                                            SDL_AtomicUnlock(&thread_control->lock.control);
+                                        }
                                     }
                                     break;
 								case SDLK_q:
@@ -1191,10 +1213,32 @@ int main(int argc, char * argv[]) {
                                             current_screen = GAME_PAUSED;
                                         }
 										
-                                        #warning needs routine to disconnect
                                         else{
-                                            current_screen = MAIN;
-                                            previous_screen = GAME_RUNNING;
+                                            if(thread_control){
+                                                ignore_next_command = 1;
+                                                SDL_AtomicLock(&thread_control->lock.control);
+                                                if(thread_control->server.pointer || thread_control->server.alive){
+                                                    thread_control->server.terminate = 1;
+                                                    printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+                                                }
+                                                else if(thread_control->client.pointer || thread_control->client.alive){
+                                                    thread_control->client.terminate = 1;
+                                                    //printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+                                                }
+                                                else if(thread_control->udp.pointer || thread_control->udp.alive){
+                                                    thread_control->udp.terminate = 1;
+                                                    printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+                                                }
+                                                else {
+                                                    printf("Threads killed!!\n");
+                                                    ignore_next_command = 0;
+                                                    multiplayer_status = MPS_NONE;
+                                                    
+                                                    current_screen = MAIN;
+                                                    previous_screen = GAME_RUNNING;
+                                                }
+                                                SDL_AtomicUnlock(&thread_control->lock.control);
+                                            }
                                         }
 									}
 								}
