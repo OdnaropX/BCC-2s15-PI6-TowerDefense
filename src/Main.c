@@ -985,7 +985,7 @@ int main(int argc, char * argv[]) {
                                     }
                                     break;
 								case SDLK_q:
-									printf("Key pressed: q\n");
+									//printf("Key pressed: q\n");
 									if (running_option.current_tab == GAME_AREA && !active_clicked){
 										//Active click on current location
 										active_clicked = true;
@@ -993,7 +993,7 @@ int main(int argc, char * argv[]) {
 									}
 									break;
 								case SDLK_e:
-									printf("Key pressed: e\n"); 
+									//printf("Key pressed: e\n"); 
 									if (running_option.current_tab == GAME_AREA && !active_clicked && multiplayer){
 										//Active click on current location
 										active_clicked = true;
@@ -1558,7 +1558,7 @@ int main(int argc, char * argv[]) {
 			
 			//Game timer.
 			if(game_started && !game_paused) {
-				printf("Game started\n");
+				//printf("Game started\n");
 				//One second timer
 				timer_count++;
 					
