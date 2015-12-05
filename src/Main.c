@@ -247,7 +247,9 @@ int main(int argc, char * argv[]) {
 	int timer_count = 0;
 	int frame = 0;
 	
-	int seed = 0;
+	int seed = 1;
+	int total = 0;
+	
 	
 	//int next = 0;  //unused
     //Main loop
@@ -1486,10 +1488,14 @@ int main(int argc, char * argv[]) {
 				//Wave spawning. Only to single player.
 				if(pending_wave_number > 0 && !multiplayer) {
 					srand((unsigned) time(&t));
-					seed = get_minion_avaliable(avaliable_minions);
-					if(pending_wave_number < seed){
-						seed -= pending_wave_number;
+					total = get_minion_avaliable(avaliable_minions);
+					
+					//seed = get_minion_avaliable(avaliable_minions);
+					
+					if(seed > total){
+						seed = total;
 					}
+
 					add_minion = rand() % seed;
 					printf("Seed %d\n", seed);
 					pending_wave_number--;
@@ -1532,7 +1538,7 @@ int main(int argc, char * argv[]) {
 					pending_wave_number = monsterSpawner[spawn_minion];
 					timer_minion = pending_wave_number + 20;
 					spawn_minion++;
-
+					seed++;
 					if (spawn_minion > 0 && spawn_minion < 10) {
 						spawn_minion = 0;
 						timer_minion = 20;
