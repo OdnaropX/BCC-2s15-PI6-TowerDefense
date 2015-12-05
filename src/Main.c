@@ -2093,7 +2093,7 @@ int main(int argc, char * argv[]) {
 								//Remove list from minion.
 								//free_list_projectile(enemy->e->targetted_projectils);
 							}                            
-							gold += 12;
+							gold += get_minion_drop(avaliable_minions, enemy->e->minionType);
 							remove_minion_from_list(enemy, &enemy->e);//This already get enemy->next
 						}
 						else {
@@ -2887,7 +2887,7 @@ void main_quit(){
     SDL_Quit();
 	
 	//free config
-	free(config->language);
+	//free(config->language);
     
     if(config)
         free(config);
