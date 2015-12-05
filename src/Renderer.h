@@ -16,6 +16,7 @@
 	#include "Estruturas/Turret.h"
 	#include "Estruturas/Misc.h"
 	#include "Estruturas/Projectile.h"
+    #include "GameScene.h"
 	
 	//Constants
 	///////////////////////////////////////////////////////////////////////
