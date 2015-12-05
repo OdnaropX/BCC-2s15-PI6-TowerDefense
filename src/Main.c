@@ -1666,6 +1666,12 @@ int main(int argc, char * argv[]) {
 			}
 			SDL_AtomicUnlock(&thread_control->lock.comm);
 			
+			/*
+			if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost){
+				
+			}
+			*/
+			
 			if(network.connection_failed){
 				//Kill threads.
 				SDL_AtomicLock(&thread_control->lock.control);

@@ -508,8 +508,9 @@ void check_connection_tcp(){
 	SDL_AtomicLock(&thread_control->lock.user);
 	snprintf(buffer, BUFFER_LIMIT, "%c\t%c", (char) user_id, (char) data_shared->current_user->id);
     SDL_AtomicUnlock(&thread_control->lock.user);
-	
+	printf("Buffer |%s|\n", buffer);
 	if(send_message(buffer, 10, socket, 1)){
+		printf("Send user iddddd \n");
 		temp = 0;
 		//Send other users to this user
 		connected = connected_clients;
@@ -520,8 +521,9 @@ void check_connection_tcp(){
 			if(clients[j].tcp_socket){
 				if(j != i && clients[j].has_name) {
 					snprintf(buffer, BUFFER_LIMIT, "%c\t%s", (char) clients[j].id, clients[j].name);
-					if(!send_message(buffer,0, socket, 1)){
+					if(!send_message(buffer, 0, socket, 1)){
 						//Connection failed.
+						printf("Connection failed need to check this\n");
 						return;
 					}
 				}
@@ -552,11 +554,13 @@ void check_connection_tcp(){
 		clients[i].id = user_id;
 		clients[i].alive = 1;
 		connected_clients = sockets;
+		printf("User id connected %d\n", user_id);
 	}
 	else {
 		//Close connection
 		SDLNet_TCP_DelSocket(activity, socket);
 		close_socket(socket);
+		printf("Not connected\n");
 	}
 
 	return;
@@ -928,10 +932,15 @@ int send_message(char *message, int message_type, TCPsocket socket, int incomple
 	}
 
 	if(next){
-		if(incomplete_message)
+		if(incomplete_message) {
 			sent = SDLNet_TCP_Send(socket,msg,BUFFER_LIMIT);
-		else
+			printf("Send buffer |%s|\n",msg);
+		}
+		else {
 			sent = SDLNet_TCP_Send(socket,message,BUFFER_LIMIT);
+			printf("Send buffer |%s|\n",message);
+		}
+			
 		if(sent != BUFFER_LIMIT) {
 			//printf("SDLNet_TCP_Send: %s\n", SDLNet_GetError());
 			// It may be good to disconnect sock because it is likely invalid now.
@@ -942,7 +951,8 @@ int send_message(char *message, int message_type, TCPsocket socket, int incomple
 }
 
 void handle_message(char *buffer, int handle_internal){
-	//printf("Handling message\n");
+	printf("Handling message\n");
+	printf("Receive buffer |%s|\n",buffer);
 	char *pointer = NULL;
 	int i, j, user_id, user_from, temp, life, connected;
 	//i = 0;
@@ -958,7 +968,7 @@ void handle_message(char *buffer, int handle_internal){
 	}
 	//Check user add
 	else if(strncmp(buffer, "USER_ID", strlen("USER_ID")) == 0){
-		//printf("Handling USER_ID\n");
+		printf("Handling USER_ID\n");
         
 		pointer = strchr(buffer, '\t');
 		pointer++;
@@ -971,6 +981,9 @@ void handle_message(char *buffer, int handle_internal){
 		char *buffer_name = malloc(sizeof(char) * BUFFER_LIMIT);
 		//Send current name to server
 		snprintf(buffer_name, BUFFER_LIMIT, "%c\t%s", (char) data_shared->current_user->id, data_shared->current_user->name);
+		
+		printf("Buffer |%c|%s|\n", (char) data_shared->current_user->id, data_shared->current_user->name);
+		
 			if(!send_message(buffer_name,13, server_tcp_socket, 1)){
 				SDL_AtomicLock(&thread_control->lock.comm);
 				data_shared->current_comm->server->connecting = 0;
@@ -1376,7 +1389,7 @@ void handle_message(char *buffer, int handle_internal){
 		user_id = (int)*pointer;
 		pointer+=2;
 		char *name = pointer;
-        
+        printf("User name %s\n", name);
 		//Update adversary
 		SDL_AtomicLock(&thread_control->lock.comm);
 		for(i =0; i < data_shared->current_comm->match->players; i++){
@@ -1644,9 +1657,6 @@ void run_server(void *data){
 		if(thread_begin){
 			//Dont allow anyone to connect if game is running.
 			if(!game_in_progress) {
-				//Check UDP messages
-				//check_messages_udp();
-				//Check connection with client 
 				//printf("Begin check TCP\n");
 				if(!thread_control->server.terminate)
 					check_connection_tcp();
