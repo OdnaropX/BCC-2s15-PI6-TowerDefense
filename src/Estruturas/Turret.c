@@ -77,9 +77,11 @@ void free_list_turret(list_turret *list){
         free(rmv);
         rmv = NULL;
     }
-    
-    free(aux);
-    aux = NULL;
+    if(aux){
+		free(aux);
+		aux = NULL;		
+	}
+	return;
 }
 
 void add_turret_to_list(list_turret *list, turret *turret){

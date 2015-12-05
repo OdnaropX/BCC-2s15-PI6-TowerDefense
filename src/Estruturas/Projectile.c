@@ -48,8 +48,7 @@ projectile_avaliable *init_avaliable_projectile(char *image_file, float speed, i
 void remove_projectile(projectile *proj){
     if(proj){
         free_node(proj->node);
-		if(proj->node)
-			proj->node = NULL;
+		proj->node = NULL;
 		
         free(proj);
         proj = NULL;
@@ -74,14 +73,7 @@ list_projectile *init_list_projectile(){
 	list_projectile *new_list = NULL;
 	
     new_list = calloc(1, sizeof(list_projectile));
-    
-	if (!new_list->e){
-		printf("Not\n");
-	}
-	if(!new_list->next){
-		printf("Not 2\n");
-		
-	}
+
 	if(new_list){
 		new_list->e = NULL;
 		new_list->next = NULL;
@@ -107,9 +99,11 @@ void free_list_projectile(list_projectile *list){
         }
         rmv = NULL;
     }
-    
-    free(aux);
-    aux = NULL;
+    if(aux){
+		free(aux);
+		aux = NULL;
+	}
+	return;
 }
 
 void add_projectile_to_list(list_projectile *list, projectile *projectile){
@@ -133,49 +127,27 @@ void add_projectile_to_list(list_projectile *list, projectile *projectile){
 			printf("There is no new list element created\n");
 		}
 	}
+	else {
+		printf("null list\n");
+	}
 }
 
 list_projectile *remove_projectile_from_list(list_projectile *list, projectile *projectile){
-	printf("Removing projectile\n");
-    list_projectile *first_node = list;
-    list_projectile *remove = NULL;
-    int count = 0;
-    while(list->e && list != remove){
-        count++;
-        if(list->e == projectile){
-            remove = list;
-            if(list->next){
-                list_projectile *aux = list->next;
-//                list->next = NULL;
-                list = aux;
+	list_projectile *temp = list;
+	while(temp) {
+        if(temp->e == projectile){
+			remove_projectile(temp->e);
+			temp->e = NULL;
+            if(temp->next){
+                list_projectile *aux = temp->next;
+                temp->e = aux->e;
+				temp->next = aux->next;
             }
-            
             break;
         }
-        
-        list = list->next;
+        temp = temp->next;
     }
-    if(remove){
-		//remove_projectile(remove->next->e);//Need to check this for bug
-        remove->e = NULL;
-        remove->next = NULL;
-        
-        if(remove != first_node){
-            remove_projectile(remove->e);
-			remove->e = NULL;
-			//This is the bug!!!
-            //free(remove);//Check this. It is the error generator.
-            remove = NULL;           
-        }
-        else{
-            remove->next = NULL;
-        }
-    }
-    else{
-        printf("Your projectile is in another castle!\n");
-    }
-    
-    return list;
+	return list;
 }
 
 list_projectile_avaliable *init_avaliable_list_projectile(){

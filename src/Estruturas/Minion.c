@@ -14,7 +14,6 @@ minion *init_minion(list_minion_avaliable *list, int minionID){
 		return NULL;
 	}	
 
-	printf("Trying create\d");
     // USAR MINIONID para diferentes minions dps.
     minion *new_minion = NULL;
     new_minion = calloc(1, sizeof(minion));
@@ -54,14 +53,14 @@ minion_avaliable *init_avaliable_minion(char *image_file, int hp, float speed, i
     return new_minion;
 }
 
-void remove_minion(minion *mium){
-    if(mium){
-        free_node(mium->node);
-        mium->node = NULL;
-        free_list_projectile(mium->targetted_projectils);
-        mium->targetted_projectils = NULL;
-        free(mium);
-        mium = NULL;
+void remove_minion(minion **mium){
+    if(*mium){
+        free_node((*mium)->node);
+        (*mium)->node = NULL;
+        free_list_projectile((*mium)->targetted_projectils);
+        (*mium)->targetted_projectils = NULL;
+        free(*mium);
+        *mium = NULL;
     }
 }
 
@@ -94,16 +93,18 @@ void free_list_minion(list_minion *list){
     list_minion *aux = list;
     
     while (aux && aux->next){
-        remove_minion(aux->e);
+        remove_minion(&aux->e);
         aux->e = NULL;
         list_minion *rmv = aux;
         aux = aux->next;
         free(rmv);
         rmv = NULL;
     }
-    
-    free(aux);
-    aux = NULL;
+    if(aux){
+		free(aux);
+		aux = NULL;		
+	}
+	return;
 }
 
 void add_minion_to_list(list_minion *list, minion *minion){
@@ -121,43 +122,23 @@ void add_minion_to_list(list_minion *list, minion *minion){
     list->next = new_element;
 }
 
-list_minion *remove_minion_from_list(list_minion *list, minion *minion){
-    list_minion *remove = NULL;
-    
-    while(list){
-        if(list->e == minion){
-            remove = list;
-            
-            if(list->next){
-                list_minion *aux = list->next;
-                list->next = list;
-                list = aux;
-            }			
+void remove_minion_from_list(list_minion *list, minion **minion){
+    list_minion *temp = list;
+	
+	while(temp){
+        if(temp->e == *minion){
+			remove_minion(minion);
+			temp->e = NULL;
+            if(temp->next){
+                list_minion *aux = temp->next;
+                temp->e = aux->e;
+				temp->next = aux->next;
+            }
             break;
         }
-        
-        list = list->next;
+        temp = temp->next;
     }
-    
-    if(remove){
-		printf("Remove %d", remove);
-        remove_minion(remove->e);
-        //remove_minion(remove->next->e);
-        remove->e = NULL;
-        remove->next = NULL;
-        
-        if(remove != list){
-			//This is the bug!!!!
-            //free(remove);//Check this. It is the error generator.
-            remove = NULL;
-        }
-    }
-    
-    else{
-        printf("Your minion is in another castle!\n");
-    }
-    
-    return list;
+    return;
 }
 
 

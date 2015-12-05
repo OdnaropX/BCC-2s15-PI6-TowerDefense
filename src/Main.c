@@ -247,6 +247,8 @@ int main(int argc, char * argv[]) {
 	int timer_count = 0;
 	int frame = 0;
 	
+	int seed = 0;
+	
 	//int next = 0;  //unused
     //Main loop
     while(!quit){
@@ -1105,7 +1107,7 @@ int main(int argc, char * argv[]) {
 								left_click = event.button.button == SDL_BUTTON_LEFT;
 								
 								if (!left_click && !multiplayer){
-									printf("Do nothing\n");
+									//printf("Do nothing\n");
 								}
 								//Game area
 								else if(get_touched_grid_address(event.motion.x, event.motion.y, grid_clicked)){
@@ -1483,8 +1485,12 @@ int main(int argc, char * argv[]) {
 				//Wave spawning. Only to single player.
 				if(pending_wave_number > 0 && !multiplayer) {
 					srand((unsigned) time(&t));
-					printf("Minion 1\n");
-					add_minion = rand() % get_minion_avaliable(avaliable_minions);
+					seed = get_minion_avaliable(avaliable_minions);
+					if(pending_wave_number < seed){
+						seed -= pending_wave_number;
+					}
+					add_minion = rand() % seed;
+					printf("Seed %d\n", seed);
 					pending_wave_number--;
 				}
                 
@@ -1525,7 +1531,7 @@ int main(int argc, char * argv[]) {
 					pending_wave_number = monsterSpawner[spawn_minion];
 					timer_minion = pending_wave_number + 20;
 					spawn_minion++;
-					printf("Here spawn\n");
+
 					if (spawn_minion > 0 && spawn_minion < 10) {
 						spawn_minion = 0;
 						timer_minion = 20;
@@ -1630,16 +1636,16 @@ int main(int argc, char * argv[]) {
 				}
 				else {
 					data_shared->current_user->spawn_amount = 1;
-					SpawnMinion *minions = malloc(sizeof(SpawnMinion));//Only one now.
-					minions[0].amount = 1;
-					minions[0].client_id = adversary_id_to_use;//Mod in case players amount changed.
-					minions[0].type = malloc(sizeof(int));
-					minions[0].type[0] = send_minion;
+					SpawnMinion *spawn_minium = malloc(sizeof(SpawnMinion));//Only one now.
+					spawn_minium[0].amount = 1;
+					spawn_minium[0].client_id = adversary_id_to_use;//Mod in case players amount changed.
+					spawn_minium[0].type = malloc(sizeof(int));
+					spawn_minium[0].type[0] = send_minion;
 					
 					if(data_shared->current_user->minions){
 						free(data_shared->current_user->minions);
 					}
-					data_shared->current_user->minions = minions;
+					data_shared->current_user->minions = spawn_minium;
 				}
 				send_minion = 0;
 				SDL_AtomicUnlock(&thread_control->lock.user);
@@ -1797,7 +1803,7 @@ int main(int argc, char * argv[]) {
 									multiplayer = true;
 									//multiplayer_status = MPS_WAIT_READY;
 								}
-								printf("Here problem\n");
+	
 							}
 							//Loop again.
 							else if(!ignore_next_command) {
@@ -1993,6 +1999,31 @@ int main(int argc, char * argv[]) {
 			
             
             case GAME_RUNNING:
+				if(multiplayer){
+					SDL_AtomicLock(&thread_control->lock.comm);
+					for(i = 0; i < data_shared->current_comm->match->players; i++){
+						for(j = 0; j < data_shared->current_comm->adversary[i].pending_minions;j++){
+							if(data_shared->current_comm->adversary[i].minions_sent[j] > 0){
+								//Add minion
+								new_minion = init_minion(avaliable_minions, data_shared->current_comm->adversary[i].minions_sent[j]);     //minion_id not used
+								if(new_minion != NULL){
+									add_minion_to_list(minions, new_minion);
+									new_minion->node->xPos = 150;
+									new_minion->node->yPos = 600;
+								}
+							}
+						}
+						//free minions_sent
+						
+						if(data_shared->current_comm->adversary[i].minions_sent){
+							free(data_shared->current_comm->adversary[i].minions_sent);
+							data_shared->current_comm->adversary[i].minions_sent = NULL;
+						}
+						data_shared->current_comm->adversary[i].pending_minions = 0;
+					}
+					SDL_AtomicUnlock(&thread_control->lock.comm);
+				}
+				
 				if (!game_paused){
 					if (add_tower > 0){
 						//Add tower
@@ -2017,16 +2048,13 @@ int main(int argc, char * argv[]) {
 					}
                     
 					if (add_minion > 0){
-						printf("Add minions\n");
 						//Add minion
 						new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
-                        printf("Minion created %d\n");
 						if(new_minion != NULL){
 							add_minion_to_list(minions, new_minion);
                             new_minion->node->xPos = 150;
                             new_minion->node->yPos = 600;
 						}
-						printf("Minion maybe added\n");
 						//Reset minion
 						add_minion = 0;
 					}
@@ -2035,12 +2063,14 @@ int main(int argc, char * argv[]) {
 
                     // Minion movement, Projectile movement, and projectile colision/dealocation.
                     list_minion* enemy = minions;
-                    while(enemy && enemy->e){
-                        int minion_pos_value = move_minion(enemy->e);
-                        list_projectile *shoot = enemy->e->targetted_projectils;
-                        if(minion_pos_value == 1){
-                            enemy->e->HP = 0;
-                            health --;
+					
+                    while(enemy && enemy->e){						
+						int minion_pos_value = move_minion(enemy->e);
+						list_projectile *shoot = enemy->e->targetted_projectils;
+
+						if(minion_pos_value == 1){
+							enemy->e->HP = 0;
+							health--;
 							//Update player health if multiplayer
 							if(multiplayer){
 								SDL_AtomicLock(&thread_control->lock.user);
@@ -2048,44 +2078,29 @@ int main(int argc, char * argv[]) {
 								data_shared->current_user->life = health;
 								SDL_AtomicUnlock(&thread_control->lock.user);
 							}
-                        }
-                        
-                        while (shoot && shoot->e) {
-                            if(shoot->e->damage)
-                                printf("ué\n");
-                            if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
-                                enemy->e->HP -= shoot->e->damage;
-                                list_projectile *temp_lp = shoot;
-                                
-                                shoot = shoot->next;
-                                
-                                enemy->e->targetted_projectils = remove_projectile_from_list(enemy->e->targetted_projectils, temp_lp->e);
-                                temp_lp->e = NULL;
-                                
-                            }
-                            
-                            else
-                                shoot = shoot->next;
-                        }
-                        
-                        if(enemy->e->HP <= 0){ // Death of minions
-                            if(enemy->e->targetted_projectils->e == NULL){
-                                
-                                list_minion *temp_minion = enemy;
-                                enemy = enemy->next;
-                                
-                                gold += 12;
-                                
-                                minions = remove_minion_from_list(minions, temp_minion->e);
-                                temp_minion->e = NULL;
-                                temp_minion = NULL;
-                            }
-                        }
-                        
-                        else
-                            enemy = enemy->next;
-                    }
-                    
+						}
+						while (shoot && shoot->e) {
+							if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
+								enemy->e->HP -= shoot->e->damage;
+								remove_projectile_from_list(shoot, shoot->e);
+							}
+							else {
+								shoot = shoot->next;
+							}
+						}
+						if(enemy->e->HP <= 0){ // Death of minions
+							if(enemy->e->targetted_projectils){
+								//Remove list from minion.
+								//free_list_projectile(enemy->e->targetted_projectils);
+							}                            
+							gold += 12;
+							remove_minion_from_list(enemy, &enemy->e);//This already get enemy->next
+						}
+						else {
+							enemy = enemy->next;
+						}
+					}					
+					
                     list_turret *turret = turrets;
                     while (turret && turret->e) {
                         turret->e->timeUntilNextAttack -= 0.017;
@@ -2126,30 +2141,7 @@ int main(int argc, char * argv[]) {
                         game_started = false;
                     }
                 }
-				if(multiplayer){
-					SDL_AtomicLock(&thread_control->lock.comm);
-					for(i = 0; i < data_shared->current_comm->match->players; i++){
-						for(j = 0; j < data_shared->current_comm->adversary[i].pending_minions;j++){
-							if(data_shared->current_comm->adversary[i].minions_sent[j] > 0){
-								//Add minion
-								new_minion = init_minion(avaliable_minions, data_shared->current_comm->adversary[i].minions_sent[j]);     //minion_id not used
-								if(new_minion != NULL){
-									add_minion_to_list(minions, new_minion);
-									new_minion->node->xPos = 150;
-									new_minion->node->yPos = 600;
-								}
-							}
-						}
-						//free minions_sent
-						
-						if(data_shared->current_comm->adversary[i].minions_sent){
-							free(data_shared->current_comm->adversary[i].minions_sent);
-							data_shared->current_comm->adversary[i].minions_sent = NULL;
-						}
-						data_shared->current_comm->adversary[i].pending_minions = 0;
-					}
-					SDL_AtomicUnlock(&thread_control->lock.comm);
-				}
+				
                 break;
 
 			case GAME_PAUSED:
@@ -3015,7 +3007,7 @@ void get_config_text(){
 
 //Carrega textos do menu de multiplayer
 void get_multiplayer_texts(multiplayer_status current_status, int page){
-	printf("Current status %d\n", current_status);
+	//printf("Current status %d\n", current_status);
     for(int i = 0; i < multiplayer_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
@@ -3259,6 +3251,7 @@ void reset_game_data(){
     //////free lists
     if(minions)
         free_list_minion(minions);
+	
     if(turrets)
         free_list_turret(turrets);
     /*if(projectiles)
