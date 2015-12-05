@@ -53,14 +53,14 @@ minion_avaliable *init_avaliable_minion(char *image_file, int hp, float speed, i
     return new_minion;
 }
 
-void remove_minion(minion *mium){
-    if(mium){
-        free_node(mium->node);
-        mium->node = NULL;
-        free_list_projectile(mium->targetted_projectils);
-        mium->targetted_projectils = NULL;
-        free(mium);
-        mium = NULL;
+void remove_minion(minion **mium){
+    if(*mium){
+        free_node((*mium)->node);
+        (*mium)->node = NULL;
+        free_list_projectile((*mium)->targetted_projectils);
+        (*mium)->targetted_projectils = NULL;
+        free(*mium);
+        *mium = NULL;
     }
 }
 
@@ -93,16 +93,18 @@ void free_list_minion(list_minion *list){
     list_minion *aux = list;
     
     while (aux && aux->next){
-        remove_minion(aux->e);
+        remove_minion(&aux->e);
         aux->e = NULL;
         list_minion *rmv = aux;
         aux = aux->next;
         free(rmv);
         rmv = NULL;
     }
-    
-    free(aux);
-    aux = NULL;
+    if(aux){
+		free(aux);
+		aux = NULL;		
+	}
+	return;
 }
 
 void add_minion_to_list(list_minion *list, minion *minion){
@@ -120,27 +122,23 @@ void add_minion_to_list(list_minion *list, minion *minion){
     list->next = new_element;
 }
 
-list_minion *remove_minion_from_list(list_minion *list, minion *minion){
+void remove_minion_from_list(list_minion *list, minion **minion){
     list_minion *temp = list;
 	
 	while(temp){
-        if(temp->e == minion){
-			//free(temp->e);
+        if(temp->e == *minion){
+			remove_minion(minion);
+			temp->e = NULL;
             if(temp->next){
                 list_minion *aux = temp->next;
                 temp->e = aux->e;
 				temp->next = aux->next;
             }
-			else {
-				//Remove current list
-				//free(temp);
-				//temp = NULL;  
-			}
             break;
         }
         temp = temp->next;
     }
-    return list;
+    return;
 }
 
 
