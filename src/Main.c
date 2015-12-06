@@ -2569,7 +2569,11 @@ bool main_init(){
         printf("TTF init error: %s\n", TTF_GetError());
     }
     
-    font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 30);
+	if(windows)
+		font = TTF_OpenFont("fonts/8bitOperatorPlus-Regular.ttf", 30);
+    else
+		font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 30);
+	
     if(!font){
         printf("Title font not loaded! %s\n", TTF_GetError());
         return false;
@@ -2696,7 +2700,11 @@ bool main_init(){
         
         SDL_Surface *surface;
         if(i == 0){
-            surface = IMG_Load("../images/Pause Menu.png");
+			if(windows)
+				surface = IMG_Load("images/Pause Menu.png");
+			else
+				surface = IMG_Load("../images/Pause Menu.png");
+			
             if(!surface){
                 printf("(Game pause)Erro ao carregar pause menu! %s\n", IMG_GetError());
                 return false;
@@ -2862,7 +2870,11 @@ bool main_init(){
         
         SDL_Surface *surface;
         if(i == 0){
-            surface = IMG_Load("../images/End Game.png");
+			if(windows)
+				surface = IMG_Load("../images/End Game.png");
+			else
+				surface = IMG_Load("../images/End Game.png");
+			
             if(!surface){
                 printf("(End game)Erro ao carregar end game menu! %s\n", IMG_GetError());
                 return false;
@@ -2901,7 +2913,11 @@ bool main_init(){
     reset_game_data();
     
     //Init interface static assets(Pause button, right bar, quit multiplayer)
-    SDL_Surface *pause_surface = IMG_Load("../images/Pause.png");
+	if(windows)
+		SDL_Surface *pause_surface = IMG_Load("images/Pause.png");
+	else
+		SDL_Surface *pause_surface = IMG_Load("../images/Pause.png");
+	
     if(!pause_surface){
         printf("Falha ao carregar botão de pause! %s\n", IMG_GetError());
         return false;
@@ -2917,7 +2933,11 @@ bool main_init(){
     
     game_interface_rects[0] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
     
-    SDL_Surface *right_bar_surface = IMG_Load("../images/Right Bar.png");
+	if(windows)
+		SDL_Surface *right_bar_surface = IMG_Load("images/Right Bar.png");
+	else
+		SDL_Surface *right_bar_surface = IMG_Load("../images/Right Bar.png");
+	
     if(!right_bar_surface){
         printf("Falha ao carregar right bar! %s\n", IMG_GetError());
         return false;
@@ -2932,8 +2952,11 @@ bool main_init(){
     SDL_FreeSurface(right_bar_surface);
     
     game_interface_rects[1] = (SDL_Rect){1095, 0, 185, 720};
-    
-    SDL_Surface *quit_surface = IMG_Load("../images/MP_Quit.png");
+    if(windows)
+		SDL_Surface *quit_surface = IMG_Load("images/MP_Quit.png");
+	else
+		SDL_Surface *quit_surface = IMG_Load("../images/MP_Quit.png");
+	
     if(!quit_surface){
         printf("Falha ao carregar botão quit! %s\n", IMG_GetError());
         return false;
@@ -3002,7 +3025,10 @@ bool main_init(){
 	thread_control->udp.pointer = NULL;
 	
 	//Selector
-	SDL_Surface *select_Surface = IMG_Load("../images/select.png");
+	if(windows)
+		SDL_Surface *select_Surface = IMG_Load("images/select.png");
+	else
+		SDL_Surface *select_Surface = IMG_Load("../images/select.png");
 	
 	select_Texture = SDL_CreateTextureFromSurface(renderer, select_Surface);
 	
