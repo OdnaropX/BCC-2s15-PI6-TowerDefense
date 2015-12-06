@@ -2130,9 +2130,18 @@ int main(int argc, char * argv[]) {
             
             case GAME_RUNNING:
 				if(multiplayer){
+					//if(data_shared->current_user->is_server)
+					//	printf("SERVER\n");
+					//else {
+					//	printf("CLIENT\n");
+						
+					//}
 					SDL_AtomicLock(&thread_control->lock.comm);
+					//printf("Players %d\n",data_shared->current_comm->match->players);
 					for(i = 0; i < data_shared->current_comm->match->players; i++){
+						//printf("Pending minions %d\n", data_shared->current_comm->adversary[i].pending_minions);
 						for(j = 0; j < data_shared->current_comm->adversary[i].pending_minions;j++){
+							
 							if(data_shared->current_comm->adversary[i].minions_sent[j] > 0){
 								printf("Has minionnns %d\n", data_shared->current_comm->adversary[i].minions_sent[j]);
 								//Add minion

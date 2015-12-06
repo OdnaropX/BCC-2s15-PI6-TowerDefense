@@ -999,6 +999,7 @@ void handle_message(char *buffer, int handle_internal){
 		free(buffer_name);
 
 		//Add server as adversary
+		pointer+=2;//Server id
 		SDL_AtomicLock(&thread_control->lock.comm);
 		
 		temp = data_shared->current_comm->match->players;
@@ -1127,51 +1128,10 @@ void handle_message(char *buffer, int handle_internal){
 		pointer++;
 		user_id = (int) *pointer;
 		pointer+=2;//Qtd
-		temp = (int) *pointer; //qtd.
-		SDL_AtomicLock(&thread_control->lock.comm);
-		printf("User id %d qtd %d\n", user_id, temp);
-		pointer+=2;
-		printf("type %d\n", user_id, temp,(int) *pointer);
-		
-		pointer-=2;
-		//Check if user 
-		for(i = 0; i < data_shared->current_comm->match->players;i++){
-			if(data_shared->current_comm->adversary[i].id == user_id){
-				int *minions_to_send = NULL;
-				if(data_shared->current_comm->adversary[i].pending_minions > 0 && data_shared->current_comm->adversary[i].minions_sent){
-					//Realloc
-					minions_to_send = malloc(sizeof(int) * (data_shared->current_comm->adversary[i].pending_minions + temp));
-					for(int z = 0; z < data_shared->current_comm->adversary[i].pending_minions; z++){
-						minions_to_send[z] = data_shared->current_comm->adversary[i].minions_sent[z];
-					}
-					pointer+=2;//Now pointer point to first type.
-					//Add new ones.
-					for(int z = 0; z < temp;z++){
-						minions_to_send[z] = (int) *pointer;
-						pointer+=2;
-					}
-					data_shared->current_comm->adversary[i].pending_minions = temp + data_shared->current_comm->adversary[i].pending_minions;
-				}
-				else {
-					//Allocate new minions
-					minions_to_send = malloc(sizeof(int) * (temp));
-					pointer+=2;//Now pointer point to first type.
-					for(int z = 0; z < temp;z++){
-						minions_to_send[z] = (int) *pointer;
-						pointer+=2;
-					}
-					data_shared->current_comm->adversary[i].pending_minions = temp;
-				}
-				if(data_shared->current_comm->adversary[i].minions_sent){
-					free(data_shared->current_comm->adversary[i].minions_sent);
-				}
-				printf("Minions %i to send received %d %d\n", data_shared->current_comm->adversary[i].minions_sent, data_shared->current_comm->adversary[i].pending_minions);
-				data_shared->current_comm->adversary[i].minions_sent = minions_to_send;
-				break;
-			}
-		}
-		SDL_AtomicUnlock(&thread_control->lock.comm);
-	}	
+	
+		update_server_minion(user_id, pointer);
+		printf("Trying here\n");
+	}
 	//Check USER_READY
 	else if(strncmp(buffer, "USER_READY", strlen("USER_READY")) == 0) {
 		//printf("Handling USER_READY\n");
@@ -1190,7 +1150,7 @@ void handle_message(char *buffer, int handle_internal){
 			}
 		}
 		SDL_AtomicUnlock(&thread_control->lock.comm);
-	}			
+	}
 	//Check USER_LIFE
 	else if(strncmp(buffer, "USER_LIFE", strlen("USER_LIFE")) == 0) {
 		//printf("Handling USER_LIFE\n");
@@ -1249,7 +1209,10 @@ void handle_message(char *buffer, int handle_internal){
 	//---------------------
 	//Send minion
 	else if(strncmp(buffer, "USER_MINION", strlen("USER_MINION")) == 0) {
-		printf("Handling USER_MINION\n");
+		if (is_server)
+			printf("Handling USER_MINION\n");
+		
+		printf("Buffer |%s|\n", buffer);
 		pointer = strchr(buffer, '\t');
 		pointer++;
 		user_from = (int)*pointer;
@@ -1258,26 +1221,29 @@ void handle_message(char *buffer, int handle_internal){
 		temp = 0;
 		pointer+=2;//Qtd
 		
-		printf("H user_from %d, user_to %d\n",user_from, user_id);
+		//printf("H user_from %d, user_to %d\n",user_from, user_id);
 		
-		printf("qtd %d\n", (int) *pointer);
-		pointer+=2;
-		printf("type %d\n", *pointer);
-		pointer-=2;
+		//printf("qtd %d\n", (int) *pointer);
+		//pointer+=2;
+		//printf("type %d\n", (int) *pointer);
+		//pointer-=2;
 		if(mode_chaos){
-			sprintf(buffer_temp, "ADD_MINION\t%d\t%s", user_from, pointer);
+			printf("Chaos mode\n");
+			sprintf(buffer_temp, "ADD_MINION\t%c\t%s", (char) user_from, pointer);
+			printf("Buffer |%s|\n", buffer_temp);
 			for(i = 0; i< MAX_CLIENT; i++){
 				if(temp == connected_clients){
 					break;
 				}
 				if(clients[i].tcp_socket) {
 					if(clients[i].id != user_from){
-						
+						printf("Different %s\n", buffer_temp);
 						//Send message
 						if(!send_message(buffer_temp, 2, clients[i].tcp_socket, 0)){
 							//--Remove client if message not send
 							//Get index for socket
 							remove_client(temp);
+							printf("Error\n");
 						}
 					}
 					temp++;
@@ -1360,9 +1326,6 @@ void handle_message(char *buffer, int handle_internal){
 		pointer = strchr(buffer, '\t');
 		pointer++;
 		user_id = (int)*pointer;
-		pointer +=2;
-		life = (int) *pointer;
-		pointer -= 2;
 		
 		snprintf(buffer, BUFFER_LIMIT, "USER_LIFE\t%s", pointer);
 		temp = 0;
@@ -1512,7 +1475,6 @@ void update_server_minion(int user_from, char *pointer){
 	SDL_AtomicLock(&thread_control->lock.comm);
 	for(i = 0; i < data_shared->current_comm->match->players; i++){
 		if(data_shared->current_comm->adversary[i].id == user_from){
-			j = 0;
 			temp = (int) *pointer;//pointer on qtd
 			//Realloc 
 			data_shared->current_comm->adversary[i].minions_sent = realloc(data_shared->current_comm->adversary[i].minions_sent, sizeof(int) * (data_shared->current_comm->adversary[i].pending_minions + temp));
@@ -1567,7 +1529,7 @@ void process_action(){
 			handle_message(buffer, 1);
 		}
 		else {
-			if(send_message(buffer, 12, server_tcp_socket, 0) == 0){
+			if(!send_message(buffer, 12, server_tcp_socket, 0)){
 				SDL_AtomicLock(&thread_control->lock.comm);
 				data_shared->current_comm->connection_lost = 1;
 				SDL_AtomicUnlock(&thread_control->lock.comm);
@@ -1863,7 +1825,8 @@ void run_client(void *data){
 				data_shared->current_comm->server->connecting = 0;
 				data_shared->current_comm->server->connected = 1;
 				SDL_AtomicUnlock(&thread_control->lock.comm);
-
+				
+				//Add server as adversary
 			}
 			
 			while(!thread_control->client.terminate){
