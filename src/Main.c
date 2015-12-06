@@ -2870,11 +2870,13 @@ bool main_init(){
         
         SDL_Surface *surface;
         if(i == 0){
-			if(windows)
+			if(windows) {
 				surface = IMG_Load("../images/End Game.png");
-			else
+			}
+			else {
 				surface = IMG_Load("../images/End Game.png");
-			
+			}
+				
             if(!surface){
                 printf("(End game)Erro ao carregar end game menu! %s\n", IMG_GetError());
                 return false;
@@ -2913,10 +2915,15 @@ bool main_init(){
     reset_game_data();
     
     //Init interface static assets(Pause button, right bar, quit multiplayer)
-	if(windows)
-		SDL_Surface *pause_surface = IMG_Load("images/Pause.png");
-	else
-		SDL_Surface *pause_surface = IMG_Load("../images/Pause.png");
+	SDL_Surface *pause_surface;
+	if(windows) {
+		pause_surface = IMG_Load("images/Pause.png");
+	}
+	else {
+		pause_surface = IMG_Load("../images/Pause.png");
+	}
+		
+		
 	
     if(!pause_surface){
         printf("Falha ao carregar botão de pause! %s\n", IMG_GetError());
@@ -2933,10 +2940,16 @@ bool main_init(){
     
     game_interface_rects[0] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
     
-	if(windows)
-		SDL_Surface *right_bar_surface = IMG_Load("images/Right Bar.png");
-	else
-		SDL_Surface *right_bar_surface = IMG_Load("../images/Right Bar.png");
+	SDL_Surface *right_bar_surface;
+	
+	if(windows){
+		right_bar_surface = IMG_Load("images/Right Bar.png");
+	}
+	else {
+		right_bar_surface = IMG_Load("../images/Right Bar.png");
+	}
+		
+		
 	
     if(!right_bar_surface){
         printf("Falha ao carregar right bar! %s\n", IMG_GetError());
@@ -2952,10 +2965,15 @@ bool main_init(){
     SDL_FreeSurface(right_bar_surface);
     
     game_interface_rects[1] = (SDL_Rect){1095, 0, 185, 720};
-    if(windows)
-		SDL_Surface *quit_surface = IMG_Load("images/MP_Quit.png");
-	else
-		SDL_Surface *quit_surface = IMG_Load("../images/MP_Quit.png");
+	
+	SDL_Surface *quit_surface;
+    if(windows){
+		quit_surface = IMG_Load("images/MP_Quit.png");
+	}
+	else {
+		quit_surface = IMG_Load("../images/MP_Quit.png");
+	}
+		
 	
     if(!quit_surface){
         printf("Falha ao carregar botão quit! %s\n", IMG_GetError());
@@ -3024,11 +3042,14 @@ bool main_init(){
 	thread_control->server.pointer = NULL;
 	thread_control->udp.pointer = NULL;
 	
+	SDL_Surface *select_Surface;
 	//Selector
-	if(windows)
-		SDL_Surface *select_Surface = IMG_Load("images/select.png");
-	else
-		SDL_Surface *select_Surface = IMG_Load("../images/select.png");
+	if(windows){
+		select_Surface = IMG_Load("images/select.png");
+	}
+	else {
+		select_Surface = IMG_Load("../images/select.png");
+	}
 	
 	select_Texture = SDL_CreateTextureFromSurface(renderer, select_Surface);
 	
