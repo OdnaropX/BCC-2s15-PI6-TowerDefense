@@ -45,8 +45,11 @@ SDL_Renderer *renderer;
 
 //Media
 TTF_Font *font;
+TTF_Font *title;
+
 SDL_Surface *map_Surface;
 SDL_Texture *select_Texture;
+SDL_Texture *background_Texture;
 
 //Constants
 SDL_Color black = {0, 0, 0, 255};
@@ -2403,6 +2406,8 @@ int main(int argc, char * argv[]) {
         //Clear render
         SDL_RenderClear(renderer);
 		
+		SDL_RenderCopy(renderer, background_Texture, NULL, NULL);
+		
 		//Scene Renderer 
 		/////////////////////////////////////////////////////
         SDL_Texture *screen_surfaces = NULL;
@@ -2551,7 +2556,7 @@ bool main_init(){
 	}
     
     //Create window
-    main_Window = SDL_CreateWindow("PI-6 Tower Defense", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screen_Width, screen_Height, SDL_WINDOW_SHOWN);
+    main_Window = SDL_CreateWindow("Grade Defender", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screen_Width, screen_Height, SDL_WINDOW_SHOWN);
     if(!main_Window){
         printf("SDL_CreateWindow error: %s\n", SDL_GetError());
         return false;
@@ -2570,14 +2575,29 @@ bool main_init(){
     }
     
 	if(windows)
-		font = TTF_OpenFont("fonts/8bitOperatorPlus-Regular.ttf", 30);
+		//font = TTF_OpenFont("fonts/8bitOperatorPlus-Regular.ttf", 30);
+		font = TTF_OpenFont("fonts/print_bold_tt.ttf", 140);
     else
-		font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 30);
+		font = TTF_OpenFont("fonts/print_bold_tt.ttf", 140);
+		//font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 30);
+	
 	
     if(!font){
+        printf("Font not loaded! %s\n", TTF_GetError());
+        return false;
+    }
+	
+	if(windows)
+		title = TTF_OpenFont("fonts/Little Days Alt.ttf", 30);
+    else
+		title = TTF_OpenFont("../fonts/Little Days Alt.ttf", 30);
+	
+	
+    if(!title){
         printf("Title font not loaded! %s\n", TTF_GetError());
         return false;
     }
+	
     int i = 0;
 	
     //Init main menu assets
@@ -2587,7 +2607,7 @@ bool main_init(){
         
         switch (i) {
             case 0:
-                text = "PI-6 Tower Defense";
+                text = "Grade Defender";
                 rect = (SDL_Rect){265, 0, 750, 150};
                 break;
                 
@@ -2630,9 +2650,9 @@ bool main_init(){
         SDL_Surface *surface;
         
         if(i%2 == 0 && i > 0)
-            surface = TTF_RenderText_Solid(font, text, red);
+            surface = TTF_RenderText_Blended(font, text, red);
         else
-            surface = TTF_RenderText_Solid(font, text, black);
+            surface = TTF_RenderText_Blended(font, text, white);
         
         if(!surface){
             printf("(Main)Text not rendered! %s\n", TTF_GetError());
@@ -2713,9 +2733,9 @@ bool main_init(){
         
         else{
             if(i%2 == 0 && i > 0)
-                surface = TTF_RenderText_Solid(font, text, red);
+                surface = TTF_RenderText_Blended(font, text, red);
             else
-                surface = TTF_RenderText_Solid(font, text, white);
+                surface = TTF_RenderText_Blended(font, text, white);
             
             if(!surface){
                 printf("(Game pause)Text not rendered! %s\n", TTF_GetError());
@@ -2777,9 +2797,9 @@ bool main_init(){
         
         SDL_Surface *surface;
         if(i == 6)
-            surface = TTF_RenderText_Solid(font, text, red);
+            surface = TTF_RenderText_Blended(font, text, red);
         else
-            surface = TTF_RenderText_Solid(font, text, black);
+            surface = TTF_RenderText_Blended(font, text, white);
         
         if(!surface){
             printf("(Credits)Text not rendered! %s\n", TTF_GetError());
@@ -2819,9 +2839,9 @@ bool main_init(){
         
         SDL_Surface *surface;
         if(i == 2)
-            surface = TTF_RenderText_Solid(font, text, red);
+            surface = TTF_RenderText_Blended(font, text, red);
         else
-            surface = TTF_RenderText_Solid(font, text, black);
+            surface = TTF_RenderText_Blended(font, text, white);
         
         if(!surface){
             printf("(Score)Text not rendered! %s\n", TTF_GetError());
@@ -2885,9 +2905,9 @@ bool main_init(){
         
         else{
             if(i%2 == 0 && i > 0)
-                surface = TTF_RenderText_Solid(font, text, red);
+                surface = TTF_RenderText_Blended(font, text, red);
             else
-                surface = TTF_RenderText_Solid(font, text, white);
+                surface = TTF_RenderText_Blended(font, text, white);
             
             if(!surface){
                 printf("(End game)Text not rendered! %s\n", TTF_GetError());
@@ -3054,6 +3074,19 @@ bool main_init(){
 	select_Texture = SDL_CreateTextureFromSurface(renderer, select_Surface);
 	
 	SDL_FreeSurface(select_Surface);
+	
+	SDL_Surface *background_Surface;
+	//Selector
+	if(windows){
+		background_Surface = IMG_Load("images/Main Fundo.png");
+	}
+	else {
+		background_Surface = IMG_Load("../images/Main Fundo.png");
+	}
+	
+	background_Texture = SDL_CreateTextureFromSurface(renderer, background_Surface);
+	
+	SDL_FreeSurface(background_Surface);
 	
     return true;
 }
@@ -3223,9 +3256,9 @@ void get_config_text(){
         
         SDL_Surface *surface;
         if(i%2 == 0 && i > 0)
-            surface = TTF_RenderText_Solid(font, text, red);
+            surface = TTF_RenderText_Blended(font, text, red);
         else
-            surface = TTF_RenderText_Solid(font, text, black);
+            surface = TTF_RenderText_Blended(font, text, white);
         
         if(!surface){
             printf("(Config)Text not rendered! %s\n", TTF_GetError());
@@ -3486,9 +3519,9 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
         if(text){
             SDL_Surface *surface;
             if(i%2 == 0 && i > 0 && i <= 18)
-                surface = TTF_RenderText_Solid(font, text, red);
+                surface = TTF_RenderText_Blended(font, text, red);
             else
-                surface = TTF_RenderText_Solid(font, text, black);
+                surface = TTF_RenderText_Blended(font, text, white);
             
             if(!surface){
                 printf("(Multiplayer)Text not rendered! %s\n", TTF_GetError());
@@ -3606,7 +3639,7 @@ void set_end_game_status_text(end_game_status end_status){
     
     end_game_interface_rects[7] = (SDL_Rect){390, 270, BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH * 2};
     
-    SDL_Surface *surface = TTF_RenderText_Solid(font, text, black);
+    SDL_Surface *surface = TTF_RenderText_Blended(font, text, white);
     
     if(!surface){
         printf("(End game)Text not rendered! %s\n", TTF_GetError());
@@ -3687,9 +3720,9 @@ void get_multiplayer_game_names(int page){
         if(text){
             SDL_Surface *surface;
             if(i%2 == 1)
-                surface = TTF_RenderText_Solid(font, text, red);
+                surface = TTF_RenderText_Blended(font, text, red);
             else
-                surface = TTF_RenderText_Solid(font, text, black);
+                surface = TTF_RenderText_Blended(font, text, white);
             
             if(!surface){
                 printf("(Game Running)Text not rendered! %s\n", TTF_GetError());
