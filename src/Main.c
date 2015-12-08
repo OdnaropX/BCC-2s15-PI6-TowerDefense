@@ -2401,7 +2401,7 @@ int main(int argc, char * argv[]) {
 		}		
         
 		// Select the color for drawing.
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 
         //Clear render
         SDL_RenderClear(renderer);
@@ -2578,7 +2578,7 @@ bool main_init(){
 		//font = TTF_OpenFont("fonts/8bitOperatorPlus-Regular.ttf", 30);
 		font = TTF_OpenFont("fonts/print_bold_tt.ttf", 140);
     else
-		font = TTF_OpenFont("fonts/print_bold_tt.ttf", 140);
+		font = TTF_OpenFont("../fonts/print_bold_tt.ttf", 140);
 		//font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 30);
 	
 	
@@ -3637,7 +3637,7 @@ void set_end_game_status_text(end_game_status end_status){
             break;
     }
     
-    end_game_interface_rects[7] = (SDL_Rect){390, 270, BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH * 2};
+    end_game_interface_rects[7] = (SDL_Rect){265, 270, BUTTON_MENU_WIDTH * 3, BUTTON_MENU_HEIGHT * 3};
     
     SDL_Surface *surface = TTF_RenderText_Blended(font, text, white);
     
