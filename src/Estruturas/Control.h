@@ -14,7 +14,7 @@
     typedef enum _target_select_options{TSO_PREVIOUS_PAGE, TSO_TGT_1, TSO_TGT_2, TSO_TGT_3, TSO_TGT_4, TSO_NEXT_PAGE, TSO_NONE}target_select_options;
 
 	typedef enum _multiplayer_status{MPS_WAIT_FOR_PLAYER, MPS_SEARCHING_ROOM, MPS_WAIT_READY, MPS_ENTERED_ROOM, MPS_CAN_START, MPS_STARTED_GAME, MPS_NONE} multiplayer_status;
-    typedef enum _end_game_status{EGS_WIN, EGS_LOSE, EGS_DC, EGS_OPLEFT, EGS_NONE}end_game_status;
+    typedef enum _end_game_status{EGS_WIN, EGS_LOSE, EGS_DC, EGS_SFULL, EGS_GASTARTED, EGS_OPLEFT, EGS_NONE}end_game_status;
 
 	typedef enum _running_top_option {OPT_R_T_PAUSE, OPT_R_T_RESUME, OPT_R_T_NONE} RUNNING_TOP_OPTIONS;
 	typedef enum _running_left_option {OPT_R_L_GOLD, OPT_R_L_MANA, OPT_R_L_LIFE, OPT_R_L_NONE} RUNNING_LEFT_OPTIONS;

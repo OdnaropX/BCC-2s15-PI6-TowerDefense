@@ -1659,9 +1659,6 @@ int main(int argc, char * argv[]) {
 			SDL_AtomicLock(&thread_control->lock.comm);
 			//-- Change, dont need this, use the global variable instead.
 			if(data_shared->current_comm){
-				if(data_shared->current_comm->server->searching){
-					network.searching = 1;
-				}
 				if(data_shared->current_comm->server->searching_finished){
 					network.searched = 1;
 				}
@@ -1678,7 +1675,7 @@ int main(int argc, char * argv[]) {
 					network.choose_server = 1;
 				}
 				
-				if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost) {
+				if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost || data_shared->current_comm->match->error) {
 					//Set current screen
 					current_screen = END_GAME;
 					//network.connection_failed = 1;
@@ -1687,6 +1684,17 @@ int main(int argc, char * argv[]) {
 						end_status = EGS_DC;
 						printf("Connection failed\n");
 					}
+					else if(data_shared->current_comm->match->error){
+						if(data_shared->current_comm->match->error == 1){
+							end_status = EGS_SFULL;
+							printf("Match full\n");
+						}
+						else {
+							printf("Match started\n");
+							end_status = EGS_GASTARTED;
+						}
+						printf("Connection match error\n");
+					}
 					else {
 						printf("Connection lost\n");
 						end_status = EGS_OPLEFT;
@@ -1694,7 +1702,6 @@ int main(int argc, char * argv[]) {
 					game_started = false;
 					
 					//Reset multiplay in back to menu or other.
-					
 				}
 				
 				if(data_shared->current_comm->match->can_start && !not_started){
@@ -2389,25 +2396,217 @@ int main(int argc, char * argv[]) {
                 break;
                 
             case END_GAME:
+				ignore_next_command = 0;
+				
                 switch (end_game_option) {
                     case EG_NEW_GAME:
-                        reset_game_data();
-						
-						if(!multiplayer){
-							current_screen = GAME_RUNNING;
-							game_paused = false;
-							game_started = true;
-						}
-						else {
-							current_screen = GAME_MULTIPLAY_SERVER;
-							game_started = false;
+						switch(end_status){
+							//Case this was showed from game room full or game already started.
+							case EGS_GASTARTED: case EGS_SFULL: 
+								//End thread.
+								if(thread_control){
+									ignore_next_command = 1;
+									SDL_AtomicLock(&thread_control->lock.control);
+									if(thread_control->server.pointer || thread_control->server.alive){
+										thread_control->server.terminate = 1;
+										//printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+									}
+									else if(thread_control->client.pointer || thread_control->client.alive){
+										thread_control->client.terminate = 1;
+										//printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+									}
+									else if(thread_control->udp.pointer || thread_control->udp.alive){
+										thread_control->udp.terminate = 1;
+										printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+									}
+									else {
+										printf("Threads killed!!\n");
+										ignore_next_command = 0;
+										end_status = EGS_NONE;
+														
+										current_screen = GAME_MULTIPLAY_SERVER;
+										game_started = false;
+										
+										reset_game_data();
+										
+										//Reset screen options.
+										multiplayer_option = MP_NONE;
+										multiplayer_status = MPS_NONE;
+										room_current_page = 0;
+									}
+									SDL_AtomicUnlock(&thread_control->lock.control);
+								}
+								else {
+									current_screen = GAME_MULTIPLAY_SERVER;
+									game_started = false;
+									reset_game_data();
+									
+									//Reset screen options.
+									multiplayer_option = MP_NONE;
+									multiplayer_status = MPS_NONE;
+									room_current_page = 0;
+								}
+								
+								break;
+							case EGS_LOSE: case EGS_WIN: case EGS_DC: case EGS_OPLEFT:
+								if(!multiplayer){
+									current_screen = GAME_RUNNING;
+									game_paused = false;
+									game_started = true;
+									reset_game_data();
+								}
+								else {
+									//Close thread.
+									if(thread_control){
+										ignore_next_command = 1;
+										SDL_AtomicLock(&thread_control->lock.control);
+										if(thread_control->server.pointer || thread_control->server.alive){
+											thread_control->server.terminate = 1;
+											//printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+										}
+										else if(thread_control->client.pointer || thread_control->client.alive){
+											thread_control->client.terminate = 1;
+											//printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+										}
+										else if(thread_control->udp.pointer || thread_control->udp.alive){
+											thread_control->udp.terminate = 1;
+											printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+										}
+										else {
+											printf("Threads killed!!\n");
+											ignore_next_command = 0;
+											end_status = EGS_NONE;
+															
+											current_screen = GAME_MULTIPLAY_SERVER;
+											previous_screen = MAIN;
+											game_started = false;
+											
+											reset_game_data();
+											
+											//Reset screen options.
+											multiplayer_option = MP_NONE;
+											multiplayer_status = MPS_NONE;
+											room_current_page = 0;
+										}
+										SDL_AtomicUnlock(&thread_control->lock.control);
+									}
+									else {
+										current_screen = GAME_MULTIPLAY_SERVER;
+										game_started = false;
+										reset_game_data();
+										
+										//Reset screen options.
+										multiplayer_option = MP_NONE;
+										multiplayer_status = MPS_NONE;
+										room_current_page = 0;
+									}
+								}
+								break;
 						}
                         break;
                         
                     case EG_MAIN:
-                        reset_game_data();
-                        current_screen = MAIN;
-                        game_started = false;
+						switch(end_status){
+							case EGS_GASTARTED: case EGS_SFULL: 
+								//End thread.
+								if(thread_control){
+									ignore_next_command = 1;
+									SDL_AtomicLock(&thread_control->lock.control);
+									if(thread_control->server.pointer || thread_control->server.alive){
+										thread_control->server.terminate = 1;
+										//printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+									}
+									else if(thread_control->client.pointer || thread_control->client.alive){
+										thread_control->client.terminate = 1;
+										//printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+									}
+									else if(thread_control->udp.pointer || thread_control->udp.alive){
+										thread_control->udp.terminate = 1;
+										printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+									}
+									else {
+										printf("Threads killed!!\n");
+										ignore_next_command = 0;
+										end_status = EGS_NONE;
+														
+										current_screen = MAIN;
+										previous_screen = MAIN;
+										game_started = false;
+										
+										reset_game_data();
+										
+										//Reset screen options.
+										multiplayer_option = MP_NONE;
+										multiplayer_status = MPS_NONE;
+										room_current_page = 0;
+									}
+									SDL_AtomicUnlock(&thread_control->lock.control);
+								}
+								else {
+									current_screen = MAIN;
+									game_started = false;
+									reset_game_data();
+									
+									//Reset screen options.
+									multiplayer_option = MP_NONE;
+									multiplayer_status = MPS_NONE;
+									room_current_page = 0;
+								}
+								break;
+							case EGS_LOSE: case EGS_WIN: case EGS_DC: case EGS_OPLEFT:
+								if(!multiplayer){
+									current_screen = MAIN;
+									game_paused = false;
+									game_started = false;
+									reset_game_data();
+								}
+								else {
+									//Close thread.
+									if(thread_control){
+										ignore_next_command = 1;
+										SDL_AtomicLock(&thread_control->lock.control);
+										if(thread_control->server.pointer || thread_control->server.alive){
+											thread_control->server.terminate = 1;
+											//printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+										}
+										else if(thread_control->client.pointer || thread_control->client.alive){
+											thread_control->client.terminate = 1;
+											//printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+										}
+										else if(thread_control->udp.pointer || thread_control->udp.alive){
+											thread_control->udp.terminate = 1;
+											printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+										}
+										else {
+											printf("Threads killed!!\n");
+											ignore_next_command = 0;
+											end_status = EGS_NONE;
+															
+											current_screen = MAIN;
+											game_started = false;
+											
+											reset_game_data();
+											
+											//Reset screen options.
+											multiplayer_option = MP_NONE;
+											multiplayer_status = MPS_NONE;
+											room_current_page = 0;
+										}
+										SDL_AtomicUnlock(&thread_control->lock.control);
+									}
+									else {
+										current_screen = MAIN;
+										game_started = false;
+										reset_game_data();
+										
+										//Reset screen options.
+										multiplayer_option = MP_NONE;
+										multiplayer_status = MPS_NONE;
+										room_current_page = 0;
+									}
+								}
+								break;
+						}
                         break;
                         
                     case EG_QUIT:
@@ -2420,7 +2619,8 @@ int main(int argc, char * argv[]) {
                 
                 set_end_game_status_text(end_status);
                 
-                end_game_option = EG_NONE;
+				if(!ignore_next_command)
+					end_game_option = EG_NONE;
                 break;
             default:
                 break;
@@ -2813,11 +3013,6 @@ void main_quit(){
     for(int i = 0; i < game_interface_assets_count; i++){
         if(game_interface_assets[i])
             SDL_DestroyTexture(game_interface_assets[i]);
-    }
-    
-    for(int i = 0; i < multiplayer_menu_assets_count; i++){
-        if(multiplayer_menu_assets[i])
-            SDL_DestroyTexture(multiplayer_menu_assets[i]);
     }
     
     //////free surfaces
@@ -3332,7 +3527,15 @@ void set_end_game_status_text(end_game_status end_status){
         case EGS_OPLEFT:
             text = _("YOUR OPPONENT LEFT!");
             break;
-            
+			
+		case EGS_SFULL:
+			text = _("ROOM ALREADY FULL!");
+            break;
+			
+		case EGS_GASTARTED:
+			text = _("GAME ALREADY STARTED!");
+            break;
+
         case EGS_NONE:
             text = "wAT?!";
             break;
@@ -3776,7 +3979,9 @@ bool render_texts(){
         
         SDL_FreeSurface(surface);
     }
+	
 	return true;
+	
 	
 }
 
@@ -3813,9 +4018,16 @@ void destroy_rendered_texts(){
         if(end_game_interface_assets[i])
             SDL_DestroyTexture(end_game_interface_assets[i]);
     }
+	
+	for(int i = 0; i < multiplayer_menu_assets_count; i++){
+		if(multiplayer_menu_assets[i])
+			SDL_DestroyTexture(multiplayer_menu_assets[i]);
+	}
+	
 }
 
 void reset_rendered_texts(){
 	destroy_rendered_texts();
+	//get_multiplayer_texts(MPS_NONE, 0);
 	render_texts();
 }

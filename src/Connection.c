@@ -656,6 +656,7 @@ void game_status(){
 				data_shared->current_comm->match->lost = 0;
 				data_shared->current_comm->match->winner_id = data_shared->current_user->id;
 				SDL_AtomicUnlock(&thread_control->lock.comm);
+				printf("Winner\n");
 			}
 			else {
 				//Check if game was finished.
@@ -676,7 +677,7 @@ void game_status(){
 						winner_id = clients[i].id;
 					}
 				}
-				
+				printf("Alive %d\n", alive);
 				if(alive == 1){
 					game_ended = 1;
 					//Send message of end game to users.
