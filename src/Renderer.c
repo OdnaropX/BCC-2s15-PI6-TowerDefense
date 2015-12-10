@@ -474,25 +474,16 @@ void display_mouse(SDL_Renderer *renderer, SDL_Texture *select, bool active_clic
 
 void display_health(SDL_Renderer *renderer, int value, TTF_Font *font){
     char str[5];
-	printf("Foi 3.1\n");
     sprintf(str, "%d", value);
-	printf("Foi 3.2 %s\n", str);
-	if(!font){
-		printf("Null font\n");
-	}
+
     SDL_Surface *s = TTF_RenderText_Blended(font, str, (SDL_Color){255, 255, 255, 255});
-	printf("Foi 3.3\n");
-    
+
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, s);
-	printf("Foi 3.4\n");
     
     SDL_FreeSurface(s);
-	printf("Foi 3.5\n");
     
     SDL_RenderCopy(renderer, texture, NULL, &(SDL_Rect){1185, 40, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT});
-	printf("Foi 3.6\n");
 	SDL_DestroyTexture(texture);
-	printf("Foi 3.7\n");
 }
 
 void display_mana(SDL_Renderer *renderer, int value, TTF_Font *font){

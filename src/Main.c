@@ -2460,20 +2460,13 @@ int main(int argc, char * argv[]) {
 				if(multiplayer)
 					get_multiplayer_game_names(players_current_page, font);
 				
-				printf("Foi\n");
                 draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, select_running_option.multiplay.current_player, multiplayer);
-                
-				printf("Foi 2\n");
 				
 				display_mouse(renderer, select_Texture, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option, avaliable_minions, avaliable_turrets, multiplayer);
 				
-				printf("Foi 3\n");
                 display_health(renderer, health, font);
-				printf("Foi 4\n");
                 display_mana(renderer, mana, font);
-				printf("Foi 5\n");
                 display_gold(renderer, gold, font);
-				printf("Foi 6\n");
                 
                 break;
                 
