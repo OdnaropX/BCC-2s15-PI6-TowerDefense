@@ -2619,37 +2619,37 @@ bool main_init(){
         
         switch (i) {
             case 0:
-                text = "Grade Defender";
+                text = _("Grade Defender");
                 rect = (SDL_Rect){265, 0, 750, 150};
                 break;
                 
             case 1: case 2:
-                text = "Play";
+                text = _("Play");
                 rect = (SDL_Rect){980, 450, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 3: case 4:
-                text = "Multiplayer";
+                text = _("Multiplayer");
                 rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 5: case 6:
-                text = "Config";
+                text = _("Config");
                 rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 7: case 8:
-                text = "Score";
+                text = _("Score");
                 rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 9: case 10:
-                text = "Credits";
+                text = _("Credits");
                 rect = (SDL_Rect){30, 450 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 11: case 12:
-                text = "Exit";
+                text = _("Exit");
                 rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
@@ -2695,32 +2695,32 @@ bool main_init(){
                 break;
                 
             case 1: case 2:
-                text = "Resume";
+                text = _("Resume");
                 rect = (SDL_Rect){515, 270, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 3: case 4:
-                text = "Config";
+                text = _("Config");
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 5: case 6:
-                text = "Score";
+                text = _("Score");
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 7: case 8:
-                text = "Exit";
+                text = _("Exit");
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 9: case 10:
-                text = "Main Menu";
+                text = _("Main Menu");
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 11: case 12:
-                text = "Credits";
+                text = _("Credits");
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
@@ -2772,12 +2772,12 @@ bool main_init(){
         
         switch (i) {
             case 0:
-                text = "Credits";
+                text = _("Credits");
                 rect = (SDL_Rect){265, 0, 750, 150};
                 break;
                 
             case 1:
-                text = "Made by:";
+                text = _("Made by:");
                 rect = (SDL_Rect){195, 360 - BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
@@ -2797,7 +2797,7 @@ bool main_init(){
                 break;
                 
             case 5: case 6:
-                text = "Back";
+                text = _("Back");
                 rect = (SDL_Rect){595, 650, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
@@ -2834,12 +2834,12 @@ bool main_init(){
         
         switch (i) {
             case 0:
-                text = "Score";
+                text = _("Score");
                 rect = (SDL_Rect){265, 0, 750, 150};
                 break;
                 
             case 1: case 2:
-                text = "Back";
+                text = _("Back");
                 rect = (SDL_Rect){595, 650, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
@@ -2880,17 +2880,17 @@ bool main_init(){
                 break;
                 
             case 1: case 2:
-                text = "Retry";
+                text = _("Retry");
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 3: case 4:
-                text = "Main Menu";
+                text = _("Main Menu");
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
             
             case 5: case 6:
-                text = "Quit";
+                text = _("Quit");
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
@@ -3226,36 +3226,36 @@ void get_config_text(){
         //Set texts and rects
         switch(i){
             case 0:
-                text = "Config";
+                text = _("Config");
                 rect = (SDL_Rect){265, 0, 750, 150};
                 break;
                 
             case 1: case 2:
                 if(config->audio_sfx)
-                    text = "Sound Effects:  ON";
+                    text = _("Sound Effects:  ON");
                 else
-                    text = "Sound Effects:  OFF";
+                    text = _("Sound Effects:  OFF");
                 
                 rect = (SDL_Rect){515, 150, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 3: case 4:
                 if(config->audio_music)
-                    text = "Music:  ON";
+                    text = _("Music:  ON");
                 else
-                    text = "Music:  OFF";
+                    text = _("Music:  OFF");
                 
                 rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 5: case 6:
-                text = "Language";
+                text = _("Language");
                 
                 rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 7: case 8:
-                text = "Back";
+                text = _("Back");
                 
                 rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
@@ -3298,39 +3298,39 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
         //Setting texts and rects
         switch (i) {
             case 0:
-                text = "MULTIPLAYER";
+                text = _("MULTIPLAYER");
                 rect = (SDL_Rect){265, 0, 750, 150};
                 break;
                 
             case 1: case 2:
                 if(current_status == MPS_NONE)
-                    text = "Create Room";
+                    text = _("Create Room");
                 else if(current_status == MPS_CAN_START)
-                    text = "Start Game";
+                    text = _("Start Game");
                 else if(current_status == MPS_ENTERED_ROOM)     //Or not ready
-                    text = "Get ready";
+                    text = _("Get ready");
                 
                 rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 3: case 4:
                 if(current_status == MPS_NONE)
-                    text = "Search Room";
+                    text = _("Search Room");
                 else if(current_status != MPS_NONE && current_status != MPS_STARTED_GAME && current_status != MPS_SEARCHING_ROOM)
-                    text = "Leave Room";
+                    text = _("Leave Room");
                 
                 rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 5: case 6:
-                text = "Back to Main";
+                text = _("Back to Main");
                 
                 rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 7: case 8:
                 if(current_status == MPS_SEARCHING_ROOM){
-                    text = "Previous page";
+                    text = _("Previous page");
                     
                     rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
@@ -3383,26 +3383,26 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 
             case 17: case 18:
                 if(current_status == MPS_SEARCHING_ROOM){
-                    text = "Next page";
+                    text = _("Next page");
                     
                     rect = (SDL_Rect){195, 300 + BUTTON_MENU_HEIGHT * 6, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 }
                 break;
             
             case 19:
-                text = "Rooms";
+                text = _("Rooms");
                 
                 rect = (SDL_Rect){195, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 20:
-                text = "Players";
+                text = _("Players");
                 
                 rect = (SDL_Rect){515, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 21:
-                text = "Ready?";
+                text = _("Ready?");
                 
                 rect = (SDL_Rect){835, 300, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
@@ -3458,9 +3458,9 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 SDL_AtomicLock(&thread_control->lock.comm);
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 0){
                     if(data_shared->current_comm->adversary[0].ready_to_play)
-                        text = "Yes";
+                        text = _("Yes");
                     else
-                        text = "No";
+                        text = _("No");
                     
                     rect = (SDL_Rect){945, 300 + BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
                 }
@@ -3471,9 +3471,9 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 SDL_AtomicLock(&thread_control->lock.comm);
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 1){
                     if(data_shared->current_comm->adversary[1].ready_to_play)
-                        text = "Yes";
+                        text = _("Yes");
                     else
-                        text = "No";
+                        text = _("No");
                     
                     rect = (SDL_Rect){945, 300 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
                 }
@@ -3484,9 +3484,9 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 SDL_AtomicLock(&thread_control->lock.comm);
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 2){
                     if(data_shared->current_comm->adversary[2].ready_to_play)
-                        text = "Yes";
+                        text = _("Yes");
                     else
-                        text = "No";
+                        text = _("No");
                     
                     rect = (SDL_Rect){945, 300 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
                 }
@@ -3497,9 +3497,9 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 SDL_AtomicLock(&thread_control->lock.comm);
                 if(current_status != MPS_SEARCHING_ROOM && current_status != MPS_NONE && data_shared->current_comm->match->players > 3){
                     if(data_shared->current_comm->adversary[3].ready_to_play)
-                        text = "Yes";
+                        text = _("Yes");
                     else
-                        text = "No";
+                        text = _("No");
                     
                     rect = (SDL_Rect){945, 300 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
                 }
@@ -3511,13 +3511,13 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
                 if(current_status == MPS_NONE)
                     text = NULL;
                 else if(current_status == MPS_WAIT_FOR_PLAYER)
-                    text = "Waiting for players...";
+                    text = _("Waiting for players...");
                 else if(current_status == MPS_SEARCHING_ROOM)
-                    text = "Searching rooms...";
+                    text = _("Searching rooms...");
                 else if(current_status == MPS_WAIT_READY)
-                    text = "Everyone must be ready to start";
+                    text = _("Everyone must be ready to start");
                 else if(current_status == MPS_CAN_START)
-                    text = "Everyone ready!";
+                    text = _("Everyone ready!");
                 
                 rect = (SDL_Rect){390, 150, BUTTON_MENU_WIDTH * 2, BUTTON_MENU_HEIGHT};
                 break;
@@ -3626,19 +3626,19 @@ void set_end_game_status_text(end_game_status end_status){
     
     switch (end_status) {
         case EGS_WIN:
-            text = "YOU WIN!";
+            text = _("YOU WIN!");
             break;
             
         case EGS_LOSE:
-            text = "YOU LOST THE GAME";
+            text = _("YOU LOST THE GAME");
             break;
             
         case EGS_DC:
-            text = "ERROR: DISCONNECTED";
+            text = _("ERROR: DISCONNECTED");
             break;
             
         case EGS_OPLEFT:
-            text = "YOUR OPPONENT LEFT!";
+            text = _("YOUR OPPONENT LEFT!");
             break;
             
         case EGS_NONE:
@@ -3676,7 +3676,7 @@ void get_multiplayer_game_names(int page){
         
         switch(i){
             case 2: case 3:
-                text = "Previous page";
+                text = _("Previous page");
                 
                 rect = (SDL_Rect){1097, 350, 180, BUTTON_MENU_HEIGHT};
                 break;
@@ -3718,7 +3718,7 @@ void get_multiplayer_game_names(int page){
                 break;
                 
             case 12: case 13:
-                text = "Next page";
+                text = _("Next page");
                 
                 rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT * 5, 180, BUTTON_MENU_HEIGHT};
                 break;
