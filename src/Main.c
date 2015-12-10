@@ -89,6 +89,16 @@ SDL_Rect score_menu_rects[score_menu_assets_count];
 SDL_Texture *end_game_interface_assets[end_game_interface_assets_count];
 SDL_Rect end_game_interface_rects[end_game_interface_assets_count];
 
+//Audio part
+//OST
+Mix_Music *music = NULL;
+
+//SFX
+Mix_Chunk *hit = NULL;
+Mix_Chunk *damage_taken = NULL;
+Mix_Chunk *spawn = NULL;
+Mix_Chunk *build = NULL;
+
 //Multiplayer screen order: title, create room/start/ready(+sel), search room/leave room(+sel), back(+sel),
 //previous page(+sel), room list(4)(+sel), next page(+sel),
 //rooms, players, ready?, player list(4), ready list(4), status
@@ -119,6 +129,7 @@ list_projectile_avaliable *avaliable_projectiles;
 bool main_init();
 void main_quit();
 
+bool load_audio();
 void get_config_text();
 void get_multiplayer_texts(multiplayer_status current_status, int page);
 void set_end_game_status_text(end_game_status end_status);
@@ -134,6 +145,10 @@ int main(int argc, char * argv[]) {
     
     //Main init
     if(!main_init()){
+        quit = true;
+    }
+    
+    if(!load_audio()){
         quit = true;
     }
 
@@ -192,7 +207,7 @@ int main(int argc, char * argv[]) {
 	
     bool return_to_previous_screen = false;     //For scores and credits menus
     bool select_return_to_previous_screen = false;     //For scores and credits menus
-	
+    
 	
 	//Game area control
     bool selected_left = false;//Right click equals to tower and left to minions.
@@ -2215,6 +2230,7 @@ int main(int argc, char * argv[]) {
                                     perform_path_verification(16, 5);
                                 }
                                 else{ // SUCCESS
+                                    Mix_PlayChannel( -1, build, 0 );
                                     new_turret = init_turret(avaliable_turrets, add_tower, current_position[0], current_position[1]);
                                     add_turret_to_list(turrets, new_turret);
                                     gold -= price;
@@ -2229,6 +2245,7 @@ int main(int argc, char * argv[]) {
 						//Add minion
 						new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
 						if(new_minion != NULL){
+                            Mix_PlayChannel( -1, spawn, 0 );
 							add_minion_to_list(minions, new_minion);
                             new_minion->node->xPos = 150;
                             new_minion->node->yPos = 600;
@@ -2247,6 +2264,7 @@ int main(int argc, char * argv[]) {
 						list_projectile *shoot = enemy->e->targetted_projectils;
 
 						if(minion_pos_value == 1){
+                            Mix_PlayChannel( -1, damage_taken, 0 );
 							enemy->e->HP = 0;
 							health--;
 							//Update player health if multiplayer
@@ -2259,6 +2277,7 @@ int main(int argc, char * argv[]) {
 						}
 						while (shoot && shoot->e) {
 							if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
+                                Mix_PlayChannel( -1, hit, 0 );
 								enemy->e->HP -= shoot->e->damage;
 								remove_projectile_from_list(shoot, shoot->e);
 							}
@@ -2566,6 +2585,12 @@ bool main_init(){
 		printf("SDLNet_Init error: %s\n", SDLNet_GetError());
         return false;
 	}
+    
+    //Init SDL_mixer
+    if( Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 ) == -1 )
+    {
+        return false;
+    }
     
     //Create window
     main_Window = SDL_CreateWindow("Grade Defender", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screen_Width, screen_Height, SDL_WINDOW_SHOWN);
@@ -3103,6 +3128,40 @@ bool main_init(){
     return true;
 }
 
+bool load_audio(){
+    //Load the music
+    music = Mix_LoadMUS( "../Audio/beat.mp3" );
+    
+    //If there was a problem loading the music
+    if( music == NULL )
+    {
+        return false;
+    }
+    
+    //Load the sound effects
+    hit = Mix_LoadWAV("../Audio/Hit.wav" );
+    damage_taken = Mix_LoadWAV( "../Audio/Damage Taken.wav" );
+    spawn = Mix_LoadWAV( "../Audio/Spawn.wav" );
+    build = Mix_LoadWAV( "../Audio/Build.wav" );
+    
+    //If there was a problem loading the sound effects
+    if( ( hit == NULL ) || ( damage_taken == NULL ) || ( spawn == NULL ) || ( build == NULL ) )
+    {
+        return false;
+    }
+    
+    if( Mix_PlayingMusic() == 0 )
+    {
+        //Play the music
+        if( Mix_PlayMusic( music, -1 ) == -1 )
+        {
+            return 1;
+        }
+    }
+    
+    return true;
+}
+
 //Encerra SDL
 void main_quit(){
     //Close fonts
@@ -3163,11 +3222,13 @@ void main_quit(){
     if(main_Window)
         SDL_DestroyWindow(main_Window);
     
-    //Quit SDL, SDLNet, TTF, IMG
+    //Quit SDL, SDLNet, TTF, IMG, SDL_Mixer
     IMG_Quit();
     TTF_Quit();
 	SDLNet_Quit();
     SDL_Quit();
+    Mix_HaltMusic();
+    Mix_CloseAudio();
 	
 	//free config
 	//free(config->language);
