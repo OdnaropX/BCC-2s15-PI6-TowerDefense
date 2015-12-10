@@ -35,11 +35,11 @@ Language *load_language(char *content, int index, char **name) {
 					current_phrase = current_phrase->next;
 				
 				current_phrase->next = malloc(sizeof(Phrase));
-				current_phrase->next->var = malloc(sizeof(char) * (i - previous + 1));
+				current_phrase->next->var = calloc((i - previous + 1), sizeof(char));
 				current_phrase->next->string = NULL;
 				current_phrase->next->next = NULL;
 				content[i] = '\0';
-				strncpy(current_phrase->next->var, &content[previous], (i - previous + 1));//Plus 1 because \0 wanst been copied. 
+				strncpy(current_phrase->next->var, &content[previous], (i - previous - 1));//Plus 1 because \0 wanst been copied. 
 				current_phrase = current_phrase->next;
 			}
 			previous = i + 1;
@@ -56,8 +56,8 @@ Language *load_language(char *content, int index, char **name) {
 			else {
 				//Add second part of string.
 				content[i] = '\0';
-				current_phrase->string = malloc(sizeof(char) * (i - previous + 1));
-				strncpy(current_phrase->string, &content[previous], (i - previous + 1));
+				current_phrase->string = calloc((i - previous + 1), sizeof(char));
+				strncpy(current_phrase->string, &content[previous], (i - previous -1));
 			}
 			previous = i + 1;
 		}
@@ -147,6 +147,7 @@ char *_(char *var){
 		if(strcmp(current_phrase->var, var) == 0){
 			return current_phrase->string;
 		}
+		current_phrase = current_phrase->next;
 	}
 	return var;
 }
