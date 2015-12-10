@@ -109,6 +109,7 @@ int health = DEFAULT_PLAYERS_LIFE;
 int gold = 1000;
 int mana = 0;
 float gold_per_second = 1;
+int minions_left = 184;
 
 //Avaliables
 list_minion_avaliable *avaliable_minions;
@@ -128,6 +129,11 @@ void reset_game_data();
 //Socket structure
 bool start_multiplay;
 int players[4];
+
+//Timer and spawn control
+int show_timer = 0;
+int timer_count = 0;
+int spawn_minion = 0;
 
 int main(int argc, char * argv[]) {
     bool quit = false;
@@ -226,9 +232,8 @@ int main(int argc, char * argv[]) {
     int monsterSpawner[] = {6, 8, 12, 14, 17, 18, 25, 16, 18, 50};
 	
 	//Wave control - 20 seconds, after 
-	int spawn_minion = 0;
 	int pending_wave_number = 0;
-	int timer_minion = 10;//20
+	int timer_minion = 20;
 	
 	int temp_option;
 	
@@ -252,8 +257,6 @@ int main(int argc, char * argv[]) {
 	//FPS and timer
     int t1, t2;
     int delay = 17; //Aprox. de 1000ms/60
-	int show_timer = 0;
-	int timer_count = 0;
 	int frame = 0;
 	
 	int seed = 1;
@@ -1578,9 +1581,7 @@ int main(int argc, char * argv[]) {
 				if(pending_wave_number > 0 && !multiplayer) {
 					srand((unsigned) time(&t));
 					total = get_minion_avaliable(avaliable_minions);
-					
-					//seed = get_minion_avaliable(avaliable_minions);
-					
+
 					if(seed > total){
 						seed = total;
 					}
@@ -2261,11 +2262,15 @@ int main(int argc, char * argv[]) {
 							if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
 								enemy->e->HP -= shoot->e->damage;
 								remove_projectile_from_list(shoot, shoot->e);
+								if(enemy->e->HP <= 0){
+									minions_left--;
+								}
 							}
 							else {
 								shoot = shoot->next;
 							}
 						}
+						
 						if(enemy->e->HP <= 0){ // Death of minions
 							if(enemy->e->targetted_projectils){
 								//Remove list from minion.
@@ -2306,8 +2311,6 @@ int main(int argc, char * argv[]) {
 								
                                 printf("Added projectile to list \n");
 
-                                
-
                                 turret->e->timeUntilNextAttack = 1.0;
                             }
                         }
@@ -2318,7 +2321,14 @@ int main(int argc, char * argv[]) {
                         current_screen = END_GAME;
                         game_started = false;
                         end_status = EGS_LOSE;
-                    }
+                    } 
+					else if(!multiplayer){
+						if(minions_left <= 0){
+							current_screen = END_GAME;
+							game_started = false;
+							end_status = EGS_WIN;
+						}
+					}
                 }
 				
                 break;
@@ -2376,9 +2386,16 @@ int main(int argc, char * argv[]) {
                 switch (end_game_option) {
                     case EG_NEW_GAME:
                         reset_game_data();
-                        show_timer = 0;
-                        current_screen = GAME_MULTIPLAY_SERVER;
-                        game_started = false;
+						
+						if(!multiplayer){
+							current_screen = GAME_RUNNING;
+							game_paused = false;
+							game_started = true;
+						}
+						else {
+							current_screen = GAME_MULTIPLAY_SERVER;
+							game_started = false;
+						}
                         break;
                         
                     case EG_MAIN:
@@ -2893,7 +2910,7 @@ bool main_init(){
                 text = _("Quit");
                 rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
-                
+				
             default:
                 break;
         }
@@ -3590,6 +3607,11 @@ void reset_game_data(){
     gold = 1000;
     mana = 0;
 	
+	minions_left = 184;
+	show_timer = 0;
+	timer_count = 0;
+	spawn_minion = 0;
+	 
 	//Reset current user data used on network.
 	if(thread_control){
 		SDL_AtomicLock(&thread_control->lock.user);

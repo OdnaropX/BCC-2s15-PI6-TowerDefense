@@ -321,7 +321,10 @@ void draw_screen_end_game(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect
         
         if(i == 0 || i == sel || i%2 == 1)
             SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+		
     }
+	if(assets[7])
+        SDL_DestroyTexture(assets[7]);
 }
 
 void draw_screen_multiplayer_menu(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, multiplayer_menu_options select_multiplayer_option){
