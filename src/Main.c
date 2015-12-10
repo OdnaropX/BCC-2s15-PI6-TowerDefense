@@ -3175,7 +3175,7 @@ void get_config_text(){
                 break;
                 
             case 5: case 6:
-				if(lang->loaded > 0) {
+				if(lang && lang->loaded > 0) {
 					if(config->language_default){
 						text = _("Language: English (Default)");
 					}
@@ -3212,7 +3212,7 @@ void get_config_text(){
             surface = TTF_RenderUTF8_Blended(font, text, white);
         
 		if(text && (i == 5 || i == 6)){
-			if(lang->loaded > 0) {
+			if(lang && lang->loaded > 0) {
 				free(text);
 				text = NULL;
 			}
