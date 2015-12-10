@@ -3647,7 +3647,7 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
 	SDL_Color color = {100,100,100,255};
 	int grey_color = 0;
 	char life[5];
-	
+	int len = 0;
     for(int i = 2; i < game_interface_assets_count - 1; i++){
         char *text = NULL;
         SDL_Rect rect;
@@ -3664,7 +3664,7 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
                 
                 SDL_AtomicLock(&thread_control->lock.comm);
 				if(index < data_shared->current_comm->match->players) {
-					int len = strlen(data_shared->current_comm->adversary[index].name);
+					len = strlen(data_shared->current_comm->adversary[index].name);
 					text = calloc(len + 8, sizeof(char));
 					sprintf(life, "%d", data_shared->current_comm->adversary[index].life);
 					strncpy(text, data_shared->current_comm->adversary[index].name, len);
@@ -3686,7 +3686,7 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
                 
                 SDL_AtomicLock(&thread_control->lock.comm);
 				if(index < data_shared->current_comm->match->players) {
-					int len = strlen(data_shared->current_comm->adversary[index].name);
+					len = strlen(data_shared->current_comm->adversary[index].name);
 					text = calloc(len + 8, sizeof(char));
 					sprintf(life, "%d", data_shared->current_comm->adversary[index].life);
 					strncpy(text, data_shared->current_comm->adversary[index].name, len);
@@ -3708,7 +3708,7 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
                 
                 SDL_AtomicLock(&thread_control->lock.comm);
 				if(index < data_shared->current_comm->match->players) {
-					int len = strlen(data_shared->current_comm->adversary[index].name);
+					len = strlen(data_shared->current_comm->adversary[index].name);
 					text = calloc(len + 8, sizeof(char));
 					sprintf(life, "%d", data_shared->current_comm->adversary[index].life);
 					strncpy(text, data_shared->current_comm->adversary[index].name, len);
@@ -3730,7 +3730,7 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
                 
                 SDL_AtomicLock(&thread_control->lock.comm);
 				if(index < data_shared->current_comm->match->players) {
-					int len = strlen(data_shared->current_comm->adversary[index].name);
+					len = strlen(data_shared->current_comm->adversary[index].name);
 					text = calloc(len + 8, sizeof(char));
 					sprintf(life, "%d", data_shared->current_comm->adversary[index].life);
 					strncpy(text, data_shared->current_comm->adversary[index].name, len);
@@ -3769,6 +3769,10 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
 					surface = TTF_RenderUTF8_Blended(font, text, red);
 				else
 					surface = TTF_RenderUTF8_Blended(font, text, white);
+			}
+			
+			if(len){
+				free(text);
 			}
 			
             if(!surface){

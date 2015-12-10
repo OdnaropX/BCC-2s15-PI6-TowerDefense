@@ -677,7 +677,7 @@ void game_status(){
 						winner_id = clients[i].id;
 					}
 				}
-				printf("Alive %d\n", alive);
+				//printf("Alive %d\n", alive);
 				if(alive == 1){
 					game_ended = 1;
 					//Send message of end game to users.
@@ -1345,6 +1345,7 @@ void handle_message(char *buffer, int handle_internal){
 		user_id = (int)*pointer;
 		
 		snprintf(buffer, BUFFER_LIMIT, "USER_LIFE\t%s", pointer);
+		printf("Buffer to send |%s|\n", buffer);
 		temp = 0;
 		connected = connected_clients;
 		for(i=0;i< MAX_CLIENT;i++){
@@ -1370,7 +1371,7 @@ void handle_message(char *buffer, int handle_internal){
 				temp++;
 			}
 		}
-		
+		printf("current handle %d\n", handle_internal);
 		//Update server game
 		if(!handle_internal){
 			pointer+=2;
