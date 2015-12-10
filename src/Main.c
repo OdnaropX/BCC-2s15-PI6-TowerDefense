@@ -123,7 +123,7 @@ void main_quit();
 void get_config_text();
 void get_multiplayer_texts(multiplayer_status current_status, int page);
 void set_end_game_status_text(end_game_status end_status);
-void get_multiplayer_game_names(int page);
+void get_multiplayer_game_names(int page, TTF_Font *font);
 void reset_game_data();
 
 //Socket structure
@@ -2192,7 +2192,7 @@ int main(int argc, char * argv[]) {
                                 break;
                                 
                             case TSO_NEXT_PAGE:
-                                if(players_current_page < (MAX_CLIENT)/4)
+                                if(players_current_page < (MAX_CLIENT) / 4)
                                     players_current_page++;
                                 break;
                                 
@@ -2323,7 +2323,7 @@ int main(int argc, char * argv[]) {
                         end_status = EGS_LOSE;
                     } 
 					else if(!multiplayer){
-						if(minions_left <= 0){
+						if(minions_left <= 0 || (minions_left - (DEFAULT_PLAYERS_LIFE - health)) <= 0){
 							current_screen = END_GAME;
 							game_started = false;
 							end_status = EGS_WIN;
@@ -2457,13 +2457,23 @@ int main(int argc, char * argv[]) {
                 screen_surfaces = SDL_CreateTextureFromSurface(renderer, main_Surface);
                 SDL_RenderCopy(renderer, screen_surfaces, NULL, &(SDL_Rect){0, 0, 1280, 720});
 			
+				if(multiplayer)
+					get_multiplayer_game_names(players_current_page, font);
+				
+				printf("Foi\n");
                 draw_screen_game_interface(renderer, game_interface_assets, game_interface_rects, game_interface_assets_count, select_running_option.multiplay.current_player, multiplayer);
                 
+				printf("Foi 2\n");
+				
 				display_mouse(renderer, select_Texture, active_clicked, selected_left, click_grid, select_grid, center_clicked, select_running_option, avaliable_minions, avaliable_turrets, multiplayer);
 				
+				printf("Foi 3\n");
                 display_health(renderer, health, font);
+				printf("Foi 4\n");
                 display_mana(renderer, mana, font);
+				printf("Foi 5\n");
                 display_gold(renderer, gold, font);
+				printf("Foi 6\n");
                 
                 break;
                 
@@ -2604,11 +2614,9 @@ bool main_init(){
     }
     
 	if(windows)
-		//font = TTF_OpenFont("fonts/8bitOperatorPlus-Regular.ttf", 30);
 		font = TTF_OpenFont("fonts/print_bold_tt.ttf", 140);
     else
 		font = TTF_OpenFont("../fonts/print_bold_tt.ttf", 140);
-		//font = TTF_OpenFont("../fonts/8bitOperatorPlus-Regular.ttf", 30);
 	
 	
     if(!font){
@@ -3125,6 +3133,9 @@ void main_quit(){
     //Close fonts
     if(font)
         TTF_CloseFont(font);
+	
+	if(title)
+        TTF_CloseFont(title);
     
     //Destroy textures
     for(int i = 0; i < main_menu_assets_count; i++){
@@ -3611,7 +3622,9 @@ void reset_game_data(){
 	show_timer = 0;
 	timer_count = 0;
 	spawn_minion = 0;
-	 
+	players_current_page = 0;
+	room_current_page = 0;
+	
 	//Reset current user data used on network.
 	if(thread_control){
 		SDL_AtomicLock(&thread_control->lock.user);
@@ -3691,7 +3704,8 @@ void set_end_game_status_text(end_game_status end_status){
     
 }
 
-void get_multiplayer_game_names(int page){
+void get_multiplayer_game_names(int page, TTF_Font *font){
+	int index;
     for(int i = 2; i < multiplayer_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
@@ -3704,36 +3718,40 @@ void get_multiplayer_game_names(int page){
                 break;
                 
             case 4: case 5:
-                text = data_shared->current_comm->adversary[page * 4].name;
-                
-                if(*text == '\0')
+				index = page * 4;
+				if(index < data_shared->current_comm->match->players)
+					text = data_shared->current_comm->adversary[index].name;
+                else 
                     text = "----------";
                 
                 rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 6: case 7:
-                text = data_shared->current_comm->adversary[page * 4 + 1].name;
-                
-                if(*text == '\0')
+				index = page * 4 + 1;
+				if(index < data_shared->current_comm->match->players)
+					text = data_shared->current_comm->adversary[index].name;
+                else
                     text = "----------";
                 
                 rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT * 2, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 8: case 9:
-                text = data_shared->current_comm->adversary[page * 4 + 2].name;
-                
-                if(*text == '\0')
+				index = page * 4 + 2;
+				if(index < data_shared->current_comm->match->players)
+					text = data_shared->current_comm->adversary[index].name;
+                else
                     text = "----------";
                 
                 rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT * 3, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 10: case 11:
-                text = data_shared->current_comm->adversary[page * 4 + 3].name;
-                
-                if(*text == '\0')
+				index = page * 4 + 3;
+				if(index < data_shared->current_comm->match->players)
+					text = data_shared->current_comm->adversary[index].name;
+                else
                     text = "----------";
                 
                 rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT * 4, 180, BUTTON_MENU_HEIGHT};
@@ -3769,9 +3787,10 @@ void get_multiplayer_game_names(int page){
             
             if(!game_interface_assets[i]){
                 printf("(Game Running)Text texture not rendered! %s\n", SDL_GetError());
+				SDL_FreeSurface(surface);
                 return;
             }
-            
+
             SDL_FreeSurface(surface);
         }
         
