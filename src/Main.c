@@ -89,6 +89,16 @@ SDL_Rect score_menu_rects[score_menu_assets_count];
 SDL_Texture *end_game_interface_assets[end_game_interface_assets_count];
 SDL_Rect end_game_interface_rects[end_game_interface_assets_count];
 
+//Audio part
+//OST
+Mix_Music *music = NULL;
+
+//SFX
+Mix_Chunk *hit = NULL;
+Mix_Chunk *damage_taken = NULL;
+Mix_Chunk *spawn = NULL;
+Mix_Chunk *build = NULL;
+
 //Multiplayer screen order: title, create room/start/ready(+sel), search room/leave room(+sel), back(+sel),
 //previous page(+sel), room list(4)(+sel), next page(+sel),
 //rooms, players, ready?, player list(4), ready list(4), status
@@ -120,11 +130,15 @@ list_projectile_avaliable *avaliable_projectiles;
 bool main_init();
 void main_quit();
 
+bool load_audio();
 void get_config_text();
 void get_multiplayer_texts(multiplayer_status current_status, int page);
 void set_end_game_status_text(end_game_status end_status);
 void get_multiplayer_game_names(int page, TTF_Font *font);
 void reset_game_data();
+bool render_texts();
+void destroy_rendered_texts();
+void reset_rendered_texts();
 
 //Socket structure
 bool start_multiplay;
@@ -140,6 +154,10 @@ int main(int argc, char * argv[]) {
     
     //Main init
     if(!main_init()){
+        quit = true;
+    }
+    
+    if(!load_audio()){
         quit = true;
     }
 
@@ -198,7 +216,7 @@ int main(int argc, char * argv[]) {
 	
     bool return_to_previous_screen = false;     //For scores and credits menus
     bool select_return_to_previous_screen = false;     //For scores and credits menus
-	
+    
 	
 	//Game area control
     bool selected_left = false;//Right click equals to tower and left to minions.
@@ -1656,9 +1674,6 @@ int main(int argc, char * argv[]) {
 			SDL_AtomicLock(&thread_control->lock.comm);
 			//-- Change, dont need this, use the global variable instead.
 			if(data_shared->current_comm){
-				if(data_shared->current_comm->server->searching){
-					network.searching = 1;
-				}
 				if(data_shared->current_comm->server->searching_finished){
 					network.searched = 1;
 				}
@@ -1675,7 +1690,7 @@ int main(int argc, char * argv[]) {
 					network.choose_server = 1;
 				}
 				
-				if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost) {
+				if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost || data_shared->current_comm->match->error) {
 					//Set current screen
 					current_screen = END_GAME;
 					//network.connection_failed = 1;
@@ -1684,6 +1699,17 @@ int main(int argc, char * argv[]) {
 						end_status = EGS_DC;
 						printf("Connection failed\n");
 					}
+					else if(data_shared->current_comm->match->error){
+						if(data_shared->current_comm->match->error == 1){
+							end_status = EGS_SFULL;
+							printf("Match full\n");
+						}
+						else {
+							printf("Match started\n");
+							end_status = EGS_GASTARTED;
+						}
+						printf("Connection match error\n");
+					}
 					else {
 						printf("Connection lost\n");
 						end_status = EGS_OPLEFT;
@@ -1691,7 +1717,6 @@ int main(int argc, char * argv[]) {
 					game_started = false;
 					
 					//Reset multiplay in back to menu or other.
-					
 				}
 				
 				if(data_shared->current_comm->match->can_start && !not_started){
@@ -2115,7 +2140,10 @@ int main(int argc, char * argv[]) {
 						break;
 					case LANGUAGE:
 						//Change select language
-						
+						config->language = (config->language + 1) % lang->loaded;
+						config->language_default = 0;
+						reset_rendered_texts();
+						get_config_text();
 						break;
 						
 					case BACK:
@@ -2216,6 +2244,7 @@ int main(int argc, char * argv[]) {
                                     perform_path_verification(16, 5);
                                 }
                                 else{ // SUCCESS
+                                    Mix_PlayChannel( -1, build, 0 );
                                     new_turret = init_turret(avaliable_turrets, add_tower, current_position[0], current_position[1]);
                                     add_turret_to_list(turrets, new_turret);
                                     gold -= price;
@@ -2230,6 +2259,7 @@ int main(int argc, char * argv[]) {
 						//Add minion
 						new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
 						if(new_minion != NULL){
+                            Mix_PlayChannel( -1, spawn, 0 );
 							add_minion_to_list(minions, new_minion);
                             new_minion->node->xPos = 150;
                             new_minion->node->yPos = 600;
@@ -2248,6 +2278,7 @@ int main(int argc, char * argv[]) {
 						list_projectile *shoot = enemy->e->targetted_projectils;
 
 						if(minion_pos_value == 1){
+                            Mix_PlayChannel( -1, damage_taken, 0 );
 							enemy->e->HP = 0;
 							health--;
 							//Update player health if multiplayer
@@ -2260,6 +2291,7 @@ int main(int argc, char * argv[]) {
 						}
 						while (shoot && shoot->e) {
 							if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
+                                Mix_PlayChannel( -1, hit, 0 );
 								enemy->e->HP -= shoot->e->damage;
 								remove_projectile_from_list(shoot, shoot->e);
 								if(enemy->e->HP <= 0){
@@ -2383,25 +2415,217 @@ int main(int argc, char * argv[]) {
                 break;
                 
             case END_GAME:
+				ignore_next_command = 0;
+				
                 switch (end_game_option) {
                     case EG_NEW_GAME:
-                        reset_game_data();
-						
-						if(!multiplayer){
-							current_screen = GAME_RUNNING;
-							game_paused = false;
-							game_started = true;
-						}
-						else {
-							current_screen = GAME_MULTIPLAY_SERVER;
-							game_started = false;
+						switch(end_status){
+							//Case this was showed from game room full or game already started.
+							case EGS_GASTARTED: case EGS_SFULL: 
+								//End thread.
+								if(thread_control){
+									ignore_next_command = 1;
+									SDL_AtomicLock(&thread_control->lock.control);
+									if(thread_control->server.pointer || thread_control->server.alive){
+										thread_control->server.terminate = 1;
+										//printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+									}
+									else if(thread_control->client.pointer || thread_control->client.alive){
+										thread_control->client.terminate = 1;
+										//printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+									}
+									else if(thread_control->udp.pointer || thread_control->udp.alive){
+										thread_control->udp.terminate = 1;
+										printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+									}
+									else {
+										printf("Threads killed!!\n");
+										ignore_next_command = 0;
+										end_status = EGS_NONE;
+														
+										current_screen = GAME_MULTIPLAY_SERVER;
+										game_started = false;
+										
+										reset_game_data();
+										
+										//Reset screen options.
+										multiplayer_option = MP_NONE;
+										multiplayer_status = MPS_NONE;
+										room_current_page = 0;
+									}
+									SDL_AtomicUnlock(&thread_control->lock.control);
+								}
+								else {
+									current_screen = GAME_MULTIPLAY_SERVER;
+									game_started = false;
+									reset_game_data();
+									
+									//Reset screen options.
+									multiplayer_option = MP_NONE;
+									multiplayer_status = MPS_NONE;
+									room_current_page = 0;
+								}
+								
+								break;
+							case EGS_LOSE: case EGS_WIN: case EGS_DC: case EGS_OPLEFT:
+								if(!multiplayer){
+									current_screen = GAME_RUNNING;
+									game_paused = false;
+									game_started = true;
+									reset_game_data();
+								}
+								else {
+									//Close thread.
+									if(thread_control){
+										ignore_next_command = 1;
+										SDL_AtomicLock(&thread_control->lock.control);
+										if(thread_control->server.pointer || thread_control->server.alive){
+											thread_control->server.terminate = 1;
+											//printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+										}
+										else if(thread_control->client.pointer || thread_control->client.alive){
+											thread_control->client.terminate = 1;
+											//printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+										}
+										else if(thread_control->udp.pointer || thread_control->udp.alive){
+											thread_control->udp.terminate = 1;
+											printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+										}
+										else {
+											printf("Threads killed!!\n");
+											ignore_next_command = 0;
+											end_status = EGS_NONE;
+															
+											current_screen = GAME_MULTIPLAY_SERVER;
+											previous_screen = MAIN;
+											game_started = false;
+											
+											reset_game_data();
+											
+											//Reset screen options.
+											multiplayer_option = MP_NONE;
+											multiplayer_status = MPS_NONE;
+											room_current_page = 0;
+										}
+										SDL_AtomicUnlock(&thread_control->lock.control);
+									}
+									else {
+										current_screen = GAME_MULTIPLAY_SERVER;
+										game_started = false;
+										reset_game_data();
+										
+										//Reset screen options.
+										multiplayer_option = MP_NONE;
+										multiplayer_status = MPS_NONE;
+										room_current_page = 0;
+									}
+								}
+								break;
 						}
                         break;
                         
                     case EG_MAIN:
-                        reset_game_data();
-                        current_screen = MAIN;
-                        game_started = false;
+						switch(end_status){
+							case EGS_GASTARTED: case EGS_SFULL: 
+								//End thread.
+								if(thread_control){
+									ignore_next_command = 1;
+									SDL_AtomicLock(&thread_control->lock.control);
+									if(thread_control->server.pointer || thread_control->server.alive){
+										thread_control->server.terminate = 1;
+										//printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+									}
+									else if(thread_control->client.pointer || thread_control->client.alive){
+										thread_control->client.terminate = 1;
+										//printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+									}
+									else if(thread_control->udp.pointer || thread_control->udp.alive){
+										thread_control->udp.terminate = 1;
+										printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+									}
+									else {
+										printf("Threads killed!!\n");
+										ignore_next_command = 0;
+										end_status = EGS_NONE;
+														
+										current_screen = MAIN;
+										previous_screen = MAIN;
+										game_started = false;
+										
+										reset_game_data();
+										
+										//Reset screen options.
+										multiplayer_option = MP_NONE;
+										multiplayer_status = MPS_NONE;
+										room_current_page = 0;
+									}
+									SDL_AtomicUnlock(&thread_control->lock.control);
+								}
+								else {
+									current_screen = MAIN;
+									game_started = false;
+									reset_game_data();
+									
+									//Reset screen options.
+									multiplayer_option = MP_NONE;
+									multiplayer_status = MPS_NONE;
+									room_current_page = 0;
+								}
+								break;
+							case EGS_LOSE: case EGS_WIN: case EGS_DC: case EGS_OPLEFT:
+								if(!multiplayer){
+									current_screen = MAIN;
+									game_paused = false;
+									game_started = false;
+									reset_game_data();
+								}
+								else {
+									//Close thread.
+									if(thread_control){
+										ignore_next_command = 1;
+										SDL_AtomicLock(&thread_control->lock.control);
+										if(thread_control->server.pointer || thread_control->server.alive){
+											thread_control->server.terminate = 1;
+											//printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+										}
+										else if(thread_control->client.pointer || thread_control->client.alive){
+											thread_control->client.terminate = 1;
+											//printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+										}
+										else if(thread_control->udp.pointer || thread_control->udp.alive){
+											thread_control->udp.terminate = 1;
+											printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+										}
+										else {
+											printf("Threads killed!!\n");
+											ignore_next_command = 0;
+											end_status = EGS_NONE;
+															
+											current_screen = MAIN;
+											game_started = false;
+											
+											reset_game_data();
+											
+											//Reset screen options.
+											multiplayer_option = MP_NONE;
+											multiplayer_status = MPS_NONE;
+											room_current_page = 0;
+										}
+										SDL_AtomicUnlock(&thread_control->lock.control);
+									}
+									else {
+										current_screen = MAIN;
+										game_started = false;
+										reset_game_data();
+										
+										//Reset screen options.
+										multiplayer_option = MP_NONE;
+										multiplayer_status = MPS_NONE;
+										room_current_page = 0;
+									}
+								}
+								break;
+						}
                         break;
                         
                     case EG_QUIT:
@@ -2414,7 +2638,8 @@ int main(int argc, char * argv[]) {
                 
                 set_end_game_status_text(end_status);
                 
-                end_game_option = EG_NONE;
+				if(!ignore_next_command)
+					end_game_option = EG_NONE;
                 break;
             default:
                 break;
@@ -2553,7 +2778,6 @@ bool main_init(){
 	}
 	
 	
-	
 	if (strcmp(audio_sfx, "true")){
 		config->audio_sfx = true;
 	}
@@ -2586,6 +2810,12 @@ bool main_init(){
 		printf("SDLNet_Init error: %s\n", SDLNet_GetError());
         return false;
 	}
+    
+    //Init SDL_mixer
+    if( Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 ) == -1 )
+    {
+        return false;
+    }
     
     //Create window
     main_Window = SDL_CreateWindow("Grade Defender", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screen_Width, screen_Height, SDL_WINDOW_SHOWN);
@@ -2628,331 +2858,10 @@ bool main_init(){
         return false;
     }
 	
-    int i = 0;
-	
-    //Init main menu assets
-    for(i = 0; i < main_menu_assets_count; i++){
-        char *text = NULL;
-        SDL_Rect rect;
-        
-        switch (i) {
-            case 0:
-                text = _("Grade Defender");
-                rect = (SDL_Rect){265, 0, 750, 150};
-                break;
-                
-            case 1: case 2:
-                text = _("Play");
-                rect = (SDL_Rect){980, 450, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 3: case 4:
-                text = _("Multiplayer");
-                rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 5: case 6:
-                text = _("Config");
-                rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 7: case 8:
-                text = _("Score");
-                rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 9: case 10:
-                text = _("Credits");
-                rect = (SDL_Rect){30, 450 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 11: case 12:
-                text = _("Exit");
-                rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            default:
-                break;
-        }
-        
-        main_menu_rects[i] = rect;
-        
-        SDL_Surface *surface;
-        
-        if(i%2 == 0 && i > 0)
-            surface = TTF_RenderText_Blended(font, text, red);
-        else
-            surface = TTF_RenderText_Blended(font, text, white);
-        
-        if(!surface){
-            printf("(Main)Text not rendered! %s\n", TTF_GetError());
-            return false;
-        }
-        
-        main_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
-        
-        if(!main_menu_assets[i]){
-            printf("(Main)Text texture not rendered! %s\n", SDL_GetError());
-            return false;
-        }
-        
-        SDL_FreeSurface(surface);
-    }
-	
-	//Init config screen assets
-    get_config_text();
-	
-	//Init game paused screen assets
-    for(int i = 0; i < pause_interface_assets_count; i++){
-        char *text = NULL;
-        SDL_Rect rect;
-        
-        switch(i){
-            case 0:
-                rect = (SDL_Rect){0, 0, 1280, 720};
-                break;
-                
-            case 1: case 2:
-                text = _("Resume");
-                rect = (SDL_Rect){515, 270, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 3: case 4:
-                text = _("Config");
-                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 5: case 6:
-                text = _("Score");
-                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 7: case 8:
-                text = _("Exit");
-                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 9: case 10:
-                text = _("Main Menu");
-                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 11: case 12:
-                text = _("Credits");
-                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            default:
-                break;
-        }
-        
-        pause_interface_rects[i] = rect;
-        
-        SDL_Surface *surface;
-        if(i == 0){
-			if(windows)
-				surface = IMG_Load("images/Pause Menu.png");
-			else
-				surface = IMG_Load("../images/Pause Menu.png");
-			
-            if(!surface){
-                printf("(Game pause)Erro ao carregar pause menu! %s\n", IMG_GetError());
-                return false;
-            }
-        }
-        
-        else{
-            if(i%2 == 0 && i > 0)
-                surface = TTF_RenderText_Blended(font, text, red);
-            else
-                surface = TTF_RenderText_Blended(font, text, white);
-            
-            if(!surface){
-                printf("(Game pause)Text not rendered! %s\n", TTF_GetError());
-                return false;
-            }
-        }
-        
-        pause_interface_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
-        
-        if(!pause_interface_assets[i]){
-            printf("(Game pause)Erro ao criar textura! %s\n", SDL_GetError());
-            return false;
-        }
-        
-        SDL_FreeSurface(surface);
-    }
-	
-	//Init game credits screen assets
-    for(int i = 0; i < credits_menu_assets_count; i++){
-        char *text = NULL;
-        SDL_Rect rect;
-        
-        switch (i) {
-            case 0:
-                text = _("Credits");
-                rect = (SDL_Rect){265, 0, 750, 150};
-                break;
-                
-            case 1:
-                text = _("Made by:");
-                rect = (SDL_Rect){195, 360 - BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 2:
-                text = "    Danilo Makoto Ikuta";
-                rect = (SDL_Rect){195, 360 - BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 3:
-                text = "    Gabriel Fontenelle";
-                rect = (SDL_Rect){195, 360, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 4:
-                text = "    Gabriel Nopper";
-                rect = (SDL_Rect){195, 360 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 5: case 6:
-                text = _("Back");
-                rect = (SDL_Rect){595, 650, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            default:
-                break;
-        }
-        
-        credits_menu_rects[i] = rect;
-        
-        SDL_Surface *surface;
-        if(i == 6)
-            surface = TTF_RenderText_Blended(font, text, red);
-        else
-            surface = TTF_RenderText_Blended(font, text, white);
-        
-        if(!surface){
-            printf("(Credits)Text not rendered! %s\n", TTF_GetError());
-            return false;
-        }
-        
-        credits_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
-        if(!credits_menu_assets[i]){
-            printf("(Credits)Erro ao criar textura! %s\n", SDL_GetError());
-            return false;
-        }
-        
-        SDL_FreeSurface(surface);
-    }
-	
-	//Init game score screen assets
-    for(int i = 0; i < score_menu_assets_count; i++){
-        char *text = NULL;
-        SDL_Rect rect;
-        
-        switch (i) {
-            case 0:
-                text = _("Score");
-                rect = (SDL_Rect){265, 0, 750, 150};
-                break;
-                
-            case 1: case 2:
-                text = _("Back");
-                rect = (SDL_Rect){595, 650, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            default:
-                break;
-        }
-        
-        score_menu_rects[i] = rect;
-        
-        SDL_Surface *surface;
-        if(i == 2)
-            surface = TTF_RenderText_Blended(font, text, red);
-        else
-            surface = TTF_RenderText_Blended(font, text, white);
-        
-        if(!surface){
-            printf("(Score)Text not rendered! %s\n", TTF_GetError());
-            return false;
-        }
-        
-        score_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
-        if(!score_menu_assets[i]){
-            printf("(Score)Erro ao criar textura! %s\n", SDL_GetError());
-            return false;
-        }
-        
-        SDL_FreeSurface(surface);
-    }
-    
-    //Init end game screen assets, except status
-    for(int i = 0; i < end_game_interface_assets_count - 1; i++){
-        char *text = NULL;
-        SDL_Rect rect;
-        
-        switch (i) {
-            case 0:
-                rect = (SDL_Rect){0, 0, 1280, 720};
-                break;
-                
-            case 1: case 2:
-                text = _("Retry");
-                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-                
-            case 3: case 4:
-                text = _("Main Menu");
-                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-            
-            case 5: case 6:
-                text = _("Quit");
-                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
-                break;
-				
-            default:
-                break;
-        }
-        
-        end_game_interface_rects[i] = rect;
-        
-        SDL_Surface *surface;
-        if(i == 0){
-			if(windows) {
-				surface = IMG_Load("../images/End Game.png");
-			}
-			else {
-				surface = IMG_Load("../images/End Game.png");
-			}
-				
-            if(!surface){
-                printf("(End game)Erro ao carregar end game menu! %s\n", IMG_GetError());
-                return false;
-            }
-        }
-        
-        else{
-            if(i%2 == 0 && i > 0)
-                surface = TTF_RenderText_Blended(font, text, red);
-            else
-                surface = TTF_RenderText_Blended(font, text, white);
-            
-            if(!surface){
-                printf("(End game)Text not rendered! %s\n", TTF_GetError());
-                return false;
-            }
-        }
-        
-        end_game_interface_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
-        if(!end_game_interface_assets[i]){
-            printf("(End game)Erro ao criar textura! %s\n", SDL_GetError());
-            return false;
-        }
-        
-        SDL_FreeSurface(surface);
-    }
+	bool render = render_texts();
+	if(!render){
+		return false;
+	}
 	
 	//Init map
     map_Surface = init_map();
@@ -2972,8 +2881,6 @@ bool main_init(){
 	else {
 		pause_surface = IMG_Load("../images/Pause.png");
 	}
-		
-		
 	
     if(!pause_surface){
         printf("Falha ao carregar botão de pause! %s\n", IMG_GetError());
@@ -2998,7 +2905,6 @@ bool main_init(){
 	else {
 		right_bar_surface = IMG_Load("../images/Right Bar.png");
 	}
-		
 		
 	
     if(!right_bar_surface){
@@ -3121,6 +3027,40 @@ bool main_init(){
     return true;
 }
 
+bool load_audio(){
+    //Load the music
+    music = Mix_LoadMUS( "../Audio/beat.mp3" );
+    
+    //If there was a problem loading the music
+    if( music == NULL )
+    {
+        return false;
+    }
+    
+    //Load the sound effects
+    hit = Mix_LoadWAV("../Audio/Hit.wav" );
+    damage_taken = Mix_LoadWAV( "../Audio/Damage Taken.wav" );
+    spawn = Mix_LoadWAV( "../Audio/Spawn.wav" );
+    build = Mix_LoadWAV( "../Audio/Build.wav" );
+    
+    //If there was a problem loading the sound effects
+    if( ( hit == NULL ) || ( damage_taken == NULL ) || ( spawn == NULL ) || ( build == NULL ) )
+    {
+        return false;
+    }
+    
+    if( Mix_PlayingMusic() == 0 )
+    {
+        //Play the music
+        if( Mix_PlayMusic( music, -1 ) == -1 )
+        {
+            return 1;
+        }
+    }
+    
+    return true;
+}
+
 //Encerra SDL
 void main_quit(){
     //Close fonts
@@ -3131,44 +3071,11 @@ void main_quit(){
         TTF_CloseFont(title);
     
     //Destroy textures
-    for(int i = 0; i < main_menu_assets_count; i++){
-        if(main_menu_assets[i])
-            SDL_DestroyTexture(main_menu_assets[i]);
-    }
-    
-    for(int i = 0; i < config_menu_assets_count; i++){
-        if(config_menu_assets[i])
-            SDL_DestroyTexture(config_menu_assets[i]);
-    }
+    destroy_rendered_texts();
     
     for(int i = 0; i < game_interface_assets_count; i++){
         if(game_interface_assets[i])
             SDL_DestroyTexture(game_interface_assets[i]);
-    }
-    
-    for(int i = 0; i < pause_interface_assets_count; i++){
-        if(pause_interface_assets[i])
-            SDL_DestroyTexture(pause_interface_assets[i]);
-    }
-    
-    for(int i = 0; i < credits_menu_assets_count; i++){
-        if(credits_menu_assets[i])
-            SDL_DestroyTexture(credits_menu_assets[i]);
-    }
-    
-    for(int i = 0; i < score_menu_assets_count; i++){
-        if(score_menu_assets[i])
-            SDL_DestroyTexture(score_menu_assets[i]);
-    }
-    
-    for(int i = 0; i < end_game_interface_assets_count; i++){
-        if(end_game_interface_assets[i])
-            SDL_DestroyTexture(end_game_interface_assets[i]);
-    }
-    
-    for(int i = 0; i < multiplayer_menu_assets_count; i++){
-        if(multiplayer_menu_assets[i])
-            SDL_DestroyTexture(multiplayer_menu_assets[i]);
     }
     
     //////free surfaces
@@ -3184,11 +3091,13 @@ void main_quit(){
     if(main_Window)
         SDL_DestroyWindow(main_Window);
     
-    //Quit SDL, SDLNet, TTF, IMG
+    //Quit SDL, SDLNet, TTF, IMG, SDL_Mixer
     IMG_Quit();
     TTF_Quit();
 	SDLNet_Quit();
     SDL_Quit();
+    Mix_HaltMusic();
+    Mix_CloseAudio();
 	
 	//free config
 	//free(config->language);
@@ -3270,7 +3179,20 @@ void get_config_text(){
                 break;
                 
             case 5: case 6:
-                text = _("Language");
+				if(lang && lang->loaded > 0) {
+					if(config->language_default){
+						text = _("Language: English (Default)");
+					}
+					else {
+						int len = strlen(lang->names[config->language]);
+						text = calloc((11 + len + 1), sizeof(char));
+						strncpy(text, _("Language"), 8);
+						strncat(text, ": ", 2);
+						strncat(text, lang->names[config->language], len - 1);//zero to len, so zero to len -1.
+					}
+				}
+				else 
+					text = _("Language Default Only");
                 
                 rect = (SDL_Rect){515, 150 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
                 break;
@@ -3289,10 +3211,17 @@ void get_config_text(){
         
         SDL_Surface *surface;
         if(i%2 == 0 && i > 0)
-            surface = TTF_RenderText_Blended(font, text, red);
+            surface = TTF_RenderUTF8_Blended(font, text, red);
         else
-            surface = TTF_RenderText_Blended(font, text, white);
+            surface = TTF_RenderUTF8_Blended(font, text, white);
         
+		if(text && (i == 5 || i == 6)){
+			if(lang && lang->loaded > 0) {
+				free(text);
+				text = NULL;
+			}
+		}
+		
         if(!surface){
             printf("(Config)Text not rendered! %s\n", TTF_GetError());
             return;
@@ -3552,9 +3481,9 @@ void get_multiplayer_texts(multiplayer_status current_status, int page){
         if(text){
             SDL_Surface *surface;
             if(i%2 == 0 && i > 0 && i <= 18)
-                surface = TTF_RenderText_Blended(font, text, red);
+                surface = TTF_RenderUTF8_Blended(font, text, red);
             else
-                surface = TTF_RenderText_Blended(font, text, white);
+                surface = TTF_RenderUTF8_Blended(font, text, white);
             
             if(!surface){
                 printf("(Multiplayer)Text not rendered! %s\n", TTF_GetError());
@@ -3668,7 +3597,15 @@ void set_end_game_status_text(end_game_status end_status){
         case EGS_OPLEFT:
             text = _("YOUR OPPONENT LEFT!");
             break;
-            
+			
+		case EGS_SFULL:
+			text = _("ROOM ALREADY FULL!");
+            break;
+			
+		case EGS_GASTARTED:
+			text = _("GAME ALREADY STARTED!");
+            break;
+
         case EGS_NONE:
             text = "wAT?!";
             break;
@@ -3679,7 +3616,7 @@ void set_end_game_status_text(end_game_status end_status){
     
     end_game_interface_rects[7] = (SDL_Rect){265, 270, BUTTON_MENU_WIDTH * 3, BUTTON_MENU_HEIGHT * 3};
     
-    SDL_Surface *surface = TTF_RenderText_Blended(font, text, white);
+    SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, white);
     
     if(!surface){
         printf("(End game)Text not rendered! %s\n", TTF_GetError());
@@ -3777,9 +3714,9 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
         if(text){
             SDL_Surface *surface;
             if(i%2 == 1)
-                surface = TTF_RenderText_Blended(font, text, red);
+                surface = TTF_RenderUTF8_Blended(font, text, red);
             else
-                surface = TTF_RenderText_Blended(font, text, white);
+                surface = TTF_RenderUTF8_Blended(font, text, white);
             
             if(!surface){
                 printf("(Game Running)Text not rendered! %s\n", TTF_GetError());
@@ -3802,4 +3739,383 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
         else
             game_interface_assets[i] = NULL;
     }
+}
+
+bool render_texts(){
+	int i = 0;
+	 
+    //Init main menu assets
+    for(i = 0; i < main_menu_assets_count; i++){
+        char *text = NULL;
+        SDL_Rect rect;
+        
+        switch (i) {
+            case 0:
+                text = _("Grade Defender");
+                rect = (SDL_Rect){265, 0, 750, 150};
+                break;
+                
+            case 1: case 2:
+                text = _("Play");
+                rect = (SDL_Rect){980, 450, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 3: case 4:
+                text = _("Multiplayer");
+                rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 5: case 6:
+                text = _("Config");
+                rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 7: case 8:
+                text = _("Score");
+                rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 9: case 10:
+                text = _("Credits");
+                rect = (SDL_Rect){30, 450 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 11: case 12:
+                text = _("Exit");
+                rect = (SDL_Rect){980, 450 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            default:
+                break;
+        }
+        
+        main_menu_rects[i] = rect;
+        
+        SDL_Surface *surface;
+        
+        if(i%2 == 0 && i > 0)
+            surface = TTF_RenderUTF8_Blended(font, text, red);
+        else
+            surface = TTF_RenderUTF8_Blended(font, text, white);
+        
+        if(!surface){
+            printf("(Main)Text not rendered! %s\n", TTF_GetError());
+            return false;
+        }
+        
+        main_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        
+        if(!main_menu_assets[i]){
+            printf("(Main)Text texture not rendered! %s\n", SDL_GetError());
+            return false;
+        }
+        
+        SDL_FreeSurface(surface);
+    }
+	
+	//Init config screen assets
+    get_config_text();
+	
+	//Init game paused screen assets
+    for(int i = 0; i < pause_interface_assets_count; i++){
+        char *text = NULL;
+        SDL_Rect rect;
+        
+        switch(i){
+            case 0:
+                rect = (SDL_Rect){0, 0, 1280, 720};
+                break;
+                
+            case 1: case 2:
+                text = _("Resume");
+                rect = (SDL_Rect){515, 270, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 3: case 4:
+                text = _("Config");
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 5: case 6:
+                text = _("Score");
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 7: case 8:
+                text = _("Exit");
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 9: case 10:
+                text = _("Main Menu");
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 11: case 12:
+                text = _("Credits");
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            default:
+                break;
+        }
+        
+        pause_interface_rects[i] = rect;
+        
+        SDL_Surface *surface;
+        if(i == 0){
+			if(windows)
+				surface = IMG_Load("images/Pause Menu.png");
+			else
+				surface = IMG_Load("../images/Pause Menu.png");
+			
+            if(!surface){
+                printf("(Game pause)Erro ao carregar pause menu! %s\n", IMG_GetError());
+                return false;
+            }
+        }
+        
+        else{
+            if(i%2 == 0 && i > 0)
+                surface = TTF_RenderUTF8_Blended(font, text, red);
+            else
+                surface = TTF_RenderUTF8_Blended(font, text, white);
+            
+            if(!surface){
+                printf("(Game pause)Text not rendered! %s\n", TTF_GetError());
+                return false;
+            }
+        }
+        
+        pause_interface_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        
+        if(!pause_interface_assets[i]){
+            printf("(Game pause)Erro ao criar textura! %s\n", SDL_GetError());
+            return false;
+        }
+        
+        SDL_FreeSurface(surface);
+    }
+	
+	//Init game credits screen assets
+    for(int i = 0; i < credits_menu_assets_count; i++){
+        char *text = NULL;
+        SDL_Rect rect;
+        
+        switch (i) {
+            case 0:
+                text = _("Credits");
+                rect = (SDL_Rect){265, 0, 750, 150};
+                break;
+                
+            case 1:
+                text = _("Made by:");
+                rect = (SDL_Rect){195, 360 - BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 2:
+                text = "    Danilo Makoto Ikuta";
+                rect = (SDL_Rect){195, 360 - BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 3:
+                text = "    Gabriel Fontenelle";
+                rect = (SDL_Rect){195, 360, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 4:
+                text = "    Gabriel Nopper";
+                rect = (SDL_Rect){195, 360 + BUTTON_MENU_HEIGHT * 2, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 5: case 6:
+                text = _("Back");
+                rect = (SDL_Rect){595, 650, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            default:
+                break;
+        }
+        
+        credits_menu_rects[i] = rect;
+        
+        SDL_Surface *surface;
+        if(i == 6)
+            surface = TTF_RenderUTF8_Blended(font, text, red);
+        else
+            surface = TTF_RenderUTF8_Blended(font, text, white);
+        
+        if(!surface){
+            printf("(Credits)Text not rendered! %s\n", TTF_GetError());
+            return false;
+        }
+        
+        credits_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        if(!credits_menu_assets[i]){
+            printf("(Credits)Erro ao criar textura! %s\n", SDL_GetError());
+            return false;
+        }
+        
+        SDL_FreeSurface(surface);
+    }
+	
+	//Init game score screen assets
+    for(int i = 0; i < score_menu_assets_count; i++){
+        char *text = NULL;
+        SDL_Rect rect;
+        
+        switch (i) {
+            case 0:
+                text = _("Score");
+                rect = (SDL_Rect){265, 0, 750, 150};
+                break;
+                
+            case 1: case 2:
+                text = _("Back");
+                rect = (SDL_Rect){595, 650, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            default:
+                break;
+        }
+        
+        score_menu_rects[i] = rect;
+        
+        SDL_Surface *surface;
+        if(i == 2)
+            surface = TTF_RenderUTF8_Blended(font, text, red);
+        else
+            surface = TTF_RenderUTF8_Blended(font, text, white);
+        
+        if(!surface){
+            printf("(Score)Text not rendered! %s\n", TTF_GetError());
+            return false;
+        }
+        
+        score_menu_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        if(!score_menu_assets[i]){
+            printf("(Score)Erro ao criar textura! %s\n", SDL_GetError());
+            return false;
+        }
+        
+        SDL_FreeSurface(surface);
+    }
+    
+    //Init end game screen assets, except status
+    for(int i = 0; i < end_game_interface_assets_count - 1; i++){
+        char *text = NULL;
+        SDL_Rect rect;
+        
+        switch (i) {
+            case 0:
+                rect = (SDL_Rect){0, 0, 1280, 720};
+                break;
+                
+            case 1: case 2:
+                text = _("Retry");
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 3, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+                
+            case 3: case 4:
+                text = _("Main Menu");
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 4, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+            
+            case 5: case 6:
+                text = _("Quit");
+                rect = (SDL_Rect){515, 270 + BUTTON_MENU_HEIGHT * 5, BUTTON_MENU_WIDTH, BUTTON_MENU_HEIGHT};
+                break;
+				
+            default:
+                break;
+        }
+        
+        end_game_interface_rects[i] = rect;
+        
+        SDL_Surface *surface;
+        if(i == 0){
+			if(windows) {
+				surface = IMG_Load("../images/End Game.png");
+			}
+			else {
+				surface = IMG_Load("../images/End Game.png");
+			}
+				
+            if(!surface){
+                printf("(End game)Erro ao carregar end game menu! %s\n", IMG_GetError());
+                return false;
+            }
+        }
+        
+        else{
+            if(i%2 == 0 && i > 0)
+                surface = TTF_RenderUTF8_Blended(font, text, red);
+            else
+                surface = TTF_RenderUTF8_Blended(font, text, white);
+            
+            if(!surface){
+                printf("(End game)Text not rendered! %s\n", TTF_GetError());
+                return false;
+            }
+        }
+        
+        end_game_interface_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        if(!end_game_interface_assets[i]){
+            printf("(End game)Erro ao criar textura! %s\n", SDL_GetError());
+            return false;
+        }
+        
+        SDL_FreeSurface(surface);
+    }
+	
+	return true;
+	
+	
+}
+
+void destroy_rendered_texts(){
+	//Destroy textures
+	
+    for(int i = 0; i < main_menu_assets_count; i++){
+        if(main_menu_assets[i])
+            SDL_DestroyTexture(main_menu_assets[i]);
+    }
+	
+	for(int i = 0; i < config_menu_assets_count; i++){
+        if(config_menu_assets[i])
+            SDL_DestroyTexture(config_menu_assets[i]);
+    }
+	
+	for(int i = 0; i < pause_interface_assets_count; i++){
+        if(pause_interface_assets[i])
+            SDL_DestroyTexture(pause_interface_assets[i]);
+    }
+	  
+    for(int i = 0; i < credits_menu_assets_count; i++){
+        if(credits_menu_assets[i])
+            SDL_DestroyTexture(credits_menu_assets[i]);
+    }
+	    
+	for(int i = 0; i < score_menu_assets_count; i++){
+        if(score_menu_assets[i])
+            SDL_DestroyTexture(score_menu_assets[i]);
+    }
+	
+	//Maybe error here
+	for(int i = 0; i < end_game_interface_assets_count; i++){
+        if(end_game_interface_assets[i])
+            SDL_DestroyTexture(end_game_interface_assets[i]);
+    }
+	
+	for(int i = 0; i < multiplayer_menu_assets_count; i++){
+		if(multiplayer_menu_assets[i])
+			SDL_DestroyTexture(multiplayer_menu_assets[i]);
+	}
+	
+}
+
+void reset_rendered_texts(){
+	destroy_rendered_texts();
+	//get_multiplayer_texts(MPS_NONE, 0);
+	render_texts();
 }

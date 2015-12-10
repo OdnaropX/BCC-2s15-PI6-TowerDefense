@@ -27,7 +27,7 @@
 	#define BUFFER_LIMIT 512
 	#define SERVER_NAME 150
 	#define MAX_SERVER 4//Change to get from config file.
-	#define MAX_CLIENT 3//4 Players in total.
+	#define MAX_CLIENT 1//4 Players in total.
 	#define SERVER_USER_RESPONSE_DELAY 30//Aprox. de 1000ms/60
 	
 	//Structs
