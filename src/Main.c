@@ -3811,6 +3811,6 @@ void destroy_rendered_texts(){
 }
 
 void reset_rendered_texts(){
-	//destroy_rendered_texts();
-	bool render_texts();
+	destroy_rendered_texts();
+	render_texts();
 }
