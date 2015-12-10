@@ -1343,6 +1343,8 @@ void handle_message(char *buffer, int handle_internal){
 					}
 				}
 				else {
+					pointer += 2;
+					life = (int) *pointer;
 					//Update alive status
 					if(life <= 0) {
 						clients[i].alive = 0;
