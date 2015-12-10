@@ -78,6 +78,7 @@ Languages *init_languages(char *folder){
 	
 	d = opendir(folder);
 	if (!d) {
+        free(l);
 		return NULL;
 	}
 	l->files = NULL;
