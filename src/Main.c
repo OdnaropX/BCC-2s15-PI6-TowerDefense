@@ -2030,7 +2030,7 @@ int main(int argc, char * argv[]) {
 								printf("Threads killed!!\n");
 								ignore_next_command = 0;
 								multiplayer_status = MPS_NONE;
-								
+								multiplayer = false;
 								current_screen = MAIN;
 								previous_screen = GAME_MULTIPLAY_SERVER;
 							}
@@ -2449,6 +2449,7 @@ int main(int argc, char * argv[]) {
 										reset_game_data();
 										
 										//Reset screen options.
+										multiplayer = false;
 										multiplayer_option = MP_NONE;
 										multiplayer_status = MPS_NONE;
 										room_current_page = 0;
@@ -2461,6 +2462,7 @@ int main(int argc, char * argv[]) {
 									reset_game_data();
 									
 									//Reset screen options.
+									multiplayer = false;
 									multiplayer_option = MP_NONE;
 									multiplayer_status = MPS_NONE;
 									room_current_page = 0;
@@ -2503,6 +2505,7 @@ int main(int argc, char * argv[]) {
 											reset_game_data();
 											
 											//Reset screen options.
+											multiplayer = false;
 											multiplayer_option = MP_NONE;
 											multiplayer_status = MPS_NONE;
 											room_current_page = 0;
@@ -2515,6 +2518,7 @@ int main(int argc, char * argv[]) {
 										reset_game_data();
 										
 										//Reset screen options.
+										multiplayer = false;
 										multiplayer_option = MP_NONE;
 										multiplayer_status = MPS_NONE;
 										room_current_page = 0;
@@ -2555,6 +2559,7 @@ int main(int argc, char * argv[]) {
 										reset_game_data();
 										
 										//Reset screen options.
+										multiplayer = false;
 										multiplayer_option = MP_NONE;
 										multiplayer_status = MPS_NONE;
 										room_current_page = 0;
@@ -2567,6 +2572,7 @@ int main(int argc, char * argv[]) {
 									reset_game_data();
 									
 									//Reset screen options.
+									multiplayer = false;
 									multiplayer_option = MP_NONE;
 									multiplayer_status = MPS_NONE;
 									room_current_page = 0;
@@ -2607,6 +2613,7 @@ int main(int argc, char * argv[]) {
 											reset_game_data();
 											
 											//Reset screen options.
+											multiplayer = false;
 											multiplayer_option = MP_NONE;
 											multiplayer_status = MPS_NONE;
 											room_current_page = 0;
@@ -2619,6 +2626,7 @@ int main(int argc, char * argv[]) {
 										reset_game_data();
 										
 										//Reset screen options.
+										multiplayer = false;
 										multiplayer_option = MP_NONE;
 										multiplayer_status = MPS_NONE;
 										room_current_page = 0;
