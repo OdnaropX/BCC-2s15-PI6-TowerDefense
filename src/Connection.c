@@ -745,19 +745,35 @@ void game_status(){
 			SDL_AtomicUnlock(&thread_control->lock.comm);
 		}
 	}
+	//Not server
 	else {
 		//Check server connection.//This is detected by sending an receiving messages.
 		if(data_shared->current_comm->server->connection_failed){
 			return;
 		}
 		
-		if(game_in_progress && !data_shared->current_comm->match->lost){
+		if(game_in_progress){
 			//Check if game was finish.
-			//Check if player lost. If lost, wait until the game is finished.
-			if(data_shared->current_user->life <= 0) {
-				SDL_AtomicLock(&thread_control->lock.comm);
-				data_shared->current_comm->match->lost = 1;
-				SDL_AtomicUnlock(&thread_control->lock.comm);
+			/*
+			alive = 0;
+			
+			for(i = 0; i < data_shared->current_comm->match->players;i++){
+				if(data_shared->current_comm->adversary[i].life > 0){
+					alive++;
+				}
+			}
+			if(alive == 1){
+				//Game finish
+			}
+			*/
+			
+			if(!data_shared->current_comm->match->lost){
+				//Check if player lost. If lost, wait until the game is finished.
+				if(data_shared->current_user->life <= 0) {
+					SDL_AtomicLock(&thread_control->lock.comm);
+					data_shared->current_comm->match->lost = 1;
+					SDL_AtomicUnlock(&thread_control->lock.comm);
+				}
 			}
 		}
 	}

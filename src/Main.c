@@ -134,7 +134,7 @@ bool load_audio();
 void get_config_text();
 void get_multiplayer_texts(multiplayer_status current_status, int page);
 void set_end_game_status_text(end_game_status end_status);
-void get_multiplayer_game_names(int page, TTF_Font *font);
+void c(int page, TTF_Font *font);
 void reset_game_data();
 bool render_texts();
 void destroy_rendered_texts();
@@ -3644,6 +3644,10 @@ void set_end_game_status_text(end_game_status end_status){
 
 void get_multiplayer_game_names(int page, TTF_Font *font){
 	int index;
+	SDL_Color color = {100,100,100,255};
+	int grey_color = 0;
+	char life[5];
+	
     for(int i = 2; i < game_interface_assets_count - 1; i++){
         char *text = NULL;
         SDL_Rect rect;
@@ -3659,8 +3663,17 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
 				index = page * 4;
                 
                 SDL_AtomicLock(&thread_control->lock.comm);
-				if(index < data_shared->current_comm->match->players)
-					text = data_shared->current_comm->adversary[index].name;
+				if(index < data_shared->current_comm->match->players) {
+					int len = strlen(data_shared->current_comm->adversary[index].name);
+					text = calloc(len + 8, sizeof(char));
+					sprintf(life, "%d", data_shared->current_comm->adversary[index].life);
+					strncpy(text, data_shared->current_comm->adversary[index].name, len);
+					strncat(text, " ", 1);
+					strncat(text, life, 5);
+					
+					if(!data_shared->current_comm->adversary[index].playing) 
+						grey_color = 1;
+				}
                 else 
                     text = "----------";
                 SDL_AtomicUnlock(&thread_control->lock.comm);
@@ -3672,9 +3685,18 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
 				index = page * 4 + 1;
                 
                 SDL_AtomicLock(&thread_control->lock.comm);
-				if(index < data_shared->current_comm->match->players)
-					text = data_shared->current_comm->adversary[index].name;
-                else
+				if(index < data_shared->current_comm->match->players) {
+					int len = strlen(data_shared->current_comm->adversary[index].name);
+					text = calloc(len + 8, sizeof(char));
+					sprintf(life, "%d", data_shared->current_comm->adversary[index].life);
+					strncpy(text, data_shared->current_comm->adversary[index].name, len);
+					strncat(text, " ", 1);
+					strncat(text, life, 5);
+					
+					if(!data_shared->current_comm->adversary[index].playing) 
+						grey_color = 1;
+				}
+				else
                     text = "----------";
                 SDL_AtomicUnlock(&thread_control->lock.comm);
                 
@@ -3685,9 +3707,18 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
 				index = page * 4 + 2;
                 
                 SDL_AtomicLock(&thread_control->lock.comm);
-				if(index < data_shared->current_comm->match->players)
-					text = data_shared->current_comm->adversary[index].name;
-                else
+				if(index < data_shared->current_comm->match->players) {
+					int len = strlen(data_shared->current_comm->adversary[index].name);
+					text = calloc(len + 8, sizeof(char));
+					sprintf(life, "%d", data_shared->current_comm->adversary[index].life);
+					strncpy(text, data_shared->current_comm->adversary[index].name, len);
+					strncat(text, " ", 1);
+					strncat(text, life, 5);
+					
+					if(!data_shared->current_comm->adversary[index].playing) 
+						grey_color = 1;
+				}
+				else
                     text = "----------";
                 SDL_AtomicUnlock(&thread_control->lock.comm);
                 
@@ -3698,9 +3729,18 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
 				index = page * 4 + 3;
                 
                 SDL_AtomicLock(&thread_control->lock.comm);
-				if(index < data_shared->current_comm->match->players)
-					text = data_shared->current_comm->adversary[index].name;
-                else
+				if(index < data_shared->current_comm->match->players) {
+					int len = strlen(data_shared->current_comm->adversary[index].name);
+					text = calloc(len + 8, sizeof(char));
+					sprintf(life, "%d", data_shared->current_comm->adversary[index].life);
+					strncpy(text, data_shared->current_comm->adversary[index].name, len);
+					strncat(text, " ", 1);
+					strncat(text, life, 5);
+					
+					if(!data_shared->current_comm->adversary[index].playing) 
+						grey_color = 1;
+				}
+				else
                     text = "----------";
                 SDL_AtomicUnlock(&thread_control->lock.comm);
                 
@@ -3721,11 +3761,16 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
         //Creating textures
         if(text){
             SDL_Surface *surface;
-            if(i%2 == 1)
-                surface = TTF_RenderUTF8_Blended(font, text, red);
-            else
-                surface = TTF_RenderUTF8_Blended(font, text, white);
-            
+			if(grey_color){
+				 surface = TTF_RenderUTF8_Blended(font, text, color);
+			}
+			else {
+				if(i%2 == 1)
+					surface = TTF_RenderUTF8_Blended(font, text, red);
+				else
+					surface = TTF_RenderUTF8_Blended(font, text, white);
+			}
+			
             if(!surface){
                 printf("(Game Running)Text not rendered! %s\n", TTF_GetError());
                 return;
