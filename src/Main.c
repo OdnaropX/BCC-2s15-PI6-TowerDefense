@@ -2917,11 +2917,16 @@ void get_config_text(){
                 
             case 5: case 6:
 				if(lang->loaded > 0) {
-					int len = strlen(lang->names[config->language]);
-					text = calloc((11 + len + 1), sizeof(char));
-					strncpy(text, _("Language"), 8);
-					strncat(text, ": ", 2);
-					strncat(text, lang->names[config->language], len - 1);//zero to len, so zero to len -1.
+					if(config->language_default){
+						text = _("Language: English (Default)");
+					}
+					else {
+						int len = strlen(lang->names[config->language]);
+						text = calloc((11 + len + 1), sizeof(char));
+						strncpy(text, _("Language"), 8);
+						strncat(text, ": ", 2);
+						strncat(text, lang->names[config->language], len - 1);//zero to len, so zero to len -1.
+					}
 				}
 				else 
 					text = _("Language Default Only");
