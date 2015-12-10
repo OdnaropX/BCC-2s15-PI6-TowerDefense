@@ -2018,15 +2018,15 @@ int main(int argc, char * argv[]) {
 							SDL_AtomicLock(&thread_control->lock.control);
 							if(thread_control->server.pointer || thread_control->server.alive){
 								thread_control->server.terminate = 1;
-								printf("Kill thread!!\n");
+								//printf("Kill thread!!\n");
 							}
 							else if(thread_control->client.pointer || thread_control->client.alive){
 								thread_control->client.terminate = 1;
-								printf("Kill thread!!\n");
+								//printf("Kill thread!!\n");
 							}
 							else if(thread_control->udp.pointer || thread_control->udp.alive){
 								thread_control->udp.terminate = 1;
-								printf("Kill thread!!\n");
+								//printf("Kill thread!!\n");
 							}
 							else {
 								printf("Threads killed!!\n");

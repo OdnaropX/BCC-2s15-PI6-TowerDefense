@@ -50,7 +50,7 @@ Language *load_language(char *content, int index, char **name) {
 			}
 			if(!*name) {
 				content[i] = '\0';
-				*name = calloc(i, sizeof(char));
+				*name = calloc(i + 1, sizeof(char));//Plus 1 to allow \0 to be added by strncpy.
 				strncpy(*name, &content[previous], i);
 			}
 			else {
@@ -108,23 +108,15 @@ Languages *init_languages(char *folder){
 	//Load language hashs
 	l->l = malloc(sizeof(Language *) * l->loaded);
 	for(int i = 0; i < l->loaded; i++){
-		printf("Language 1 %s\n", l->files[i]);
 		//Load phrases on hash.
 		temp_content = load_file(l->files[i]);
 		
 		l->l[i] = NULL;
 		l->l[i] = load_language(temp_content, i, &l->names[i]);
-		
-		printf("Name %s\n", l->names[i]);
+
 		if(temp_content)
 			free(temp_content);
-		/*
-		for(int j = 0; j < 26; j++){
-			if(l->l[i]->hash[j]){
-				printf("Var %s\nString %s\n", l->l[i]->hash[j]->var, l->l[i]->hash[j]->string);
-			
-			}
-		}*/
+		
 	}
 	
 	return l;
