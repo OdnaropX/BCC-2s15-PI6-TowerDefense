@@ -69,7 +69,7 @@ SDL_Rect main_menu_rects[main_menu_assets_count];
 SDL_Texture *config_menu_assets[config_menu_assets_count];
 SDL_Rect config_menu_rects[config_menu_assets_count];
 
-//Game interface order: Pause button, Right bar, previous page, adversaries(4)(+sel), next page, quit(multiplayer)
+//Game interface order: Pause button, Right bar, previous page(+sel), adversaries(4)(+sel), next page(+sel), quit(multiplayer)
 SDL_Texture *game_interface_assets[game_interface_assets_count];
 SDL_Rect game_interface_rects[game_interface_assets_count];
 
@@ -3706,7 +3706,7 @@ void set_end_game_status_text(end_game_status end_status){
 
 void get_multiplayer_game_names(int page, TTF_Font *font){
 	int index;
-    for(int i = 2; i < multiplayer_menu_assets_count; i++){
+    for(int i = 2; i < game_interface_assets_count - 1; i++){
         char *text = NULL;
         SDL_Rect rect;
         
@@ -3719,40 +3719,52 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
                 
             case 4: case 5:
 				index = page * 4;
+                
+                SDL_AtomicLock(&thread_control->lock.comm);
 				if(index < data_shared->current_comm->match->players)
 					text = data_shared->current_comm->adversary[index].name;
                 else 
                     text = "----------";
+                SDL_AtomicUnlock(&thread_control->lock.comm);
                 
                 rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 6: case 7:
 				index = page * 4 + 1;
+                
+                SDL_AtomicLock(&thread_control->lock.comm);
 				if(index < data_shared->current_comm->match->players)
 					text = data_shared->current_comm->adversary[index].name;
                 else
                     text = "----------";
+                SDL_AtomicUnlock(&thread_control->lock.comm);
                 
                 rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT * 2, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 8: case 9:
 				index = page * 4 + 2;
+                
+                SDL_AtomicLock(&thread_control->lock.comm);
 				if(index < data_shared->current_comm->match->players)
 					text = data_shared->current_comm->adversary[index].name;
                 else
                     text = "----------";
+                SDL_AtomicUnlock(&thread_control->lock.comm);
                 
                 rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT * 3, 180, BUTTON_MENU_HEIGHT};
                 break;
                 
             case 10: case 11:
 				index = page * 4 + 3;
+                
+                SDL_AtomicLock(&thread_control->lock.comm);
 				if(index < data_shared->current_comm->match->players)
 					text = data_shared->current_comm->adversary[index].name;
                 else
                     text = "----------";
+                SDL_AtomicUnlock(&thread_control->lock.comm);
                 
                 rect = (SDL_Rect){1097, 350 + BUTTON_MENU_HEIGHT * 4, 180, BUTTON_MENU_HEIGHT};
                 break;
