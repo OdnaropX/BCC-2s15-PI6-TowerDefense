@@ -37,13 +37,14 @@
 	//Structs
 	///////////////////////////////////////////////////////////////////////
 
-	typedef struct _configuration CONFIGURATION;
+	typedef struct _configuration Configuration;
 	typedef struct _node node;
 	
 	struct _configuration {
 		bool audio_sfx;
 		bool audio_music;
-		char *language;
+		bool language_default;
+		int language;
 	};
 	
 	//Node

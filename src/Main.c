@@ -11,6 +11,7 @@
 #include "Renderer.h"
 #include "GameScene.h"
 #include "Connection.h"
+#include "Language.h"
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -37,6 +38,8 @@
 ///////////////////////////////////////////////////////////////////////
 Threads *thread_control;
 ShareData *data_shared;
+Languages *lang;
+Configuration *config;
 
 //SDL stuff
 SDL_Window *main_Window;
@@ -96,7 +99,7 @@ SDL_Rect multiplayer_menu_rects[multiplayer_menu_assets_count];
 int room_current_page = 0;
 int players_current_page = 0;
 
-CONFIGURATION *config;
+
 
 list_minion *minions;
 //list_projectile *projectiles;     Not used by now
@@ -257,6 +260,7 @@ int main(int argc, char * argv[]) {
 	int total = 0;
 	int not_started = 0;
 	
+	printf("%s\n", _("Here"));
 	//int next = 0;  //unused
     //Main loop
     while(!quit){
@@ -2521,11 +2525,14 @@ bool main_init(){
     
     fscanf(settings, "audio_sfx = %s\n", audio_sfx);
     fscanf(settings, "audio_music = %s\n", audio_music);
+	//Language folder.
     fscanf(settings, "language = %s\n", language);
 	
 	if(!config){
-		config = malloc(sizeof(CONFIGURATION));
+		config = malloc(sizeof(Configuration));
 	}
+	
+	
 	
 	if (strcmp(audio_sfx, "true")){
 		config->audio_sfx = true;
@@ -2539,7 +2546,12 @@ bool main_init(){
 	else {
 		config->audio_music = false;
 	}
-	config->language = language;
+	
+	config->language_default = 1;
+	config->language = 0;
+	
+	//Load languages.
+	lang = init_languages(language);
     
     fclose(settings);
     
