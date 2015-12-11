@@ -39,7 +39,11 @@ Language *load_language(char *content, int index, char **name) {
 				current_phrase->next->string = NULL;
 				current_phrase->next->next = NULL;
 				content[i] = '\0';
-				strncpy(current_phrase->next->var, &content[previous], (i - previous - 1));//Plus 1 because \0 wanst been copied. 
+				if (windows)
+					strncpy(current_phrase->next->var, &content[previous], (i - previous - 1));//Plus 1 because \0 wanst been copied. 
+				else
+					strncpy(current_phrase->next->var, &content[previous], (i - previous));//Plus 1 because \0 wanst been copied. 
+					
 				current_phrase = current_phrase->next;
 			}
 			previous = i + 1;
@@ -50,14 +54,20 @@ Language *load_language(char *content, int index, char **name) {
 			}
 			if(!*name) {
 				content[i] = '\0';
-				*name = calloc(i + 1, sizeof(char));//Plus 1 to allow \0 to be added by strncpy.
-				strncpy(*name, &content[previous], i);
+				*name = calloc(i + 2, sizeof(char));//Plus 1 to allow \0 to be added by strncpy.
+				if (windows)
+					strncpy(*name, &content[previous], i);
+				else
+					strncpy(*name, &content[previous], i + 1);
 			}
 			else {
 				//Add second part of string.
 				content[i] = '\0';
 				current_phrase->string = calloc((i - previous + 1), sizeof(char));
-				strncpy(current_phrase->string, &content[previous], (i - previous -1));
+				if (windows)
+					strncpy(current_phrase->string, &content[previous], (i - previous -1));
+				else 
+					strncpy(current_phrase->string, &content[previous], (i - previous));
 			}
 			previous = i + 1;
 		}
