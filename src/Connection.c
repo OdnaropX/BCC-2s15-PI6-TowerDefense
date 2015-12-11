@@ -661,7 +661,7 @@ void game_status(){
 			else {
 				//Check if game was finished.
 				SDL_AtomicLock(&thread_control->lock.user);
-				if(data_shared->current_user->life > 0){
+				if(data_shared->current_user->life > 5){
 					alive++;
 					winner_id = data_shared->current_user->id;
 				}
@@ -769,7 +769,7 @@ void game_status(){
 			
 			if(!data_shared->current_comm->match->lost){
 				//Check if player lost. If lost, wait until the game is finished.
-				if(data_shared->current_user->life <= 0) {
+				if(data_shared->current_user->life < 6) {
 					SDL_AtomicLock(&thread_control->lock.comm);
 					data_shared->current_comm->match->lost = 1;
 					SDL_AtomicUnlock(&thread_control->lock.comm);
@@ -1323,7 +1323,7 @@ void handle_message(char *buffer, int handle_internal){
 					//Fix null char
 					life--;
 					//Update alive status
-					if(life <= 0) {
+					if(life < 6) {
 						clients[i].alive = 0;
 					}					
 				}
