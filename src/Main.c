@@ -3208,9 +3208,9 @@ void get_config_text(){
 					else {
 						int len = (int)strlen(lang->names[config->language]);
 						text = calloc((11 + len + 1), sizeof(char));
-						strncpy(text, _("Language"), 8);
+						strncpy(text, _("Language"), strlen(_("Language")));
 						strncat(text, ": ", 2);
-						strncat(text, lang->names[config->language], len - 1);//zero to len, so zero to len -1.
+						strncat(text, lang->names[config->language], len);//zero to len, so zero to len -1.
 					}
 				}
 				else 
@@ -4194,7 +4194,6 @@ void destroy_rendered_texts(){
 		if(multiplayer_menu_assets[i])
 			SDL_DestroyTexture(multiplayer_menu_assets[i]);
 	}
-	
 }
 
 void reset_rendered_texts(){

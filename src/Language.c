@@ -23,9 +23,8 @@ Language *load_language(char *content, int index, char **name) {
 				l->hash[current_index] = malloc(sizeof(Phrase));
 				l->hash[current_index]->next = NULL;
 				l->hash[current_index]->string = NULL;
-				l->hash[current_index]->var = malloc(sizeof(char) * (i - previous + 1));
-				content[i] = '\0';
-				strncpy(l->hash[current_index]->var, &content[previous], (i - previous + 1));//Plus 1 because \0 wanst been copied.
+				l->hash[current_index]->var = calloc((i - previous + 1), sizeof(char));//Plus one to \0.
+				strncpy(l->hash[current_index]->var, &content[previous], (i - previous));
 				current_phrase = l->hash[current_index];
 			}
 			else {
@@ -35,39 +34,27 @@ Language *load_language(char *content, int index, char **name) {
 					current_phrase = current_phrase->next;
 				
 				current_phrase->next = malloc(sizeof(Phrase));
-				current_phrase->next->var = calloc((i - previous + 1), sizeof(char));
+				current_phrase->next->var = calloc((i - previous + 1), sizeof(char));//Plus 1 because need space for \0. 
 				current_phrase->next->string = NULL;
 				current_phrase->next->next = NULL;
-				content[i] = '\0';
-				if (windows)
-					strncpy(current_phrase->next->var, &content[previous], (i - previous - 1));//Plus 1 because \0 wanst been copied. 
-				else
-					strncpy(current_phrase->next->var, &content[previous], (i - previous));//Plus 1 because \0 wanst been copied. 
+				strncpy(current_phrase->next->var, &content[previous], (i - previous));
 					
 				current_phrase = current_phrase->next;
 			}
 			previous = i + 1;
 		}
 		else if(content[i] == '\n' || content[i + 1] == '\0'){
-			if(content[i + 1] == '\0'){
+			if(content[i + 1] == '\0' && content[i] != '\n'){
 				i++;
 			}
 			if(!*name) {
-				content[i] = '\0';
-				*name = calloc(i + 2, sizeof(char));//Plus 1 to allow \0 to be added by strncpy.
-				if (windows)
-					strncpy(*name, &content[previous], i);
-				else
-					strncpy(*name, &content[previous], i + 1);
+				*name = calloc(i + 1, sizeof(char));//Plus 1 to allow \0 to be added by strncpy.
+				strncpy(*name, &content[previous], i - 1);
 			}
 			else {
 				//Add second part of string.
-				content[i] = '\0';
-				current_phrase->string = calloc((i - previous + 1), sizeof(char));
-				if (windows)
-					strncpy(current_phrase->string, &content[previous], (i - previous -1));
-				else 
-					strncpy(current_phrase->string, &content[previous], (i - previous));
+				current_phrase->string = calloc((i - previous + 10), sizeof(char));
+				strncpy(current_phrase->string, &content[previous], (i - previous - 1));//Minus one because \n or last \0 cannot be put in.
 			}
 			previous = i + 1;
 		}
