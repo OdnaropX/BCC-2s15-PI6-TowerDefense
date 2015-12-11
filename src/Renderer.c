@@ -202,7 +202,6 @@ void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SD
     int sel = 0;
     
     for(int i = 0; i < count; i++){
-    //for(int i = 0; i < count - 1; i++){
         if(multiplayer){
             switch (select_target_option) {
                 case TSO_PREVIOUS_PAGE:
@@ -240,15 +239,22 @@ void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SD
         else if(i == 0 && !multiplayer)
             SDL_RenderCopy(renderer, assets[0], NULL, &rectangles[0]);
         
+		
+       
+		//Render gold, mana, life.
+		if((i == 1 || (i > 14 && i < count)) && assets[i]){
+			SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+		}
+			
+		
         if((i%2 == 0 && i > 0 && i < 14) || i == sel){
 			SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
 		}
         
-        SDL_RenderCopy(renderer, assets[1], NULL, &rectangles[1]);
         
         if(assets[i] && i > 1 && i < 14)
             SDL_DestroyTexture(assets[i]);
-        }
+         }
 }
 
 void draw_screen_game_paused(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, pause_options select_pause_option){

@@ -4128,15 +4128,15 @@ bool render_texts(){
 		switch(i){
 			case 15:
 				text = _("Grade");
-				rect = (SDL_Rect){1120, 2, 100, 30};
+				rect = (SDL_Rect){1145, 10, 100, 30};
 				break;
 			case 16:
 				text = _("Time");
-				rect = (SDL_Rect){1132, 90, 100, 30};
+				rect = (SDL_Rect){1145, 100, 100, 30};
 				break;
 			case 17:
 				text = _("Gold");
-				rect = (SDL_Rect){1125, 202, 100, 30};
+				rect = (SDL_Rect){1145, 210, 100, 30};
 				break;
 			default:
 				break;
