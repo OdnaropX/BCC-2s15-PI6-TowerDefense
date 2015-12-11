@@ -665,6 +665,9 @@ void game_status(){
 					alive++;
 					winner_id = data_shared->current_user->id;
 				}
+				else {
+					data_shared->current_comm->match->lost = 1;
+				}
 				SDL_AtomicUnlock(&thread_control->lock.user);
 				temp = 0;
 				for(i = 0; i < MAX_CLIENT; i++){
@@ -703,6 +706,9 @@ void game_status(){
 					data_shared->current_comm->match->winner_id = winner_id;
 					if(winner_id != data_shared->current_user->id){
 						data_shared->current_comm->match->lost = 1;
+					}
+					else {
+						data_shared->current_comm->match->lost = 0;
 					}
 					SDL_AtomicUnlock(&thread_control->lock.comm);
 					//Close connection.//Will be closed when thread is killed.
@@ -1188,7 +1194,7 @@ void handle_message(char *buffer, int handle_internal){
 		SDL_AtomicUnlock(&thread_control->lock.comm);
 	}	
 	//Check if game was ended
-	else if(strncmp(buffer, "END_GAME", strlen("BEGIN_GAME")) == 0) {
+	else if(strncmp(buffer, "END_GAME", strlen("END_GAME")) == 0) {
 		//printf("Handling END_GAME\n");
 		//data_shared->current_comm->match->can_start = 1;
 		data_shared->current_comm->match->finished = 1;
@@ -1456,7 +1462,7 @@ int has_message_tcp(char *buffer, TCPsocket tcp_socket){
 				printf("Buffer received has |%s|\n", buffer);
 				return 1;
 			}
-			else {
+			else if(strncmp(buffer, "END_GAME", strlen("END_GAME"))){
 				SDLNet_TCP_DelSocket(activity, tcp_socket);
 				close_socket(tcp_socket);
 				return -1;
