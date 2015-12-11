@@ -3762,8 +3762,9 @@ void get_multiplayer_game_names(int page, TTF_Font *font){
 					surface = TTF_RenderUTF8_Blended(font, text, white);
 			}
 			
-			if(len){
+			if(len > 0){
 				free(text);
+                len = 0;
 			}
 			
             if(!surface){
