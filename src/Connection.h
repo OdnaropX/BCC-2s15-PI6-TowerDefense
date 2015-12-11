@@ -40,7 +40,6 @@
 	typedef struct _action Action;
 	typedef struct _adversary Adversary;
 	typedef struct _user User;
-	typedef struct _network Network;
 	typedef struct _game_communication Communication;
 	typedef struct _send_minion SpawnMinion;
 	typedef struct _thread Thread;
@@ -69,6 +68,7 @@
 		int can_start;
 		int finished;
 		int winner_id;
+		char *winner_name;
 		int lost;
 		int error;
 		int players;
@@ -124,17 +124,6 @@
 		TCPsocket tcp_socket;
 	};
 	
-	struct _network {
-		int searching;
-		int searched;
-		int connecting;
-		int connection_failed;
-		int servers;
-		char server_name[MAX_SERVER][SERVER_NAME];
-		int choose_server;
-		int server_choosed;
-	};
-	
 	struct _thread {
 		int alive;
 		int terminate;
@@ -168,7 +157,7 @@
 	///////////////////////////////////////////////////////////////////////
 	Communication *init_communication();
 	void remove_communication();
-	void remove_client(int client);
+	void remove_client(int client, int send);
 	
 	//Update Functions
 	///////////////////////////////////////////////////////////////////////

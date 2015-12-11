@@ -2,4 +2,4 @@ w = 1280
 h = 720
 audio_sfx = true
 audio_music = true
-language = pt_br
+language = lang

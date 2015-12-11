@@ -14,12 +14,14 @@
 		#define windows 1
 		#include <SDL2/SDL_image.h>
 		#include <SDL2/SDL_ttf.h>
+        #include <SDL2/SDL_mixer.h>
 		#include <SDL2/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
 	#else
 		#define windows 0
 		#include <SDL2_image/SDL_image.h>
 		#include <SDL2_ttf/SDL_ttf.h>
+        #include <SDL2_mixer/SDL_mixer.h>
 		#include <SDL2_net/SDL_net.h>
 		#include <SDL2/SDL_thread.h>
 	#endif
@@ -37,13 +39,14 @@
 	//Structs
 	///////////////////////////////////////////////////////////////////////
 
-	typedef struct _configuration CONFIGURATION;
+	typedef struct _configuration Configuration;
 	typedef struct _node node;
 	
 	struct _configuration {
 		bool audio_sfx;
 		bool audio_music;
-		char *language;
+		bool language_default;
+		int language;
 	};
 	
 	//Node
