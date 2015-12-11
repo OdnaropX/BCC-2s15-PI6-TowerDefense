@@ -257,17 +257,7 @@ int main(int argc, char * argv[]) {
 	
 	//Thread
 	char *thread_name = NULL;
-	
-	//Multiplayer
-	Network network;
-	network.searching = 0;
-	network.searched = 0;
-	network.connecting = 0;
-	network.connection_failed = 0;
-	network.servers = 0;
-	network.choose_server = 0;
-	network.server_choosed = -1;
-	
+		
 	int player_adversary = 0;
 
 	int ready_to_play = 0;
@@ -1674,27 +1664,31 @@ int main(int argc, char * argv[]) {
 			SDL_AtomicLock(&thread_control->lock.comm);
 			//-- Change, dont need this, use the global variable instead.
 			if(data_shared->current_comm){
+				/*
 				if(data_shared->current_comm->server->searching_finished){
 					network.searched = 1;
 				}
+				*/
 				if(data_shared->current_comm->server->search_result > 0){
+					/*
 					if(data_shared->current_comm->server->connecting){
-						network.connecting = 1;
+						//network.connecting = 1;
 					}
 					network.servers = data_shared->current_comm->server->search_result;
 					for(i = 0; i < network.servers; i++){
-						strncpy(network.server_name[i], data_shared->current_comm->server->host[i].name, SERVER_NAME);
+					//	strncpy(network.server_name[i], data_shared->current_comm->server->host[i].name, SERVER_NAME);
 					}
+					*/
 				}
+				/*
 				if(data_shared->current_comm->server->choosing) {
-					network.choose_server = 1;
-				}
+					//network.choose_server = 1;
+				}*/
 				
 				if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost || data_shared->current_comm->match->error) {
 					//Set current screen
 					current_screen = END_GAME;
-					//network.connection_failed = 1;
-					printf("Lost comm\n");
+					//printf("Lost comm\n");
 					if(data_shared->current_comm->server->connection_failed){
 						end_status = EGS_DC;
 						printf("Connection failed\n");
@@ -1711,7 +1705,7 @@ int main(int argc, char * argv[]) {
 						printf("Connection match error\n");
 					}
 					else {
-						printf("Connection lost\n");
+						//printf("Connection lost\n");
 						end_status = EGS_OPLEFT;
 					}
 					game_started = false;
@@ -1819,7 +1813,7 @@ int main(int argc, char * argv[]) {
 			if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost){
 				
 			}
-			*/
+			
 			
 			if(network.connection_failed){
 				//Kill threads.
@@ -1839,6 +1833,7 @@ int main(int argc, char * argv[]) {
 				multiplayer_status = MPS_NONE;
 				multiplayer = false;
 			}
+			*/
 		}
 		
 		//Action Performancer
