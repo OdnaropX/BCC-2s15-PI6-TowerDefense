@@ -133,7 +133,7 @@ void main_quit();
 bool load_audio();
 void get_config_text();
 void get_multiplayer_texts(multiplayer_status current_status, int page);
-void set_end_game_status_text(end_game_status end_status);
+void set_end_game_status_text(end_game_status end_status, int is_multiplayer);
 void get_multiplayer_game_names(int page, TTF_Font *font);
 void reset_game_data();
 bool render_texts();
@@ -1708,7 +1708,7 @@ int main(int argc, char * argv[]) {
 					
 					//Set screen
 					current_screen = END_GAME;
-					if(!data_shared->current_comm->match->lost){
+					if(data_shared->current_comm->match->winner_id == data_shared->current_user->id){
 						end_status = EGS_WIN;
 					}
 					else {
@@ -1716,7 +1716,7 @@ int main(int argc, char * argv[]) {
 					}
 					data_shared->current_comm->match->can_start = 0;
 					game_started = false;
-					printf("Winner %d\n", data_shared->current_comm->match->winner_id);
+					printf("Winner %d %d\n", data_shared->current_comm->match->winner_id, data_shared->current_user->id);
 				}
 				else if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost || data_shared->current_comm->match->error) {
 					//Set current screen
@@ -2132,6 +2132,18 @@ int main(int argc, char * argv[]) {
 						else {
 							config->audio_music = true;
 						}
+                        //If the music is paused
+                        if( Mix_PausedMusic() == 1 )
+                        {
+                            //Resume the music
+                            Mix_ResumeMusic();
+                        }
+                        //If the music is playing
+                        else
+                        {
+                            //Pause the music
+                            Mix_PauseMusic();
+                        }
                         get_config_text();
 						break;
 					case LANGUAGE:
@@ -2240,7 +2252,7 @@ int main(int argc, char * argv[]) {
                                     perform_path_verification(16, 5);
                                 }
                                 else{ // SUCCESS
-                                    Mix_PlayChannel( -1, build, 0 );
+                                    if(!config->audio_sfx) Mix_PlayChannel( -1, build, 0 );
                                     new_turret = init_turret(avaliable_turrets, add_tower, current_position[0], current_position[1]);
                                     add_turret_to_list(turrets, new_turret);
                                     gold -= price;
@@ -2255,7 +2267,7 @@ int main(int argc, char * argv[]) {
 						//Add minion
 						new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
 						if(new_minion != NULL){
-                            Mix_PlayChannel( -1, spawn, 0 );
+                            if(!config->audio_sfx) Mix_PlayChannel( -1, spawn, 0 );
 							add_minion_to_list(minions, new_minion);
                             new_minion->node->xPos = 150;
                             new_minion->node->yPos = 600;
@@ -2274,7 +2286,7 @@ int main(int argc, char * argv[]) {
 						list_projectile *shoot = enemy->e->targetted_projectils;
 
 						if(minion_pos_value == 1){
-                            Mix_PlayChannel( -1, damage_taken, 0 );
+                            if(!config->audio_sfx) Mix_PlayChannel( -1, damage_taken, 0 );
 							enemy->e->HP = 0;
 							health--;
 							//Update player health if multiplayer
@@ -2287,7 +2299,7 @@ int main(int argc, char * argv[]) {
 						}
 						while (shoot && shoot->e) {
 							if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
-                                Mix_PlayChannel( -1, hit, 0 );
+                                if(!config->audio_sfx) Mix_PlayChannel( -1, hit, 0 );
 								enemy->e->HP -= shoot->e->damage;
 								remove_projectile_from_list(shoot, shoot->e);
 								if(enemy->e->HP <= 0){
@@ -2640,7 +2652,7 @@ int main(int argc, char * argv[]) {
                         break;
                 }
                 
-                set_end_game_status_text(end_status);
+                set_end_game_status_text(end_status, multiplayer);
                 
 				if(!ignore_next_command)
 					end_game_option = EG_NONE;
@@ -3156,6 +3168,7 @@ void main_quit(){
 
 //Carrega textos do menu de configurações
 void get_config_text(){
+	int len = 0;
     for(int i = 0; i < config_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
@@ -3191,7 +3204,7 @@ void get_config_text(){
 						text = _("Language: English (Default)");
 					}
 					else {
-						int len = strlen(lang->names[config->language]);
+						int len = (int)strlen(lang->names[config->language]);
 						text = calloc((11 + len + 1), sizeof(char));
 						strncpy(text, _("Language"), 8);
 						strncat(text, ": ", 2);
@@ -3222,11 +3235,9 @@ void get_config_text(){
         else
             surface = TTF_RenderUTF8_Blended(font, text, white);
         
-		if(text && (i == 5 || i == 6)){
-			if(lang && lang->loaded > 0) {
-				free(text);
-				text = NULL;
-			}
+		if(len) {
+			free(text);
+			text = NULL;
 		}
 		
         if(!surface){
@@ -3585,16 +3596,36 @@ void reset_game_data(){
 	return;
 }
 
-void set_end_game_status_text(end_game_status end_status){
+void set_end_game_status_text(end_game_status end_status, int is_multiplayer){
     char *text = NULL;
-    
+    int len = 0;
+	int temp;
+	
     switch (end_status) {
         case EGS_WIN:
             text = _("YOU WIN!");
             break;
             
         case EGS_LOSE:
-            text = _("YOU LOST THE GAME");
+			if(is_multiplayer){
+				len = strlen(_("YOU LOST THE GAME. Winner:"));
+				for(int i = 0; i < data_shared->current_comm->match->players; i++){
+					if(data_shared->current_comm->adversary[i].id == data_shared->current_comm->match->winner_id){
+						temp = len + strlen(data_shared->current_comm->adversary[i].name) + 3;
+						text = calloc(temp, sizeof(char));
+						strncpy(text, _("YOU LOST THE GAME. Winner:"), len);
+						strncat(text, " ", 1);
+						strncat(text, data_shared->current_comm->adversary[i].name, temp - len - 3);
+						break;
+					}
+				}
+				if(!text){
+					len = 0;
+					text = _("YOU LOST THE GAME");
+				}
+			}
+			else 
+				text = _("YOU LOST THE GAME");
             break;
             
         case EGS_DC:
