@@ -264,7 +264,7 @@ int get_minion_price(list_minion_avaliable *list, int turretID){
     return available->cost;
 }
 
-int get_minion_bonus(list_minion_avaliable *list, int turretID){
+float get_minion_bonus(list_minion_avaliable *list, int turretID){
     minion_avaliable * available = get_minion_from_avaliable_list(list, turretID);
     
     return available->gold_per_second_bonus;
