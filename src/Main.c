@@ -1706,7 +1706,7 @@ int main(int argc, char * argv[]) {
 			if(data_shared->current_comm){
 				
 				if(data_shared->current_comm->match->finished){
-					printf("Finished\n");
+					//printf("Finished\n");
 					not_started = 0;
 					
 					//Set screen
@@ -1719,7 +1719,7 @@ int main(int argc, char * argv[]) {
 					}
 					data_shared->current_comm->match->can_start = 0;
 					game_started = false;
-					printf("Winner %d %d\n", data_shared->current_comm->match->winner_id, data_shared->current_user->id);
+					//printf("Winner %d %d\n", data_shared->current_comm->match->winner_id, data_shared->current_user->id);
 				}
 				else if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost || data_shared->current_comm->match->error) {
 					//Set current screen
@@ -2151,8 +2151,10 @@ int main(int argc, char * argv[]) {
 						break;
 					case LANGUAGE:
 						//Change select language
-						config->language = (config->language + 1) % lang->loaded;
-						config->language_default = 0;
+						if(lang && lang->loaded){
+							config->language = (config->language + 1) % lang->loaded;
+							config->language_default = 0;
+						}
 						reset_rendered_texts();
 						get_config_text();
 						break;
@@ -2307,6 +2309,7 @@ int main(int argc, char * argv[]) {
 								remove_projectile_from_list(shoot, shoot->e);
 								if(enemy->e->HP <= 0){
 									minions_left--;
+									gold += get_minion_drop(avaliable_minions, enemy->e->minionType);
 								}
 							}
 							else {
@@ -2319,7 +2322,6 @@ int main(int argc, char * argv[]) {
 								//Remove list from minion.
 								//free_list_projectile(enemy->e->targetted_projectils);
 							}                            
-							gold += get_minion_drop(avaliable_minions, enemy->e->minionType);
 							remove_minion_from_list(enemy, &enemy->e);//This already get enemy->next
 						}
 						else {
