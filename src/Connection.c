@@ -649,25 +649,21 @@ void game_status(){
 		
 		if(game_in_progress){
 			if(connected_clients <= 0){
-				printf("Game step 1\n");
 				SDL_AtomicLock(&thread_control->lock.comm);
 				//Everyone left, and game with data_shared->current_user as winner.
 				data_shared->current_comm->match->finished = 1;
 				data_shared->current_comm->match->lost = 0;
 				data_shared->current_comm->match->winner_id = data_shared->current_user->id;
 				SDL_AtomicUnlock(&thread_control->lock.comm);
-				printf("Winner\n");
 			}
 			else {
 				//Check if game was finished.
 				SDL_AtomicLock(&thread_control->lock.user);
 				if(data_shared->current_user->life > 5){
-					printf("You alive\n");
 					alive++;
 					winner_id = data_shared->current_user->id;
 				}
 				else {
-                    printf("PERDI!\n");
 					data_shared->current_comm->match->lost = 1;
 				}
                 
@@ -988,8 +984,8 @@ int send_message(char *message, int message_type, TCPsocket socket, int incomple
 }
 
 void handle_message(char *buffer, int handle_internal){
-	printf("Handling message\n");
-	printf("Receive buffer |%s|\n",buffer);
+	//printf("Handling message\n");
+	//printf("Receive buffer |%s|\n",buffer);
 	char buffer_temp[BUFFER_LIMIT];
 	char *pointer = NULL;
 	int i, j, user_id, user_from, temp, life, connected, status;
@@ -1218,6 +1214,7 @@ void handle_message(char *buffer, int handle_internal){
 		}
 		SDL_AtomicUnlock(&thread_control->lock.comm);
 		game_in_progress = 0;
+		game_ended = 1;
 	}
 	//Check SERVER_FULL
 	else if(strncmp(buffer, "SERVER_FULL", strlen("SERVER_FULL")) == 0) {
