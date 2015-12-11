@@ -985,9 +985,11 @@ int main(int argc, char * argv[]) {
                                     
                                     //Multiplayer quit
                                     else{
-                                        if(thread_control){
+                                        SDL_AtomicLock(&thread_control->lock.control);
+                                        
+                                        if(thread_control && !data_shared->current_user->is_server){
                                             ignore_next_command = 1;
-                                            SDL_AtomicLock(&thread_control->lock.control);
+                                            
                                             if(thread_control->server.pointer || thread_control->server.alive){
                                                 thread_control->server.terminate = 1;
                                                 printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
@@ -1008,7 +1010,6 @@ int main(int argc, char * argv[]) {
                                                 current_screen = MAIN;
                                                 previous_screen = GAME_RUNNING;
                                             }
-                                            SDL_AtomicUnlock(&thread_control->lock.control);
                                         }
                                     }
                                     break;
@@ -1105,6 +1106,36 @@ int main(int argc, char * argv[]) {
 														current_screen = GAME_PAUSED;
 														game_paused = true;
 													}
+                                                    
+                                                    else{
+                                                        SDL_AtomicLock(&thread_control->lock.control);
+                                                        
+                                                        if(thread_control && !data_shared->current_user->is_server){
+                                                            ignore_next_command = 1;
+                                                            
+                                                            if(thread_control->server.pointer || thread_control->server.alive){
+                                                                thread_control->server.terminate = 1;
+                                                                printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+                                                            }
+                                                            else if(thread_control->client.pointer || thread_control->client.alive){
+                                                                thread_control->client.terminate = 1;
+                                                                //printf("Kill thread client %d %d!!\n", thread_control->client.pointer, thread_control->client.alive);
+                                                            }
+                                                            else if(thread_control->udp.pointer || thread_control->udp.alive){
+                                                                thread_control->udp.terminate = 1;
+                                                                printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+                                                            }
+                                                            else {
+                                                                printf("Threads killed!!\n");
+                                                                ignore_next_command = 0;
+                                                                multiplayer_status = MPS_NONE;
+                                                                
+                                                                current_screen = MAIN;
+                                                                previous_screen = GAME_RUNNING;
+                                                            }
+                                                        }
+                                                    }
+                                                    
 													break;
 												case OPT_R_T_RESUME:
 													if(!multiplayer){
@@ -1242,9 +1273,11 @@ int main(int argc, char * argv[]) {
                                         }
 										
                                         else{
-                                            if(thread_control){
+                                            SDL_AtomicLock(&thread_control->lock.control);
+                                            
+                                            if(thread_control && !data_shared->current_user->is_server){
                                                 ignore_next_command = 1;
-                                                SDL_AtomicLock(&thread_control->lock.control);
+                                                
                                                 if(thread_control->server.pointer || thread_control->server.alive){
                                                     thread_control->server.terminate = 1;
                                                     printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
@@ -1265,9 +1298,10 @@ int main(int argc, char * argv[]) {
                                                     current_screen = MAIN;
                                                     previous_screen = GAME_RUNNING;
                                                 }
-                                                SDL_AtomicUnlock(&thread_control->lock.control);
                                             }
                                         }
+                                        
+                                        SDL_AtomicUnlock(&thread_control->lock.control);
 									}
 								}
 								//Left menu
@@ -1497,65 +1531,68 @@ int main(int argc, char * argv[]) {
                     break;
                     
                 case END_GAME:
-                    switch (event.type) {
-                        case SDL_QUIT:
-                            quit = true;
-                            break;
-                            
-                        case SDL_KEYUP:
-                            switch (event.key.keysym.sym) {
-                                case SDLK_ESCAPE:
-                                    quit = true;
-                                    break;
-                                    
-                                case SDLK_KP_ENTER: case SDLK_RETURN:
-                                    if(select_end_game_option != EG_NONE)
-                                        end_game_option = select_end_game_option;
-                                    break;
-                                    
-                                case SDLK_UP: case SDLK_RIGHT:
-                                    if(select_end_game_option == EG_NEW_GAME)
-                                        select_end_game_option = EG_QUIT;
-                                    else
-                                        select_end_game_option++;
-                                    break;
-                                    
-                                case SDLK_DOWN: case SDLK_LEFT:
-                                    if(select_end_game_option == EG_QUIT)
-                                        select_end_game_option = EG_NEW_GAME;
-                                    else
-                                        select_end_game_option--;
-                                    break;
-                                    
-                                default:
-                                    break;
-                            }
-                            break;
-                            
-                        case SDL_MOUSEBUTTONUP:
-                            if(event.button.button == SDL_BUTTON_LEFT){
-                                end_game_option = EG_NONE;
+                    //avoids server from quitting
+                    if(data_shared->current_comm->match->finished && data_shared->current_user->is_server){
+                        switch (event.type) {
+                            case SDL_QUIT:
+                                quit = true;
+                                break;
                                 
+                            case SDL_KEYUP:
+                                switch (event.key.keysym.sym) {
+                                    case SDLK_ESCAPE:
+                                        quit = true;
+                                        break;
+                                        
+                                    case SDLK_KP_ENTER: case SDLK_RETURN:
+                                        if(select_end_game_option != EG_NONE)
+                                            end_game_option = select_end_game_option;
+                                        break;
+                                        
+                                    case SDLK_UP: case SDLK_RIGHT:
+                                        if(select_end_game_option == EG_NEW_GAME)
+                                            select_end_game_option = EG_QUIT;
+                                        else
+                                            select_end_game_option++;
+                                        break;
+                                        
+                                    case SDLK_DOWN: case SDLK_LEFT:
+                                        if(select_end_game_option == EG_QUIT)
+                                            select_end_game_option = EG_NEW_GAME;
+                                        else
+                                            select_end_game_option--;
+                                        break;
+                                        
+                                    default:
+                                        break;
+                                }
+                                break;
+                                
+                            case SDL_MOUSEBUTTONUP:
+                                if(event.button.button == SDL_BUTTON_LEFT){
+                                    end_game_option = EG_NONE;
+                                    
+                                    if (event.motion.x >= 515 && event.motion.x <= 765) {
+                                        temp_option = (event.motion.y - 360) / BUTTON_MENU_HEIGHT;
+                                        if (temp_option <= EG_QUIT && temp_option >= 0) {
+                                            end_game_option = temp_option;
+                                        }
+                                    }
+                                }
+                                break;
+                                
+                            case SDL_MOUSEMOTION:
                                 if (event.motion.x >= 515 && event.motion.x <= 765) {
                                     temp_option = (event.motion.y - 360) / BUTTON_MENU_HEIGHT;
                                     if (temp_option <= EG_QUIT && temp_option >= 0) {
-                                        end_game_option = temp_option;
+                                        select_end_game_option = temp_option;
                                     }
                                 }
-                            }
-                            break;
-                            
-                        case SDL_MOUSEMOTION:
-                            if (event.motion.x >= 515 && event.motion.x <= 765) {
-                                temp_option = (event.motion.y - 360) / BUTTON_MENU_HEIGHT;
-                                if (temp_option <= EG_QUIT && temp_option >= 0) {
-                                    select_end_game_option = temp_option;
-                                }
-                            }
-                            break;
-                            
-                        default:
-                            break;
+                                break;
+                                
+                            default:
+                                break;
+                        }
                     }
                     
                     break;
@@ -2720,7 +2757,10 @@ int main(int argc, char * argv[]) {
                 break;
                 
             case END_GAME:
-                draw_screen_end_game(renderer, end_game_interface_assets, end_game_interface_rects, end_game_interface_assets_count, select_end_game_option);
+                SDL_AtomicLock(&thread_control->lock.control);
+                draw_screen_end_game(renderer, end_game_interface_assets, end_game_interface_rects, end_game_interface_assets_count, select_end_game_option, data_shared->current_user->is_server, data_shared->current_comm->match->finished);
+                SDL_AtomicUnlock(&thread_control->lock.control);
+                
                 break;
                 
             default:
@@ -4104,7 +4144,7 @@ bool render_texts(){
             }
         }
         
-        else{
+        else if(text){
             if(i%2 == 0 && i > 0)
                 surface = TTF_RenderUTF8_Blended(font, text, red);
             else

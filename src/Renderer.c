@@ -300,7 +300,7 @@ void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *r
     }
 }
 
-void draw_screen_end_game(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, end_game_options select_end_game_option){
+void draw_screen_end_game(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, end_game_options select_end_game_option, bool is_server, bool is_multiplayer_over){
     for(int i = 0; i < count; i++){
         int sel = 0;
         switch(select_end_game_option){
@@ -317,10 +317,14 @@ void draw_screen_end_game(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect
                 break;
         }
         
-        if(i == 0 || i == sel || i%2 == 1)
+        if(i == 0 || i == 7)
+            SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+        
+        else if(is_server && is_multiplayer_over && (i == sel || i%2 == 1))
             SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
 		
     }
+    
 	if(assets[7])
         SDL_DestroyTexture(assets[7]);
 }
