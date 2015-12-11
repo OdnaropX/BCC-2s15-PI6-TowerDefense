@@ -50,7 +50,7 @@
 
 	void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, bool back);
 
-	void draw_screen_end_game(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, end_game_options select_end_game_option);
+	void draw_screen_end_game(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, end_game_options select_end_game_option, bool is_server, bool is_multiplayer_over);
 
 	void display_mouse(SDL_Renderer *renderer, SDL_Texture *select, bool active_clicked, bool selected_left, int select_grid, int grid_over, int center_clicked[], Game_Running_Options running_option, list_minion_avaliable *list_m, list_turret_avaliable *list_t, bool multiplayer);
 
