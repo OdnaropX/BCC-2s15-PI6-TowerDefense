@@ -270,6 +270,9 @@ int main(int argc, char * argv[]) {
 	int seed = 1;
 	int total = 0;
 	int not_started = 0;
+	
+    config->audio_sfx = true;
+    config->audio_music = true;
 
     //Main loop
     while(!quit){
@@ -1395,6 +1398,7 @@ int main(int argc, char * argv[]) {
 											break;
 										case OPT_P_CONFIG:
 											current_screen = CONFIG;
+                                            get_config_text();
 											previous_screen = GAME_PAUSED;
 											break;
 										case OPT_P_SCORE:	
@@ -1855,6 +1859,7 @@ int main(int argc, char * argv[]) {
 						break;
 					case OPT_CONFIG:
 						current_screen = CONFIG;
+                        get_config_text();
 						previous_screen = MAIN;
 						break;
 					case OPT_SCORE:
@@ -2126,22 +2131,22 @@ int main(int argc, char * argv[]) {
 						//Trogle ambience music
 						if (config->audio_music == true) {
 							config->audio_music = false;
+                            if( Mix_PausedMusic() != 1 )
+                            {
+                                //Pause the music
+                                Mix_PauseMusic();
+                            }
 						}
 						else {
 							config->audio_music = true;
+                            if( Mix_PausedMusic() == 1 )
+                            {
+                                //Resume the music
+                                Mix_ResumeMusic();
+                            }
 						}
-                        //If the music is paused
-                        if( Mix_PausedMusic() == 1 )
-                        {
-                            //Resume the music
-                            Mix_ResumeMusic();
-                        }
-                        //If the music is playing
-                        else
-                        {
-                            //Pause the music
-                            Mix_PauseMusic();
-                        }
+                        
+                        
                         get_config_text();
 						break;
 					case LANGUAGE:
@@ -2388,6 +2393,7 @@ int main(int argc, char * argv[]) {
                         break;
 					case OPT_P_CONFIG:
 						current_screen = CONFIG;
+                        get_config_text();
 						previous_screen = GAME_PAUSED;
                         break;
 					case OPT_P_SCORE:
