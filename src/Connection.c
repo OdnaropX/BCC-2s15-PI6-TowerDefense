@@ -666,8 +666,10 @@ void game_status(){
 					winner_id = data_shared->current_user->id;
 				}
 				else {
+                    printf("PERDI!\n");
 					data_shared->current_comm->match->lost = 1;
 				}
+                
 				SDL_AtomicUnlock(&thread_control->lock.user);
 				temp = 0;
 				for(i = 0; i < MAX_CLIENT; i++){
@@ -714,6 +716,8 @@ void game_status(){
 					//Close connection.//Will be closed when thread is killed.
 				}
 			}
+            
+            game_in_progress = 0;
 		}
 		else {
 			SDL_AtomicLock(&thread_control->lock.comm);
@@ -747,6 +751,9 @@ void game_status(){
 					}
 					game_in_progress = 1;
 				}
+                
+                else
+                    game_in_progress = 0;
 			}
 			SDL_AtomicUnlock(&thread_control->lock.comm);
 		}
