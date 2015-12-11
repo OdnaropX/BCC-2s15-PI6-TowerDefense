@@ -3180,7 +3180,7 @@ void get_config_text(){
 						text = _("Language: English (Default)");
 					}
 					else {
-						int len = strlen(lang->names[config->language]);
+						int len = (int)strlen(lang->names[config->language]);
 						text = calloc((11 + len + 1), sizeof(char));
 						strncpy(text, _("Language"), 8);
 						strncat(text, ": ", 2);
