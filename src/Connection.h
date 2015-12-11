@@ -40,7 +40,6 @@
 	typedef struct _action Action;
 	typedef struct _adversary Adversary;
 	typedef struct _user User;
-	typedef struct _network Network;
 	typedef struct _game_communication Communication;
 	typedef struct _send_minion SpawnMinion;
 	typedef struct _thread Thread;
@@ -122,17 +121,6 @@
 		int alive;
 		char name[SERVER_NAME];
 		TCPsocket tcp_socket;
-	};
-	
-	struct _network {
-		int searching;
-		int searched;
-		int connecting;
-		int connection_failed;
-		int servers;
-		char server_name[MAX_SERVER][SERVER_NAME];
-		int choose_server;
-		int server_choosed;
 	};
 	
 	struct _thread {
