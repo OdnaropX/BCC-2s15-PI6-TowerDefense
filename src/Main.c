@@ -119,7 +119,7 @@ int health = DEFAULT_PLAYERS_LIFE;
 int gold = 1000;
 int mana = 0;
 float gold_per_second = 1;
-int minions_left = 1;
+int minions_left = 5;
 
 //Avaliables
 list_minion_avaliable *avaliable_minions;
@@ -252,7 +252,7 @@ int main(int argc, char * argv[]) {
 	
 	//Wave control - 20 seconds, after 
 	int pending_wave_number = 0;
-	int timer_minion = 20;
+	int timer_minion = 1;//20;
 	
 	int temp_option;
 	
@@ -1679,7 +1679,7 @@ int main(int argc, char * argv[]) {
 					seed++;
 					if (spawn_minion > 0 && spawn_minion < 10) {
 						spawn_minion = 0;
-						timer_minion = 20;
+						timer_minion = 1;//20;
 					}
 				}
                 
@@ -1918,15 +1918,12 @@ int main(int argc, char * argv[]) {
 								if (thread_control->server.pointer == NULL) {
 									ignore_next_command = 1;
 									multiplayer = false;
-									//multiplayer_status = MPS_NONE;
 									remove_communication();
 								}
 								else {
 									ignore_next_command = 0;
 									multiplayer = true;
-									//multiplayer_status = MPS_WAIT_READY;
 								}
-								//printf("Here problem\n");
 							}
 							//Loop again.
 							else if(!ignore_next_command) {
@@ -1950,11 +1947,8 @@ int main(int argc, char * argv[]) {
 							}
 							//Init thread.
 							else if(!thread_control->client.pointer && !thread_control->client.alive){
-								//multiplayer_status = MPS_WAIT_FOR_PLAYER;
-								
 								SDL_AtomicLock(&thread_control->lock.comm);
 								if(!data_shared->current_comm) {
-									printf("Initing\n");
 									data_shared->current_comm = init_communication();
 								}
 								SDL_AtomicUnlock(&thread_control->lock.comm);
@@ -1970,7 +1964,6 @@ int main(int argc, char * argv[]) {
 								else {
 									ignore_next_command = 0;
 									multiplayer = true;
-									//multiplayer_status = MPS_WAIT_READY;
 								}
 	
 							}
@@ -2180,12 +2173,6 @@ int main(int argc, char * argv[]) {
             
             case GAME_RUNNING:
 				if(multiplayer){
-					//if(data_shared->current_user->is_server)
-					//	printf("SERVER\n");
-					//else {
-					//	printf("CLIENT\n");
-						
-					//}
 					SDL_AtomicLock(&thread_control->lock.comm);
 					//printf("Players %d\n",data_shared->current_comm->match->players);
 					for(i = 0; i < data_shared->current_comm->match->players; i++){
@@ -2369,10 +2356,10 @@ int main(int argc, char * argv[]) {
 							current_screen = END_GAME;
 							game_started = false;
 							end_status = EGS_WIN;
+							end_game_option = EG_NONE;
 						}
 					}
                 }
-				
                 break;
 
 			case GAME_PAUSED:
@@ -2426,6 +2413,7 @@ int main(int argc, char * argv[]) {
                 break;
                 
             case END_GAME:
+				printf("here]\n");
 				ignore_next_command = 0;
 				if(gold) {
 					score = gold;
@@ -2653,6 +2641,9 @@ int main(int argc, char * argv[]) {
                         quit = true;
                         break;
                         
+					case EG_NONE:
+						break;
+						
                     default:
                         break;
                 }
@@ -3563,7 +3554,7 @@ void reset_game_data(){
     gold = 1000;
     mana = 0;
 	
-	minions_left = 1;//184;
+	minions_left = 5;//184;
 	show_timer = 0;
 	timer_count = 0;
 	spawn_minion = 0;
