@@ -702,7 +702,7 @@ void game_status(){
 						if(temp == j){
 							break;
 						}
-						if(clients[i].tcp_socket && clients[i].has_name && clients[i].alive){
+						if(clients[i].tcp_socket && clients[i].has_name){
 							//Send message
 							snprintf(buffer, BUFFER_LIMIT, "%c", (char) winner_id);
 							//Send message to other players that game is over.
@@ -1106,7 +1106,7 @@ void handle_message(char *buffer, int handle_internal){
 	}			
 	//Check if must remove user
 	else if(strncmp(buffer, "REMOVE_USER", strlen("REMOVE_USER")) == 0) {
-		//printf("Handling REMOVE_USER\n");
+		printf("Handling REMOVE_USER\n");
 		pointer = strchr(buffer, '\t');
 		pointer++;
 		user_id = (int) *pointer;
@@ -1212,7 +1212,7 @@ void handle_message(char *buffer, int handle_internal){
 	}	
 	//Check if game was ended
 	else if(strncmp(buffer, "END_GAME", strlen("END_GAME")) == 0) {
-		//printf("Handling END_GAME\n");
+		printf("Handling END_GAME\n");
 		//data_shared->current_comm->match->can_start = 1;
 		data_shared->current_comm->match->finished = 1;
 		pointer = strchr(buffer, '\t');
@@ -1225,7 +1225,9 @@ void handle_message(char *buffer, int handle_internal){
 		else {
 			for(i = 0; i < data_shared->current_comm->match->players; i++){
 				if (data_shared->current_comm->adversary[i].id == data_shared->current_comm->match->winner_id){
+					data_shared->current_comm->match->winner_name = calloc(SERVER_NAME, sizeof(char));
 					strcpy(data_shared->current_comm->match->winner_name, data_shared->current_comm->adversary[i].name);
+					printf("Winner %s\n", data_shared->current_comm->adversary[i].name);
 					break;
 				}
 			}
