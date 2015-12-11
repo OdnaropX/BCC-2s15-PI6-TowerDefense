@@ -2350,13 +2350,15 @@ int main(int argc, char * argv[]) {
                         current_screen = END_GAME;
                         game_started = false;
                         end_status = EGS_LOSE;
+						printf("er\n");
                     } 
 					else if(!multiplayer){
 						if(minions_left <= 0 || (minions_left - (DEFAULT_PLAYERS_LIFE - health)) <= 0){
 							current_screen = END_GAME;
 							game_started = false;
 							end_status = EGS_WIN;
-							end_game_option = EG_NONE;
+							//end_game_option = EG_NONE;
+							printf("ddr\n");
 						}
 					}
                 }
@@ -2413,7 +2415,6 @@ int main(int argc, char * argv[]) {
                 break;
                 
             case END_GAME:
-				printf("here]\n");
 				ignore_next_command = 0;
 				if(gold) {
 					score = gold;
@@ -3600,7 +3601,6 @@ void set_end_game_status_text(end_game_status end_status, int is_multiplayer, in
 	
     switch (end_status) {
         case EGS_WIN:
-			printf("Here\n");
 			if(is_multiplayer || !score){
 				text = _("YOU WIN!");
 			}
@@ -3621,9 +3621,12 @@ void set_end_game_status_text(end_game_status end_status, int is_multiplayer, in
 					len = strlen(_("YOU LOST THE GAME. WINNER:"));
 					temp = strlen(data_shared->current_comm->match->winner_name);
 					text = calloc(temp + len + 3, sizeof(char));
-					strncpy(text, _("YOU LOST THE GAME. Winner:"), len);
+					strncpy(text, _("YOU LOST THE GAME. WINNER:"), len);
 					strncat(text, " ", 1);
 					strncat(text, data_shared->current_comm->match->winner_name, temp);
+				}
+				else {
+					text = _("YOU LOST THE GAME. WAIT TO KNOW THE WINNER.");
 				}
 			}
 			else 
