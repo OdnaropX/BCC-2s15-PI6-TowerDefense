@@ -715,10 +715,10 @@ void game_status(){
 					}
 					SDL_AtomicUnlock(&thread_control->lock.comm);
 					//Close connection.//Will be closed when thread is killed.
+					
+					game_in_progress = 0;
 				}
 			}
-            
-            game_in_progress = 0;
 		}
 		else {
 			SDL_AtomicLock(&thread_control->lock.comm);
