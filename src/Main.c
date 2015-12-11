@@ -2728,9 +2728,14 @@ int main(int argc, char * argv[]) {
                 break;
                 
             case END_GAME:
-                SDL_AtomicLock(&thread_control->lock.control);
-                draw_screen_end_game(renderer, end_game_interface_assets, end_game_interface_rects, end_game_interface_assets_count, select_end_game_option, data_shared->current_user->is_server, data_shared->current_comm->match->finished);
-                SDL_AtomicUnlock(&thread_control->lock.control);
+                if(multiplayer){
+                    SDL_AtomicLock(&thread_control->lock.control);
+                    draw_screen_end_game(renderer, end_game_interface_assets, end_game_interface_rects, end_game_interface_assets_count, select_end_game_option, data_shared->current_user->is_server, data_shared->current_comm->match->finished);
+                    SDL_AtomicUnlock(&thread_control->lock.control);
+                }
+                
+                else
+                    draw_screen_end_game(renderer, end_game_interface_assets, end_game_interface_rects, end_game_interface_assets_count, select_end_game_option, false, false);
                 
                 break;
                 
@@ -3526,7 +3531,7 @@ void reset_game_data(){
 void set_end_game_status_text(end_game_status end_status, int is_multiplayer){
     char *text = NULL;
     int len = 0;
-	int temp;
+	int temp = 0;
 	
     switch (end_status) {
         case EGS_WIN:
@@ -3583,7 +3588,7 @@ void set_end_game_status_text(end_game_status end_status, int is_multiplayer){
     
     SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, white);
     
-    if(end_status == EGS_LOSE)
+    if(end_status == EGS_LOSE && temp > len)
         free(text);
     
     if(!surface){
