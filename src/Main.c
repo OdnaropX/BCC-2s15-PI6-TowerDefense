@@ -133,7 +133,7 @@ void main_quit();
 bool load_audio();
 void get_config_text();
 void get_multiplayer_texts(multiplayer_status current_status, int page);
-void set_end_game_status_text(end_game_status end_status);
+void set_end_game_status_text(end_game_status end_status, int is_multiplayer);
 void get_multiplayer_game_names(int page, TTF_Font *font);
 void reset_game_data();
 bool render_texts();
@@ -1708,7 +1708,7 @@ int main(int argc, char * argv[]) {
 					
 					//Set screen
 					current_screen = END_GAME;
-					if(!data_shared->current_comm->match->lost){
+					if(data_shared->current_comm->match->winner_id == data_shared->current_user->id){
 						end_status = EGS_WIN;
 					}
 					else {
@@ -1716,7 +1716,7 @@ int main(int argc, char * argv[]) {
 					}
 					data_shared->current_comm->match->can_start = 0;
 					game_started = false;
-					printf("Winner %d\n", data_shared->current_comm->match->winner_id);
+					printf("Winner %d %d\n", data_shared->current_comm->match->winner_id, data_shared->current_user->id);
 				}
 				else if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost || data_shared->current_comm->match->error) {
 					//Set current screen
@@ -2640,7 +2640,7 @@ int main(int argc, char * argv[]) {
                         break;
                 }
                 
-                set_end_game_status_text(end_status);
+                set_end_game_status_text(end_status, multiplayer);
                 
 				if(!ignore_next_command)
 					end_game_option = EG_NONE;
@@ -3156,6 +3156,7 @@ void main_quit(){
 
 //Carrega textos do menu de configurações
 void get_config_text(){
+	int len = 0;
     for(int i = 0; i < config_menu_assets_count; i++){
         char *text = NULL;
         SDL_Rect rect;
@@ -3191,7 +3192,7 @@ void get_config_text(){
 						text = _("Language: English (Default)");
 					}
 					else {
-						int len = strlen(lang->names[config->language]);
+						len = strlen(lang->names[config->language]);
 						text = calloc((11 + len + 1), sizeof(char));
 						strncpy(text, _("Language"), 8);
 						strncat(text, ": ", 2);
@@ -3222,11 +3223,9 @@ void get_config_text(){
         else
             surface = TTF_RenderUTF8_Blended(font, text, white);
         
-		if(text && (i == 5 || i == 6)){
-			if(lang && lang->loaded > 0) {
-				free(text);
-				text = NULL;
-			}
+		if(len) {
+			free(text);
+			text = NULL;
 		}
 		
         if(!surface){
@@ -3585,16 +3584,36 @@ void reset_game_data(){
 	return;
 }
 
-void set_end_game_status_text(end_game_status end_status){
+void set_end_game_status_text(end_game_status end_status, int is_multiplayer){
     char *text = NULL;
-    
+    int len = 0;
+	int temp;
+	
     switch (end_status) {
         case EGS_WIN:
             text = _("YOU WIN!");
             break;
             
         case EGS_LOSE:
-            text = _("YOU LOST THE GAME");
+			if(is_multiplayer){
+				len = strlen(_("YOU LOST THE GAME. Winner:"));
+				for(int i = 0; i < data_shared->current_comm->match->players; i++){
+					if(data_shared->current_comm->adversary[i].id == data_shared->current_comm->match->winner_id){
+						temp = len + strlen(data_shared->current_comm->adversary[i].name) + 3;
+						text = calloc(temp, sizeof(char));
+						strncpy(text, _("YOU LOST THE GAME. Winner:"), len);
+						strncat(text, " ", 1);
+						strncat(text, data_shared->current_comm->adversary[i].name, temp - len - 3);
+						break;
+					}
+				}
+				if(!text){
+					len = 0;
+					text = _("YOU LOST THE GAME");
+				}
+			}
+			else 
+				text = _("YOU LOST THE GAME");
             break;
             
         case EGS_DC:
