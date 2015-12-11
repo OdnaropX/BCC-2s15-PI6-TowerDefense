@@ -9,7 +9,7 @@ minion *init_minion(list_minion_avaliable *list, int minionID){
 	minion_avaliable *avaliable = NULL;
 	avaliable = get_minion_from_avaliable_list(list, minionID);
 	
-	printf("Type returned\n");
+	//printf("Type returned\n");
 	if (avaliable == NULL){
 		return NULL;
 	}	
@@ -18,8 +18,8 @@ minion *init_minion(list_minion_avaliable *list, int minionID){
     minion *new_minion = NULL;
     new_minion = calloc(1, sizeof(minion));
     
-	printf("New minion allocated\n");
-	printf("New minion allocated %s\n", avaliable->thumbnail_file);
+	//printf("New minion allocated\n");
+	//printf("New minion allocated %s\n", avaliable->thumbnail_file);
 	new_minion->node = init_node(avaliable->thumbnail_file, 0, 50);
     new_minion->HP = avaliable->HP;
     new_minion->speed = avaliable->speed;
@@ -285,7 +285,7 @@ minion_avaliable *get_minion_from_avaliable_list(list_minion_avaliable *list, in
 	}
 	
 	if (temp_list != NULL && temp_list->e) {
-		printf("Returning type\n");
+		//printf("Returning type\n");
 		return temp_list->e;
 	}
 	return NULL;

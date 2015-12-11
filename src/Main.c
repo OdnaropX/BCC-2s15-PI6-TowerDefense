@@ -270,9 +270,7 @@ int main(int argc, char * argv[]) {
 	int seed = 1;
 	int total = 0;
 	int not_started = 0;
-	
-	printf("%s\n", _("Here"));
-	//int next = 0;  //unused
+
     //Main loop
     while(!quit){
         t1 = SDL_GetTicks();
@@ -982,7 +980,7 @@ int main(int argc, char * argv[]) {
                                             
                                             if(thread_control->server.pointer || thread_control->server.alive){
                                                 thread_control->server.terminate = 1;
-                                                printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+                                                //printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
                                             }
                                             else if(thread_control->client.pointer || thread_control->client.alive){
                                                 thread_control->client.terminate = 1;
@@ -990,7 +988,7 @@ int main(int argc, char * argv[]) {
                                             }
                                             else if(thread_control->udp.pointer || thread_control->udp.alive){
                                                 thread_control->udp.terminate = 1;
-                                                printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+                                                //printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
                                             }
                                             else {
                                                 printf("Threads killed!!\n");
@@ -1105,7 +1103,7 @@ int main(int argc, char * argv[]) {
                                                             
                                                             if(thread_control->server.pointer || thread_control->server.alive){
                                                                 thread_control->server.terminate = 1;
-                                                                printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+                                                                //printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
                                                             }
                                                             else if(thread_control->client.pointer || thread_control->client.alive){
                                                                 thread_control->client.terminate = 1;
@@ -1113,7 +1111,7 @@ int main(int argc, char * argv[]) {
                                                             }
                                                             else if(thread_control->udp.pointer || thread_control->udp.alive){
                                                                 thread_control->udp.terminate = 1;
-                                                                printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+                                                                //printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
                                                             }
                                                             else {
                                                                 printf("Threads killed!!\n");
@@ -1270,7 +1268,7 @@ int main(int argc, char * argv[]) {
                                                 
                                                 if(thread_control->server.pointer || thread_control->server.alive){
                                                     thread_control->server.terminate = 1;
-                                                    printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+                                                    //printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
                                                 }
                                                 else if(thread_control->client.pointer || thread_control->client.alive){
                                                     thread_control->client.terminate = 1;
@@ -1278,7 +1276,7 @@ int main(int argc, char * argv[]) {
                                                 }
                                                 else if(thread_control->udp.pointer || thread_control->udp.alive){
                                                     thread_control->udp.terminate = 1;
-                                                    printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+                                                    //printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
                                                 }
                                                 else {
                                                     printf("Threads killed!!\n");
@@ -1632,7 +1630,7 @@ int main(int argc, char * argv[]) {
 					}
 
 					add_minion = rand() % seed;
-					printf("Seed %d\n", seed);
+					//printf("Seed %d\n", seed);
 					pending_wave_number--;
 				}
                 
@@ -1731,13 +1729,13 @@ int main(int argc, char * argv[]) {
 					else if(data_shared->current_comm->match->error){
 						if(data_shared->current_comm->match->error == 1){
 							end_status = EGS_SFULL;
-							printf("Match full\n");
+							//printf("Match full\n");
 						}
 						else {
-							printf("Match started\n");
+							//printf("Match started\n");
 							end_status = EGS_GASTARTED;
 						}
-						printf("Connection match error\n");
+						//printf("Connection match error\n");
 					}
 					else {
 						//printf("Connection lost\n");
@@ -1820,7 +1818,7 @@ int main(int argc, char * argv[]) {
 					}
 					data_shared->current_user->minions = spawn_minium;
 					}
-					printf("Minions to send %d (amount user)\n", data_shared->current_user->spawn_amount);
+					//printf("Minions to send %d (amount user)\n", data_shared->current_user->spawn_amount);
 					data_shared->current_user->process.message_minion++;
 				}
 				send_minion = 0;
@@ -1922,7 +1920,7 @@ int main(int argc, char * argv[]) {
 									multiplayer = true;
 									//multiplayer_status = MPS_WAIT_READY;
 								}
-								printf("Here problem\n");
+								//printf("Here problem\n");
 							}
 							//Loop again.
 							else if(!ignore_next_command) {
@@ -1935,7 +1933,7 @@ int main(int argc, char * argv[]) {
                     case MP_SEARCH_ROOM:
                         multiplayer_status = MPS_SEARCHING_ROOM;
 
-						printf("search\n");
+						//printf("search\n");
 						if(thread_control){
 							if(thread_control->server.pointer || thread_control->server.alive){
 								SDL_AtomicLock(&thread_control->lock.control);
@@ -2012,7 +2010,7 @@ int main(int argc, char * argv[]) {
 							SDL_AtomicLock(&thread_control->lock.control);
 							if(thread_control->server.pointer || thread_control->server.alive){
 								thread_control->server.terminate = 1;
-								printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
+								//printf("Kill thread server %d %d!!\n", thread_control->server.pointer, thread_control->server.alive);
 							}
 							else if(thread_control->client.pointer || thread_control->client.alive){
 								thread_control->client.terminate = 1;
@@ -2020,7 +2018,7 @@ int main(int argc, char * argv[]) {
 							}
 							else if(thread_control->udp.pointer || thread_control->udp.alive){
 								thread_control->udp.terminate = 1;
-								printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+								//printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
 							}
 							else {
 								printf("Threads killed!!\n");
@@ -2189,7 +2187,7 @@ int main(int argc, char * argv[]) {
 						for(j = 0; j < data_shared->current_comm->adversary[i].pending_minions;j++){
 							
 							if(data_shared->current_comm->adversary[i].minions_sent[j] > 0){
-								printf("Has minionnns %d\n", data_shared->current_comm->adversary[i].minions_sent[j]);
+								//printf("Has minionnns %d\n", data_shared->current_comm->adversary[i].minions_sent[j]);
 								//Add minion
 								new_minion = init_minion(avaliable_minions, data_shared->current_comm->adversary[i].minions_sent[j]);     //minion_id not used
 								if(new_minion != NULL){
@@ -2343,15 +2341,11 @@ int main(int argc, char * argv[]) {
                                 enemy = enemy->next;
                             }
                             if(target){
-                                printf("Add targe\n");
 								projectile *newShoot = NULL;
 								newShoot = init_projectile(avaliable_projectiles, turret->e);
-								printf("Created projectile\n");
 								
                                 if(newShoot)
 									add_projectile_to_list(target->targetted_projectils, newShoot);
-								
-                                printf("Added projectile to list \n");
 
                                 turret->e->timeUntilNextAttack = 1.0;
                             }
@@ -2446,7 +2440,7 @@ int main(int argc, char * argv[]) {
 									}
 									else if(thread_control->udp.pointer || thread_control->udp.alive){
 										thread_control->udp.terminate = 1;
-										printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+										//printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
 									}
 									else {
 										printf("Threads killed!!\n");
@@ -2555,7 +2549,7 @@ int main(int argc, char * argv[]) {
 									}
 									else if(thread_control->udp.pointer || thread_control->udp.alive){
 										thread_control->udp.terminate = 1;
-										printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
+										//printf("Kill thread udp %d %d!!\n", thread_control->udp.pointer, thread_control->udp.alive);
 									}
 									else {
 										printf("Threads killed!!\n");
@@ -3610,20 +3604,13 @@ void set_end_game_status_text(end_game_status end_status, int is_multiplayer){
             
         case EGS_LOSE:
 			if(is_multiplayer){
-				len = strlen(_("YOU LOST THE GAME. Winner:"));
-				for(int i = 0; i < data_shared->current_comm->match->players; i++){
-					if(data_shared->current_comm->adversary[i].id == data_shared->current_comm->match->winner_id){
-						temp = len + strlen(data_shared->current_comm->adversary[i].name) + 3;
-						text = calloc(temp, sizeof(char));
-						strncpy(text, _("YOU LOST THE GAME. Winner:"), len);
-						strncat(text, " ", 1);
-						strncat(text, data_shared->current_comm->adversary[i].name, temp - len - 3);
-						break;
-					}
-				}
-				if(!text){
-					len = 0;
-					text = _("YOU LOST THE GAME");
+				if(data_shared->current_comm->match->winner_name){
+					len = strlen(_("YOU LOST THE GAME. WINNER:"));
+					temp = strlen(data_shared->current_comm->match->winner_name);
+					text = calloc(temp + len + 3, sizeof(char));
+					strncpy(text, _("YOU LOST THE GAME. Winner:"), len);
+					strncat(text, " ", 1);
+					strncat(text, data_shared->current_comm->match->winner_name, temp);
 				}
 			}
 			else 

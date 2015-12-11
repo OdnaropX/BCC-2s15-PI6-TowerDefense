@@ -68,6 +68,7 @@
 		int can_start;
 		int finished;
 		int winner_id;
+		char *winner_name;
 		int lost;
 		int error;
 		int players;

@@ -124,11 +124,11 @@ void add_projectile_to_list(list_projectile *list, projectile *projectile){
 			list->next = new_element;
 		}
 		else {
-			printf("There is no new list element created\n");
+			//printf("There is no new list element created\n");
 		}
 	}
 	else {
-		printf("null list\n");
+		//printf("null list\n");
 	}
 }
 
