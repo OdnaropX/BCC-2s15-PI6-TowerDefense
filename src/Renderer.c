@@ -237,7 +237,7 @@ void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SD
 			SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
 		}
         
-        if(assets[i] && i > 3 && i < 12)
+        if(assets[i] && i > 1 && i < 14)
             SDL_DestroyTexture(assets[i]);
         }
     

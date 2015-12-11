@@ -134,7 +134,7 @@ bool load_audio();
 void get_config_text();
 void get_multiplayer_texts(multiplayer_status current_status, int page);
 void set_end_game_status_text(end_game_status end_status);
-void c(int page, TTF_Font *font);
+void get_multiplayer_game_names(int page, TTF_Font *font);
 void reset_game_data();
 bool render_texts();
 void destroy_rendered_texts();
