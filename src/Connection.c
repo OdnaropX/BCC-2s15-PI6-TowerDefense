@@ -662,6 +662,7 @@ void game_status(){
 				//Check if game was finished.
 				SDL_AtomicLock(&thread_control->lock.user);
 				if(data_shared->current_user->life > 5){
+					printf("You alive\n");
 					alive++;
 					winner_id = data_shared->current_user->id;
 				}
@@ -699,8 +700,6 @@ void game_status(){
 							temp++;
 						}
 					}
-					
-					
 					
 					SDL_AtomicLock(&thread_control->lock.comm);
 					//Set winner to server.
