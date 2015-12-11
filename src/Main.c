@@ -1664,34 +1664,24 @@ int main(int argc, char * argv[]) {
 			SDL_AtomicLock(&thread_control->lock.comm);
 			//-- Change, dont need this, use the global variable instead.
 			if(data_shared->current_comm){
-				/*
-				if(data_shared->current_comm->server->searching_finished){
-					network.searched = 1;
-				}
-				*/
-				if(data_shared->current_comm->server->search_result > 0){
-					/*
-					if(data_shared->current_comm->server->connecting){
-						//network.connecting = 1;
-					}
-					network.servers = data_shared->current_comm->server->search_result;
-					for(i = 0; i < network.servers; i++){
-					//	strncpy(network.server_name[i], data_shared->current_comm->server->host[i].name, SERVER_NAME);
-					}
-					*/
-				}
-				/*
-				if(data_shared->current_comm->server->choosing) {
-					//network.choose_server = 1;
-				}*/
 				
-				if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost || data_shared->current_comm->match->error) {
+				if(data_shared->current_comm->match->finished){
+					printf("Finished\n");
+					not_started = 0;
+					
+					//Set screen
+					
+					printf("Winner %d\n", data_shared->current_comm->match->winner_id);
+				}
+				else if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost || data_shared->current_comm->match->error) {
 					//Set current screen
 					current_screen = END_GAME;
 					//printf("Lost comm\n");
+					
 					if(data_shared->current_comm->server->connection_failed){
 						end_status = EGS_DC;
-						printf("Connection failed\n");
+						//printf("Connection failed\n");
+						//--
 					}
 					else if(data_shared->current_comm->match->error){
 						if(data_shared->current_comm->match->error == 1){
@@ -1717,15 +1707,6 @@ int main(int argc, char * argv[]) {
 					not_started = 1;
 					game_started = true;
 					current_screen = GAME_RUNNING;
-				}
-				
-				if(data_shared->current_comm->match->finished) {
-					not_started = 0;
-					
-					//Set screen
-					
-					
-					//data_shared->current_comm->match->winner_id;
 				}
 			}
 			SDL_AtomicUnlock(&thread_control->lock.comm);
@@ -1804,36 +1785,11 @@ int main(int argc, char * argv[]) {
 			//Check if a connection running was failed. This will kill the thread.
 			
 			SDL_AtomicLock(&thread_control->lock.comm);
+			
 			if(data_shared->current_comm && data_shared->current_comm->server && data_shared->current_comm->server->connected){
                 multiplayer_status = MPS_ENTERED_ROOM;
 			}
 			SDL_AtomicUnlock(&thread_control->lock.comm);
-			
-			/*
-			if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost){
-				
-			}
-			
-			
-			if(network.connection_failed){
-				//Kill threads.
-				SDL_AtomicLock(&thread_control->lock.control);
-				thread_control->udp.terminate = 1;
-				thread_control->server.terminate = 1;
-				thread_control->client.terminate = 1;
-				thread_control->client.pointer = NULL;
-				thread_control->server.pointer = NULL;
-				thread_control->udp.pointer = NULL;
-				SDL_AtomicUnlock(&thread_control->lock.control);
-				
-				//After this the thread will be dead must use network.connection_failed to show message with renderer.
-				//- TODO:
-				// [ ] Change screen to connection failed.
-				
-				multiplayer_status = MPS_NONE;
-				multiplayer = false;
-			}
-			*/
 		}
 		
 		//Action Performancer
