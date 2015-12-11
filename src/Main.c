@@ -4127,16 +4127,16 @@ bool render_texts(){
         SDL_Rect rect;
 		switch(i){
 			case 15:
-				text = _('Grade');
-				rect = (SDL_Rect){1185, 2, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
+				text = _("Grade");
+				rect = (SDL_Rect){1120, 2, 100, 30};
 				break;
 			case 16:
-				text = _('Time');
-				rect = (SDL_Rect){1185, 92, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
+				text = _("Time");
+				rect = (SDL_Rect){1132, 90, 100, 30};
 				break;
 			case 17:
-				text = _('Gold');
-				rect = (SDL_Rect){1185, 202, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
+				text = _("Gold");
+				rect = (SDL_Rect){1125, 202, 100, 30};
 				break;
 			default:
 				break;
