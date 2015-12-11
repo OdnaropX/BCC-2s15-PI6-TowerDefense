@@ -1400,6 +1400,7 @@ int main(int argc, char * argv[]) {
 											break;
 										case OPT_P_CONFIG:
 											current_screen = CONFIG;
+                                            get_config_text();
 											previous_screen = GAME_PAUSED;
 											break;
 										case OPT_P_SCORE:	
@@ -1860,6 +1861,7 @@ int main(int argc, char * argv[]) {
 						break;
 					case OPT_CONFIG:
 						current_screen = CONFIG;
+                        get_config_text();
 						previous_screen = MAIN;
 						break;
 					case OPT_SCORE:
@@ -2397,6 +2399,7 @@ int main(int argc, char * argv[]) {
                         break;
 					case OPT_P_CONFIG:
 						current_screen = CONFIG;
+                        get_config_text();
 						previous_screen = GAME_PAUSED;
                         break;
 					case OPT_P_SCORE:
