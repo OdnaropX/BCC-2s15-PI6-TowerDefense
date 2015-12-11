@@ -119,7 +119,7 @@ int health = DEFAULT_PLAYERS_LIFE;
 int gold = 1000;
 int mana = 0;
 float gold_per_second = 1;
-int minions_left = 184;
+int minions_left = 1;
 
 //Avaliables
 list_minion_avaliable *avaliable_minions;
@@ -133,7 +133,7 @@ void main_quit();
 bool load_audio();
 void get_config_text();
 void get_multiplayer_texts(multiplayer_status current_status, int page);
-void set_end_game_status_text(end_game_status end_status, int is_multiplayer);
+void set_end_game_status_text(end_game_status end_status, int is_multiplayer, int score);
 void get_multiplayer_game_names(int page, TTF_Font *font);
 void reset_game_data();
 bool render_texts();
@@ -225,6 +225,7 @@ int main(int argc, char * argv[]) {
 	int send_minion = 0;//User send the minion.
 	int ignore_next_command = 0;
 	
+	int score;
 	
 	int current_position[] = {0,0};
 	
@@ -2426,7 +2427,9 @@ int main(int argc, char * argv[]) {
                 
             case END_GAME:
 				ignore_next_command = 0;
-				
+				if(gold) {
+					score = gold;
+				}
                 switch (end_game_option) {
                     case EG_NEW_GAME:
 						switch(end_status){
@@ -2654,7 +2657,7 @@ int main(int argc, char * argv[]) {
                         break;
                 }
                 
-                set_end_game_status_text(end_status, multiplayer);
+                set_end_game_status_text(end_status, multiplayer, score);
                 
 				if(!ignore_next_command)
 					end_game_option = EG_NONE;
@@ -3560,7 +3563,7 @@ void reset_game_data(){
     gold = 1000;
     mana = 0;
 	
-	minions_left = 184;
+	minions_left = 1;//184;
 	show_timer = 0;
 	timer_count = 0;
 	spawn_minion = 0;
@@ -3598,14 +3601,27 @@ void reset_game_data(){
 	return;
 }
 
-void set_end_game_status_text(end_game_status end_status, int is_multiplayer){
+void set_end_game_status_text(end_game_status end_status, int is_multiplayer, int score){
+	char buffer[100];
     char *text = NULL;
     int len = 0;
 	int temp;
 	
     switch (end_status) {
         case EGS_WIN:
-            text = _("YOU WIN!");
+			printf("Here\n");
+			if(is_multiplayer || !score){
+				text = _("YOU WIN!");
+			}
+			else {
+				len = strlen(_("YOU WIN! SCORE:"));
+				sprintf(buffer, "%d", score);
+				temp = strlen(buffer);
+				text = calloc(temp + len + 3, sizeof(char));
+				strncpy(text, _("YOU WIN! SCORE:"), len);
+				strncat(text, " ", 1);
+				strncat(text, buffer, temp);
+			}
             break;
             
         case EGS_LOSE:
@@ -3651,6 +3667,10 @@ void set_end_game_status_text(end_game_status end_status, int is_multiplayer){
     
     SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, white);
     
+	if(len){
+		free(text);
+	}
+	
     if(!surface){
         printf("(End game)Text not rendered! %s\n", TTF_GetError());
         return;
