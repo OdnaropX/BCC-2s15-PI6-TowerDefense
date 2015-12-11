@@ -119,7 +119,7 @@ int health = DEFAULT_PLAYERS_LIFE;
 int gold = 1000;
 int mana = 0;
 float gold_per_second = 1;
-int minions_left = 5;
+int minions_left = 184;
 
 //Avaliables
 list_minion_avaliable *avaliable_minions;
@@ -252,7 +252,7 @@ int main(int argc, char * argv[]) {
 	
 	//Wave control - 20 seconds, after 
 	int pending_wave_number = 0;
-	int timer_minion = 1;//20;
+	int timer_minion = 20;
 	
 	int temp_option;
 	
@@ -1679,7 +1679,7 @@ int main(int argc, char * argv[]) {
 					seed++;
 					if (spawn_minion > 0 && spawn_minion < 10) {
 						spawn_minion = 0;
-						timer_minion = 1;//20;
+						timer_minion = 20;
 					}
 				}
                 
@@ -2350,15 +2350,12 @@ int main(int argc, char * argv[]) {
                         current_screen = END_GAME;
                         game_started = false;
                         end_status = EGS_LOSE;
-						printf("er\n");
                     } 
 					else if(!multiplayer){
 						if(minions_left <= 0 || (minions_left - (DEFAULT_PLAYERS_LIFE - health)) <= 0){
 							current_screen = END_GAME;
 							game_started = false;
 							end_status = EGS_WIN;
-							//end_game_option = EG_NONE;
-							printf("ddr\n");
 						}
 					}
                 }
@@ -2725,9 +2722,14 @@ int main(int argc, char * argv[]) {
                 break;
                 
             case END_GAME:
-                SDL_AtomicLock(&thread_control->lock.control);
-                draw_screen_end_game(renderer, end_game_interface_assets, end_game_interface_rects, end_game_interface_assets_count, select_end_game_option, data_shared->current_user->is_server, data_shared->current_comm->match->finished);
-                SDL_AtomicUnlock(&thread_control->lock.control);
+				if(multiplayer){
+					SDL_AtomicLock(&thread_control->lock.control);
+					draw_screen_end_game(renderer, end_game_interface_assets, end_game_interface_rects, end_game_interface_assets_count, select_end_game_option, data_shared->current_user->is_server, data_shared->current_comm->match->finished);
+					SDL_AtomicUnlock(&thread_control->lock.control);
+				}
+				else {
+					draw_screen_end_game(renderer, end_game_interface_assets, end_game_interface_rects, end_game_interface_assets_count, select_end_game_option, false, false);
+				}
                 
                 break;
                 
@@ -2889,78 +2891,6 @@ bool main_init(){
     //Init stats
     reset_game_data();
     
-    //Init interface static assets(Pause button, right bar, quit multiplayer)
-	SDL_Surface *pause_surface;
-	if(windows) {
-		pause_surface = IMG_Load("images/Pause.png");
-	}
-	else {
-		pause_surface = IMG_Load("../images/Pause.png");
-	}
-	
-    if(!pause_surface){
-        printf("Falha ao carregar botão de pause! %s\n", IMG_GetError());
-        return false;
-    }
-    
-    game_interface_assets[0] = SDL_CreateTextureFromSurface(renderer, pause_surface);
-    if(!game_interface_assets[0]){
-        printf("Falha ao criar textura de botão de pause! %s\n", SDL_GetError());
-        return false;
-    }
-    
-    SDL_FreeSurface(pause_surface);
-    
-    game_interface_rects[0] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
-    
-	SDL_Surface *right_bar_surface;
-	
-	if(windows){
-		right_bar_surface = IMG_Load("images/Right Bar.png");
-	}
-	else {
-		right_bar_surface = IMG_Load("../images/Right Bar.png");
-	}
-		
-	
-    if(!right_bar_surface){
-        printf("Falha ao carregar right bar! %s\n", IMG_GetError());
-        return false;
-    }
-    
-    game_interface_assets[1] = SDL_CreateTextureFromSurface(renderer, right_bar_surface);
-    if(!game_interface_assets[1]){
-        printf("Falha ao criar textura de right bar");
-        return false;
-    }
-    
-    SDL_FreeSurface(right_bar_surface);
-    
-    game_interface_rects[1] = (SDL_Rect){1095, 0, 185, 720};
-	
-	SDL_Surface *quit_surface;
-    if(windows){
-		quit_surface = IMG_Load("images/MP_Quit.png");
-	}
-	else {
-		quit_surface = IMG_Load("../images/MP_Quit.png");
-	}
-		
-	
-    if(!quit_surface){
-        printf("Falha ao carregar botão quit! %s\n", IMG_GetError());
-        return false;
-    }
-    
-    game_interface_assets[14] = SDL_CreateTextureFromSurface(renderer, quit_surface);
-    if(!game_interface_assets[14]){
-        printf("Falha ao criar textura de botão quit! %s\n", SDL_GetError());
-        return false;
-    }
-    
-    SDL_FreeSurface(quit_surface);
-    
-    game_interface_rects[14] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
     
 	//Init minions avaliable
 	avaliable_minions = load_minions(MINION_FILE);
@@ -3555,7 +3485,7 @@ void reset_game_data(){
     gold = 1000;
     mana = 0;
 	
-	minions_left = 5;//184;
+	minions_left = 184;
 	show_timer = 0;
 	timer_count = 0;
 	spawn_minion = 0;
@@ -3597,7 +3527,7 @@ void set_end_game_status_text(end_game_status end_status, int is_multiplayer, in
 	char buffer[100];
     char *text = NULL;
     int len = 0;
-	int temp;
+	int temp = 0;
 	
     switch (end_status) {
         case EGS_WIN:
@@ -3662,7 +3592,9 @@ void set_end_game_status_text(end_game_status end_status, int is_multiplayer, in
     SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, white);
     
 	if(len){
+		len = 0;
 		free(text);
+		text = NULL;
 	}
 	
     if(!surface){
@@ -4164,6 +4096,79 @@ bool render_texts(){
         
         SDL_FreeSurface(surface);
     }
+	
+	//Init interface static assets(Pause button, right bar, quit multiplayer)
+    SDL_Surface *pause_surface;
+    if(windows) {
+        pause_surface = IMG_Load("images/Pause.png");
+    }
+    else {
+        pause_surface = IMG_Load("../images/Pause.png");
+    }
+    
+    if(!pause_surface){
+        printf("Falha ao carregar botão de pause! %s\n", IMG_GetError());
+        return false;
+    }
+    
+    game_interface_assets[0] = SDL_CreateTextureFromSurface(renderer, pause_surface);
+    if(!game_interface_assets[0]){
+        printf("Falha ao criar textura de botão de pause! %s\n", SDL_GetError());
+        return false;
+    }
+    
+    SDL_FreeSurface(pause_surface);
+    
+    game_interface_rects[0] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
+    
+    SDL_Surface *right_bar_surface;
+    
+    if(windows){
+        right_bar_surface = IMG_Load("images/Right Bar.png");
+    }
+    else {
+        right_bar_surface = IMG_Load("../images/Right Bar.png");
+    }
+    
+    
+    if(!right_bar_surface){
+        printf("Falha ao carregar right bar! %s\n", IMG_GetError());
+        return false;
+    }
+    
+    game_interface_assets[1] = SDL_CreateTextureFromSurface(renderer, right_bar_surface);
+    if(!game_interface_assets[1]){
+        printf("Falha ao criar textura de right bar");
+        return false;
+    }
+    
+    SDL_FreeSurface(right_bar_surface);
+    
+    game_interface_rects[1] = (SDL_Rect){1095, 0, 185, 720};
+    
+    SDL_Surface *quit_surface;
+    if(windows){
+        quit_surface = IMG_Load("images/MP_Quit.png");
+    }
+    else {
+        quit_surface = IMG_Load("../images/MP_Quit.png");
+    }
+    
+    
+    if(!quit_surface){
+        printf("Falha ao carregar botão quit! %s\n", IMG_GetError());
+        return false;
+    }
+    
+    game_interface_assets[14] = SDL_CreateTextureFromSurface(renderer, quit_surface);
+    if(!game_interface_assets[14]){
+        printf("Falha ao criar textura de botão quit! %s\n", SDL_GetError());
+        return false;
+    }
+    
+    SDL_FreeSurface(quit_surface);
+    
+    game_interface_rects[14] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
 	
 	return true;
 	
