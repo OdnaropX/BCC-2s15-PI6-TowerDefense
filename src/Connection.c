@@ -550,7 +550,7 @@ void check_connection_tcp(){
 		data_shared->current_comm->adversary[temp].ready_to_play = 0;
 		data_shared->current_comm->adversary[temp].minions_sent = NULL;
         data_shared->current_comm->adversary[temp].name = malloc(sizeof(char)* SERVER_NAME);
-        strcpy(data_shared->current_comm->adversary[temp].name, "New PLayer");
+        strcpy(data_shared->current_comm->adversary[temp].name, "New Player");
         
 		data_shared->current_comm->match->players = data_shared->current_comm->match->players + 1;
 		SDL_AtomicUnlock(&thread_control->lock.comm);
@@ -667,8 +667,10 @@ void game_status(){
 					winner_id = data_shared->current_user->id;
 				}
 				else {
+                    printf("PERDI!\n");
 					data_shared->current_comm->match->lost = 1;
 				}
+                
 				SDL_AtomicUnlock(&thread_control->lock.user);
 				temp = 0;
 				for(i = 0; i < MAX_CLIENT; i++){
@@ -715,6 +717,8 @@ void game_status(){
 					//Close connection.//Will be closed when thread is killed.
 				}
 			}
+            
+            game_in_progress = 0;
 		}
 		else {
 			SDL_AtomicLock(&thread_control->lock.comm);
@@ -748,6 +752,9 @@ void game_status(){
 					}
 					game_in_progress = 1;
 				}
+                
+                else
+                    game_in_progress = 0;
 			}
 			SDL_AtomicUnlock(&thread_control->lock.comm);
 		}

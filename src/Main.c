@@ -2132,6 +2132,18 @@ int main(int argc, char * argv[]) {
 						else {
 							config->audio_music = true;
 						}
+                        //If the music is paused
+                        if( Mix_PausedMusic() == 1 )
+                        {
+                            //Resume the music
+                            Mix_ResumeMusic();
+                        }
+                        //If the music is playing
+                        else
+                        {
+                            //Pause the music
+                            Mix_PauseMusic();
+                        }
                         get_config_text();
 						break;
 					case LANGUAGE:
@@ -2242,7 +2254,7 @@ int main(int argc, char * argv[]) {
                                     perform_path_verification(16, 5);
                                 }
                                 else{ // SUCCESS
-                                    Mix_PlayChannel( -1, build, 0 );
+                                    if(!config->audio_sfx) Mix_PlayChannel( -1, build, 0 );
                                     new_turret = init_turret(avaliable_turrets, add_tower, current_position[0], current_position[1]);
                                     add_turret_to_list(turrets, new_turret);
                                     gold -= price;
@@ -2257,7 +2269,7 @@ int main(int argc, char * argv[]) {
 						//Add minion
 						new_minion = init_minion(avaliable_minions, add_minion);     //minion_id not used
 						if(new_minion != NULL){
-                            Mix_PlayChannel( -1, spawn, 0 );
+                            if(!config->audio_sfx) Mix_PlayChannel( -1, spawn, 0 );
 							add_minion_to_list(minions, new_minion);
                             new_minion->node->xPos = 150;
                             new_minion->node->yPos = 600;
@@ -2276,7 +2288,7 @@ int main(int argc, char * argv[]) {
 						list_projectile *shoot = enemy->e->targetted_projectils;
 
 						if(minion_pos_value == 1){
-                            Mix_PlayChannel( -1, damage_taken, 0 );
+                            if(!config->audio_sfx) Mix_PlayChannel( -1, damage_taken, 0 );
 							enemy->e->HP = 0;
 							health--;
 							//Update player health if multiplayer
@@ -2289,7 +2301,7 @@ int main(int argc, char * argv[]) {
 						}
 						while (shoot && shoot->e) {
 							if(move_bullet(enemy->e, shoot->e)){ // The movement is made in the if call.
-                                Mix_PlayChannel( -1, hit, 0 );
+                                if(!config->audio_sfx) Mix_PlayChannel( -1, hit, 0 );
 								enemy->e->HP -= shoot->e->damage;
 								remove_projectile_from_list(shoot, shoot->e);
 								if(enemy->e->HP <= 0){
@@ -3194,7 +3206,7 @@ void get_config_text(){
 						text = _("Language: English (Default)");
 					}
 					else {
-						len = strlen(lang->names[config->language]);
+						int len = (int)strlen(lang->names[config->language]);
 						text = calloc((11 + len + 1), sizeof(char));
 						strncpy(text, _("Language"), 8);
 						strncat(text, ": ", 2);
