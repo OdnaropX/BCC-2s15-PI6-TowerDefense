@@ -22,7 +22,7 @@
 
 #define main_menu_assets_count 13
 #define config_menu_assets_count 9
-#define game_interface_assets_count 15
+#define game_interface_assets_count 18
 #define pause_interface_assets_count 13
 #define credits_menu_assets_count 7
 #define score_menu_assets_count 3
@@ -1682,7 +1682,6 @@ int main(int argc, char * argv[]) {
 						timer_minion = 20;
 					}
 				}
-                
 			}
 		}
 		
@@ -4122,7 +4121,48 @@ bool render_texts(){
     game_interface_rects[0] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
     
     SDL_Surface *right_bar_surface;
-    
+
+	for(int i = 15; i < game_interface_assets_count; i++){
+		char *text = NULL;
+        SDL_Rect rect;
+		switch(i){
+			case 15:
+				text = _('Grade');
+				rect = (SDL_Rect){1185, 2, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
+				break;
+			case 16:
+				text = _('Time');
+				rect = (SDL_Rect){1185, 92, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
+				break;
+			case 17:
+				text = _('Gold');
+				rect = (SDL_Rect){1185, 202, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
+				break;
+			default:
+				break;
+		}
+		if(text){
+			SDL_Surface *surface;
+			surface = TTF_RenderUTF8_Blended(font, text, white);
+			if(!surface){
+                printf("(End game)Text not rendered! %s\n", TTF_GetError());
+                return false;
+            }
+			game_interface_assets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+			
+			if(!game_interface_assets[i]){
+				printf("(End game)Erro ao criar textura! %s\n", SDL_GetError());
+				SDL_FreeSurface(surface);
+				return false;
+			}
+			game_interface_rects[i] = rect;
+		}
+		else {
+			game_interface_assets[i] = NULL;
+		}
+	}
+	
+	
     if(windows){
         right_bar_surface = IMG_Load("images/Right Bar.png");
     }
