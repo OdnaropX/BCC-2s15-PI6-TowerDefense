@@ -233,17 +233,22 @@ void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SD
                     break;
             }
         }
-		
-        if(i%2 == 0 || i < 2 || i == sel){
-			if(assets[i])
-				SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+        
+        
+        if(i == 14 && multiplayer)
+            SDL_RenderCopy(renderer, assets[14], NULL, &rectangles[14]);
+        else if(i == 0 && !multiplayer)
+            SDL_RenderCopy(renderer, assets[0], NULL, &rectangles[0]);
+        
+        if((i%2 == 0 && i > 0 && i < 14) || i == sel){
+			SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
 		}
+        
+        SDL_RenderCopy(renderer, assets[1], NULL, &rectangles[1]);
         
         if(assets[i] && i > 1 && i < 14)
             SDL_DestroyTexture(assets[i]);
         }
-    
-    SDL_RenderCopy(renderer, assets[0], NULL, &rectangles[0]);
 }
 
 void draw_screen_game_paused(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, pause_options select_pause_option){

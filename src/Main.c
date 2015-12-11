@@ -225,7 +225,7 @@ int main(int argc, char * argv[]) {
 	int send_minion = 0;//User send the minion.
 	int ignore_next_command = 0;
 	
-	int score;
+    int score = 0;
 	
 	int current_position[] = {0,0};
 	
