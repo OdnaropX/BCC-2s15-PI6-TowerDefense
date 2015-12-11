@@ -201,7 +201,7 @@ void draw_screen_game_running(SDL_Surface *screen, SDL_Surface *map, list_minion
 void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, target_select_options select_target_option, bool multiplayer){
     int sel = 0;
     
-    for(int i = 1; i < count - 1; i++){
+    for(int i = 0; i < count - 1; i++){
         if(multiplayer){
             switch (select_target_option) {
                 case TSO_PREVIOUS_PAGE:
@@ -232,18 +232,16 @@ void draw_screen_game_interface(SDL_Renderer *renderer, SDL_Texture **assets, SD
                     break;
             }
         }
+		
+        if(i%2 == 0 || i < 2 || i == sel){
+			SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+		}
         
-        if(i%2 == 0 || i < 2 || i == sel)
-            SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
-        
-        if(assets[i] && i > 3 && i < 12)
+        if(assets[i] && i > 1 && i < 14)
             SDL_DestroyTexture(assets[i]);
-    }
+        }
     
-    if(!multiplayer)
-        SDL_RenderCopy(renderer, assets[0], NULL, &rectangles[0]);
-    else
-        SDL_RenderCopy(renderer, assets[0], NULL, &rectangles[0]);
+    SDL_RenderCopy(renderer, assets[0], NULL, &rectangles[0]);
 }
 
 void draw_screen_game_paused(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, pause_options select_pause_option){
@@ -302,7 +300,7 @@ void draw_screen_score(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *r
     }
 }
 
-void draw_screen_end_game(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, end_game_options select_end_game_option){
+void draw_screen_end_game(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect *rectangles, int count, end_game_options select_end_game_option, bool is_server, bool is_multiplayer_over){
     for(int i = 0; i < count; i++){
         int sel = 0;
         switch(select_end_game_option){
@@ -319,10 +317,14 @@ void draw_screen_end_game(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect
                 break;
         }
         
-        if(i == 0 || i == sel || i%2 == 1)
+        if(i == 0 || i == 7)
+            SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
+        
+        else if(is_server && is_multiplayer_over && (i == sel || i%2 == 1))
             SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
 		
     }
+    
 	if(assets[7])
         SDL_DestroyTexture(assets[7]);
 }
@@ -477,6 +479,7 @@ void display_mouse(SDL_Renderer *renderer, SDL_Texture *select, bool active_clic
 void display_health(SDL_Renderer *renderer, int value, TTF_Font *font){
     char str[5];
     sprintf(str, "%d", value);
+
     SDL_Surface *s = TTF_RenderUTF8_Blended(font, str, (SDL_Color){255, 255, 255, 255});
     
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, s);

@@ -661,7 +661,7 @@ void game_status(){
 			else {
 				//Check if game was finished.
 				SDL_AtomicLock(&thread_control->lock.user);
-				if(data_shared->current_user->life > 0){
+				if(data_shared->current_user->life > 5){
 					alive++;
 					winner_id = data_shared->current_user->id;
 				}
@@ -677,7 +677,7 @@ void game_status(){
 						winner_id = clients[i].id;
 					}
 				}
-				printf("Alive %d\n", alive);
+				//printf("Alive %d\n", alive);
 				if(alive == 1){
 					game_ended = 1;
 					//Send message of end game to users.
@@ -745,19 +745,35 @@ void game_status(){
 			SDL_AtomicUnlock(&thread_control->lock.comm);
 		}
 	}
+	//Not server
 	else {
 		//Check server connection.//This is detected by sending an receiving messages.
 		if(data_shared->current_comm->server->connection_failed){
 			return;
 		}
 		
-		if(game_in_progress && !data_shared->current_comm->match->lost){
+		if(game_in_progress){
 			//Check if game was finish.
-			//Check if player lost. If lost, wait until the game is finished.
-			if(data_shared->current_user->life <= 0) {
-				SDL_AtomicLock(&thread_control->lock.comm);
-				data_shared->current_comm->match->lost = 1;
-				SDL_AtomicUnlock(&thread_control->lock.comm);
+			/*
+			alive = 0;
+			
+			for(i = 0; i < data_shared->current_comm->match->players;i++){
+				if(data_shared->current_comm->adversary[i].life > 0){
+					alive++;
+				}
+			}
+			if(alive == 1){
+				//Game finish
+			}
+			*/
+			
+			if(!data_shared->current_comm->match->lost){
+				//Check if player lost. If lost, wait until the game is finished.
+				if(data_shared->current_user->life < 6) {
+					SDL_AtomicLock(&thread_control->lock.comm);
+					data_shared->current_comm->match->lost = 1;
+					SDL_AtomicUnlock(&thread_control->lock.comm);
+				}
 			}
 		}
 	}
@@ -1277,6 +1293,63 @@ void handle_message(char *buffer, int handle_internal){
 			}
 		}
 	}
+	//User USER_STATUS_LIFE
+	else if(strncmp(buffer, "USER_STATUS_LIFE", strlen("USER_STATUS_LIFE")) == 0) {
+		printf("Handling USER_STATUS_LIFE\n");
+		pointer = strchr(buffer, '\t');
+		pointer++;
+		user_id = (int)*pointer;
+		
+		snprintf(buffer, BUFFER_LIMIT, "USER_LIFE\t%s", pointer);
+		printf("Buffer to send |%s|\n", buffer);
+		temp = 0;
+		connected = connected_clients;
+		life = -1;
+		for(i=0;i< MAX_CLIENT;i++){
+			if(temp == connected) {
+				break;
+			}
+			if(clients[i].tcp_socket) {
+				if(clients[i].id != user_id){
+					//Send message to all except who sent
+					if(!send_message(buffer, 11, clients[i].tcp_socket, 0)) {
+						//Remove client
+						remove_client(i);
+					}
+				}
+				else {
+					pointer += 2;
+					life = (int) *pointer;
+					//Fix null char
+					life--;
+					//Update alive status
+					if(life < 6) {
+						clients[i].alive = 0;
+					}					
+				}
+				temp++;
+			}
+		}
+		printf("current handle %d\n", handle_internal);
+		//Update server game
+		if(!handle_internal){
+			if(life < 0){ 
+				pointer+=2;
+			}
+			status = (int) *pointer;
+			//Fix null char.
+			status--;
+			SDL_AtomicLock(&thread_control->lock.comm);
+			temp = data_shared->current_comm->match->players;
+			for (i = 0; i< temp; i++){
+				if(data_shared->current_comm->adversary[i].id == user_id){
+					data_shared->current_comm->adversary[i].life = status;
+					break;
+				}
+			}
+			SDL_AtomicUnlock(&thread_control->lock.comm);
+		}
+	}
 	//User USER_STATUS
 	else if(strncmp(buffer, "USER_STATUS", strlen("USER_STATUS")) == 0) {
 		//printf("Handling USER_STATUS\n");
@@ -1315,57 +1388,6 @@ void handle_message(char *buffer, int handle_internal){
 			for (i = 0; i < temp; i++){
 				if(data_shared->current_comm->adversary[i].id == user_id){
 					data_shared->current_comm->adversary[i].ready_to_play = status;
-					break;
-				}
-			}
-			SDL_AtomicUnlock(&thread_control->lock.comm);
-		}
-	}
-	//User USER_STATUS_LIFE
-	else if(strncmp(buffer, "USER_STATUS_LIFE", strlen("USER_STATUS_LIFE")) == 0) {
-		//printf("Handling USER_STATUS_LIFE\n");
-		pointer = strchr(buffer, '\t');
-		pointer++;
-		user_id = (int)*pointer;
-		
-		snprintf(buffer, BUFFER_LIMIT, "USER_LIFE\t%s", pointer);
-		temp = 0;
-		connected = connected_clients;
-		for(i=0;i< MAX_CLIENT;i++){
-			if(temp == connected) {
-				break;
-			}
-			if(clients[i].tcp_socket) {
-				if(clients[i].id != user_id){
-					//Send message to all except who sent
-					if(!send_message(buffer, 11, clients[i].tcp_socket, 0)) {
-						//Remove client
-						remove_client(i);
-					}
-				}
-				else {
-					pointer += 2;
-					life = (int) *pointer;
-					//Update alive status
-					if(life <= 0) {
-						clients[i].alive = 0;
-					}					
-				}
-				temp++;
-			}
-		}
-		
-		//Update server game
-		if(!handle_internal){
-			pointer+=2;
-			status = (int) *pointer;
-			//Fix null char.
-			status--;
-			SDL_AtomicLock(&thread_control->lock.comm);
-			temp = data_shared->current_comm->match->players;
-			for (i = 0; i< temp; i++){
-				if(data_shared->current_comm->adversary[i].id == user_id){
-					data_shared->current_comm->adversary[i].life = status;
 					break;
 				}
 			}

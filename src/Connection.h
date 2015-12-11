@@ -27,7 +27,7 @@
 	#define BUFFER_LIMIT 512
 	#define SERVER_NAME 150
 	#define MAX_SERVER 4//Change to get from config file.
-	#define MAX_CLIENT 1//4 Players in total.
+	#define MAX_CLIENT 3//4 Players in total.
 	#define SERVER_USER_RESPONSE_DELAY 30//Aprox. de 1000ms/60
 	
 	//Structs
@@ -40,7 +40,6 @@
 	typedef struct _action Action;
 	typedef struct _adversary Adversary;
 	typedef struct _user User;
-	typedef struct _network Network;
 	typedef struct _game_communication Communication;
 	typedef struct _send_minion SpawnMinion;
 	typedef struct _thread Thread;
@@ -122,17 +121,6 @@
 		int alive;
 		char name[SERVER_NAME];
 		TCPsocket tcp_socket;
-	};
-	
-	struct _network {
-		int searching;
-		int searched;
-		int connecting;
-		int connection_failed;
-		int servers;
-		char server_name[MAX_SERVER][SERVER_NAME];
-		int choose_server;
-		int server_choosed;
 	};
 	
 	struct _thread {
