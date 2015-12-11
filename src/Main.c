@@ -4130,7 +4130,7 @@ bool render_texts(){
         right_bar_surface = IMG_Load("../images/Right Bar.png");
     }
     
-    
+     
     if(!right_bar_surface){
         printf("Falha ao carregar right bar! %s\n", IMG_GetError());
         return false;
