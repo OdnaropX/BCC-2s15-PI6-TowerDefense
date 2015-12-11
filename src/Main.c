@@ -1522,7 +1522,7 @@ int main(int argc, char * argv[]) {
                     
                 case END_GAME:
                     //avoids server from quitting
-                    if(data_shared->current_comm->match->finished && data_shared->current_user->is_server){
+                    if((data_shared->current_user->is_server && data_shared->current_comm->match->finished) || !data_shared->current_user->is_server){
                         switch (event.type) {
                             case SDL_QUIT:
                                 quit = true;
@@ -1707,7 +1707,15 @@ int main(int argc, char * argv[]) {
 					not_started = 0;
 					
 					//Set screen
-					
+					current_screen = END_GAME;
+					if(!data_shared->current_comm->match->lost){
+						end_status = EGS_WIN;
+					}
+					else {
+						end_status = EGS_LOSE;
+					}
+					data_shared->current_comm->match->can_start = 0;
+					game_started = false;
 					printf("Winner %d\n", data_shared->current_comm->match->winner_id);
 				}
 				else if(data_shared->current_comm->server->connection_failed || data_shared->current_comm->connection_lost || data_shared->current_comm->match->error) {

@@ -320,7 +320,7 @@ void draw_screen_end_game(SDL_Renderer *renderer, SDL_Texture **assets, SDL_Rect
         if(i == 0 || i == 7)
             SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
         
-        else if(is_server && is_multiplayer_over && (i == sel || i%2 == 1))
+        else if(((is_server && is_multiplayer_over) || !is_server) && (i == sel || i%2 == 1))
             SDL_RenderCopy(renderer, assets[i], NULL, &rectangles[i]);
 		
     }

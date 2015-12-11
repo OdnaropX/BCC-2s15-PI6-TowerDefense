@@ -665,6 +665,9 @@ void game_status(){
 					alive++;
 					winner_id = data_shared->current_user->id;
 				}
+				else {
+					data_shared->current_comm->match->lost = 1;
+				}
 				SDL_AtomicUnlock(&thread_control->lock.user);
 				temp = 0;
 				for(i = 0; i < MAX_CLIENT; i++){
@@ -703,6 +706,9 @@ void game_status(){
 					data_shared->current_comm->match->winner_id = winner_id;
 					if(winner_id != data_shared->current_user->id){
 						data_shared->current_comm->match->lost = 1;
+					}
+					else {
+						data_shared->current_comm->match->lost = 0;
 					}
 					SDL_AtomicUnlock(&thread_control->lock.comm);
 					//Close connection.//Will be closed when thread is killed.
