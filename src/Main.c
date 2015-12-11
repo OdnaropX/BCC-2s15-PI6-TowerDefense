@@ -2892,79 +2892,6 @@ bool main_init(){
     //Init stats
     reset_game_data();
     
-    //Init interface static assets(Pause button, right bar, quit multiplayer)
-	SDL_Surface *pause_surface;
-	if(windows) {
-		pause_surface = IMG_Load("images/Pause.png");
-	}
-	else {
-		pause_surface = IMG_Load("../images/Pause.png");
-	}
-	
-    if(!pause_surface){
-        printf("Falha ao carregar botão de pause! %s\n", IMG_GetError());
-        return false;
-    }
-    
-    game_interface_assets[0] = SDL_CreateTextureFromSurface(renderer, pause_surface);
-    if(!game_interface_assets[0]){
-        printf("Falha ao criar textura de botão de pause! %s\n", SDL_GetError());
-        return false;
-    }
-    
-    SDL_FreeSurface(pause_surface);
-    
-    game_interface_rects[0] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
-    
-	SDL_Surface *right_bar_surface;
-	
-	if(windows){
-		right_bar_surface = IMG_Load("images/Right Bar.png");
-	}
-	else {
-		right_bar_surface = IMG_Load("../images/Right Bar.png");
-	}
-		
-	
-    if(!right_bar_surface){
-        printf("Falha ao carregar right bar! %s\n", IMG_GetError());
-        return false;
-    }
-    
-    game_interface_assets[1] = SDL_CreateTextureFromSurface(renderer, right_bar_surface);
-    if(!game_interface_assets[1]){
-        printf("Falha ao criar textura de right bar");
-        return false;
-    }
-    
-    SDL_FreeSurface(right_bar_surface);
-    
-    game_interface_rects[1] = (SDL_Rect){1095, 0, 185, 720};
-	
-	SDL_Surface *quit_surface;
-    if(windows){
-		quit_surface = IMG_Load("images/MP_Quit.png");
-	}
-	else {
-		quit_surface = IMG_Load("../images/MP_Quit.png");
-	}
-		
-	
-    if(!quit_surface){
-        printf("Falha ao carregar botão quit! %s\n", IMG_GetError());
-        return false;
-    }
-    
-    game_interface_assets[14] = SDL_CreateTextureFromSurface(renderer, quit_surface);
-    if(!game_interface_assets[14]){
-        printf("Falha ao criar textura de botão quit! %s\n", SDL_GetError());
-        return false;
-    }
-    
-    SDL_FreeSurface(quit_surface);
-    
-    game_interface_rects[14] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
-    
 	//Init minions avaliable
 	avaliable_minions = load_minions(MINION_FILE);
 
@@ -3619,8 +3546,8 @@ void set_end_game_status_text(end_game_status end_status, int is_multiplayer){
 						break;
 					}
 				}
+                
 				if(!text){
-					len = 0;
 					text = _("YOU LOST THE GAME");
 				}
 			}
@@ -3655,6 +3582,9 @@ void set_end_game_status_text(end_game_status end_status, int is_multiplayer){
     end_game_interface_rects[7] = (SDL_Rect){265, 270, BUTTON_MENU_WIDTH * 3, BUTTON_MENU_HEIGHT * 3};
     
     SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, white);
+    
+    if(end_status == EGS_LOSE)
+        free(text);
     
     if(!surface){
         printf("(End game)Text not rendered! %s\n", TTF_GetError());
@@ -4155,6 +4085,79 @@ bool render_texts(){
         
         SDL_FreeSurface(surface);
     }
+    
+    //Init interface static assets(Pause button, right bar, quit multiplayer)
+    SDL_Surface *pause_surface;
+    if(windows) {
+        pause_surface = IMG_Load("images/Pause.png");
+    }
+    else {
+        pause_surface = IMG_Load("../images/Pause.png");
+    }
+    
+    if(!pause_surface){
+        printf("Falha ao carregar botão de pause! %s\n", IMG_GetError());
+        return false;
+    }
+    
+    game_interface_assets[0] = SDL_CreateTextureFromSurface(renderer, pause_surface);
+    if(!game_interface_assets[0]){
+        printf("Falha ao criar textura de botão de pause! %s\n", SDL_GetError());
+        return false;
+    }
+    
+    SDL_FreeSurface(pause_surface);
+    
+    game_interface_rects[0] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
+    
+    SDL_Surface *right_bar_surface;
+    
+    if(windows){
+        right_bar_surface = IMG_Load("images/Right Bar.png");
+    }
+    else {
+        right_bar_surface = IMG_Load("../images/Right Bar.png");
+    }
+    
+    
+    if(!right_bar_surface){
+        printf("Falha ao carregar right bar! %s\n", IMG_GetError());
+        return false;
+    }
+    
+    game_interface_assets[1] = SDL_CreateTextureFromSurface(renderer, right_bar_surface);
+    if(!game_interface_assets[1]){
+        printf("Falha ao criar textura de right bar");
+        return false;
+    }
+    
+    SDL_FreeSurface(right_bar_surface);
+    
+    game_interface_rects[1] = (SDL_Rect){1095, 0, 185, 720};
+    
+    SDL_Surface *quit_surface;
+    if(windows){
+        quit_surface = IMG_Load("images/MP_Quit.png");
+    }
+    else {
+        quit_surface = IMG_Load("../images/MP_Quit.png");
+    }
+    
+    
+    if(!quit_surface){
+        printf("Falha ao carregar botão quit! %s\n", IMG_GetError());
+        return false;
+    }
+    
+    game_interface_assets[14] = SDL_CreateTextureFromSurface(renderer, quit_surface);
+    if(!game_interface_assets[14]){
+        printf("Falha ao criar textura de botão quit! %s\n", SDL_GetError());
+        return false;
+    }
+    
+    SDL_FreeSurface(quit_surface);
+    
+    game_interface_rects[14] = (SDL_Rect){BUTTON_MENU_HEIGHT, 0, BUTTON_MENU_HEIGHT, BUTTON_MENU_HEIGHT};
 	
 	return true;
 	
